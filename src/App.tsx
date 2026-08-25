@@ -3,6 +3,7 @@ import { BookingForm } from "./BookingForm";
 import { ExcursionBooking } from "./ExcursionBooking";
 import { PaymentSection } from "./PaymentSection";
 import { SideMenu } from "./SideMenu";
+import { asset } from "./assets";
 import {
   about,
   bankPayment,
@@ -67,7 +68,7 @@ export default function App() {
         <div className="nav__inner">
           <a className="nav__brand" href="#top">
             <img
-              src="/ersunny-logo.png"
+              src={asset("ersunny-logo.png")}
               alt="Ersunny Travel"
               width={220}
               height={120}
@@ -126,7 +127,7 @@ export default function App() {
           <div className="hero__content">
             <img
               className="hero__logo"
-              src="/ersunny-logo.png"
+              src={asset("ersunny-logo.png")}
               alt="Ersunny Travel"
               width={640}
               height={360}
@@ -360,7 +361,7 @@ export default function App() {
             <div>
               <a className="footer__brand" href="#top">
                 <img
-                  src="/ersunny-logo.png"
+                  src={asset("ersunny-logo.png")}
                   alt="Ersunny Travel"
                   width={220}
                   height={120}
