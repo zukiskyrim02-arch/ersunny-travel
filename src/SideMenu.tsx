@@ -185,20 +185,24 @@ export function SideMenu({ open, onClose, panel, onPanelChange }: SideMenuProps)
                 </li>
                 <li>
                   <span>WhatsApp</span>
-                  {contact.whatsapp ? (
-                    <a
-                      href={`https://wa.me/${contact.whatsapp.replace(/\D/g, "")}`}
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      {contact.whatsapp}
-                    </a>
-                  ) : (
-                    <strong>{contact.whatsappLabel}</strong>
-                  )}
+                  <a
+                    href={`https://wa.me/${contact.whatsappDigits}`}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    {contact.whatsapp}
+                  </a>
                 </li>
               </ul>
-              <a className="btn btn--primary btn--full" href={`mailto:${contact.email}`}>
+              <a
+                className="btn btn--primary btn--full"
+                href={`https://wa.me/${contact.whatsappDigits}`}
+                target="_blank"
+                rel="noreferrer"
+              >
+                Escribir por WhatsApp
+              </a>
+              <a className="btn btn--ghost-dark btn--full" href={`mailto:${contact.email}`}>
                 Escribir por email
               </a>
               <a className="btn btn--ghost-dark btn--full" href="#faq" onClick={onClose}>

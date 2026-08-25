@@ -4,7 +4,6 @@ import type { Reservation } from "./reservations";
 
 type PaymentSectionProps = {
   reservation: Reservation;
-  onOpenContact?: () => void;
   onOpenTracker?: () => void;
 };
 
@@ -21,7 +20,6 @@ function formatDate(iso: string) {
 
 export function PaymentSection({
   reservation,
-  onOpenContact,
   onOpenTracker,
 }: PaymentSectionProps) {
   const [copied, setCopied] = useState(false);
@@ -132,28 +130,18 @@ export function PaymentSection({
             <small>{contact.email}</small>
           </a>
 
-          {contact.whatsapp ? (
-            <a
-              className="confirm__contact"
-              href={`https://wa.me/${contact.whatsapp.replace(/\D/g, "")}?text=${encodeURIComponent(`Hola, mi reserva es ${reservation.id}`)}`}
-              target="_blank"
-              rel="noreferrer"
-            >
-              <span className="confirm__contact-icon confirm__contact-icon--wa" aria-hidden>
-                WA
-              </span>
-              <strong>WhatsApp</strong>
-              <small>{contact.whatsapp}</small>
-            </a>
-          ) : (
-            <button type="button" className="confirm__contact" onClick={onOpenContact}>
-              <span className="confirm__contact-icon confirm__contact-icon--wa" aria-hidden>
-                WA
-              </span>
-              <strong>WhatsApp</strong>
-              <small>{contact.whatsappLabel}</small>
-            </button>
-          )}
+          <a
+            className="confirm__contact"
+            href={`https://wa.me/${contact.whatsappDigits}?text=${encodeURIComponent(`Hola, mi reserva es ${reservation.id}`)}`}
+            target="_blank"
+            rel="noreferrer"
+          >
+            <span className="confirm__contact-icon confirm__contact-icon--wa" aria-hidden>
+              WA
+            </span>
+            <strong>WhatsApp</strong>
+            <small>{contact.whatsapp}</small>
+          </a>
 
           <button type="button" className="confirm__contact" onClick={onOpenTracker}>
             <span className="confirm__contact-icon" aria-hidden>

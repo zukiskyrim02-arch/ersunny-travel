@@ -60,9 +60,13 @@ export default function App() {
       <div className="contact-bar" aria-label="Contacto rápido">
         <a href={`mailto:${contact.email}`}>{contact.email}</a>
         <span aria-hidden>·</span>
-        <button type="button" onClick={() => openMenu("contact")}>
-          WhatsApp: {contact.whatsappLabel}
-        </button>
+        <a
+          href={`https://wa.me/${contact.whatsappDigits}`}
+          target="_blank"
+          rel="noreferrer"
+        >
+          WhatsApp: {contact.whatsapp}
+        </a>
         <span aria-hidden>·</span>
         <button type="button" onClick={() => openMenu("tracker")}>
           Confirmar recogida
@@ -198,7 +202,6 @@ export default function App() {
         {latestReservation && (
           <PaymentSection
             reservation={latestReservation}
-            onOpenContact={() => openMenu("contact")}
             onOpenTracker={() => openMenu("tracker")}
           />
         )}
@@ -402,7 +405,13 @@ export default function App() {
               <div>
                 <h4>Contacto</h4>
                 <a href={`mailto:${contact.email}`}>{contact.email}</a>
-                <p>WhatsApp: {contact.whatsappLabel}</p>
+                <a
+                  href={`https://wa.me/${contact.whatsappDigits}`}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  WhatsApp {contact.whatsapp}
+                </a>
                 <button
                   type="button"
                   className="footer-link-btn"
