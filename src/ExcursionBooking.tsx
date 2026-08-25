@@ -1,5 +1,6 @@
-import { useMemo, useState, type FormEvent } from "react";
-import { excursions, hotelsByZone } from "./data";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { hotelsByZone } from "./data";
+import { useAppConfig } from "./store/hooks";
 import {
   generateReservationId,
   saveReservation,
@@ -17,7 +18,13 @@ const allHotels = [
 ];
 
 export function ExcursionBooking({ onBooked }: ExcursionBookingProps) {
-  const [selectedId, setSelectedId] = useState(excursions[0].id);
+  const config = useAppConfig();
+  const excursions = useMemo(
+    () => config.excursions.filter((e) => e.active),
+    [config.excursions],
+  );
+
+  const [selectedId, setSelectedId] = useState("");
   const [date, setDate] = useState("");
   const [passengers, setPassengers] = useState(2);
   const [hotelPickup, setHotelPickup] = useState(allHotels[0]);
@@ -26,9 +33,16 @@ export function ExcursionBooking({ onBooked }: ExcursionBookingProps) {
   const [notes, setNotes] = useState("");
   const [error, setError] = useState("");
 
+  useEffect(() => {
+    if (!excursions.length) return;
+    if (!excursions.find((e) => e.id === selectedId)) {
+      setSelectedId(excursions[0].id);
+    }
+  }, [excursions, selectedId]);
+
   const selected = useMemo(
     () => excursions.find((e) => e.id === selectedId) ?? excursions[0],
-    [selectedId],
+    [excursions, selectedId],
   );
 
   function adjustPassengers(delta: number) {
@@ -38,6 +52,10 @@ export function ExcursionBooking({ onBooked }: ExcursionBookingProps) {
   function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setError("");
+    if (!selected) {
+      setError("No hay excursiones disponibles.");
+      return;
+    }
     if (!date) {
       setError("Selecciona la fecha de la excursión.");
       return;
@@ -46,6 +64,7 @@ export function ExcursionBooking({ onBooked }: ExcursionBookingProps) {
       setError("Completa tu nombre y WhatsApp o email.");
       return;
     }
+    const unit = selected.price;
     const reservation: Reservation = {
       id: generateReservationId("excursion"),
       kind: "excursion",
@@ -58,10 +77,11 @@ export function ExcursionBooking({ onBooked }: ExcursionBookingProps) {
       passengers,
       vehicle: "Excursión grupal",
       wantReturn: false,
-      price: null,
+      price: unit == null ? null : unit * passengers,
       hotelPickup,
       notes: notes || undefined,
       createdAt: new Date().toISOString(),
+      status: "pending",
     };
     try {
       saveReservation(reservation);
@@ -69,6 +89,23 @@ export function ExcursionBooking({ onBooked }: ExcursionBookingProps) {
       /* ignore */
     }
     onBooked(reservation);
+  }
+
+  if (!excursions.length) {
+    return (
+      <section className="section section--ocean" id="excursiones">
+        <div className="container">
+          <div className="section__head">
+            <p className="section__eyebrow">Experiencias</p>
+            <h2 className="section__title">Reserva tu excursión</h2>
+            <p className="section__lead">
+              Pronto publicaremos nuevas experiencias. Mientras tanto puedes
+              reservar tu traslado.
+            </p>
+          </div>
+        </div>
+      </section>
+    );
   }
 
   return (
@@ -79,7 +116,7 @@ export function ExcursionBooking({ onBooked }: ExcursionBookingProps) {
           <h2 className="section__title">Reserva tu excursión</h2>
           <p className="section__lead">
             Elige la experiencia, la fecha y tu hotel de recogida. Al confirmar,
-            te mostramos el pago APAP. Precios oficiales: pendientes.
+            te mostramos el pago APAP.
           </p>
         </div>
 
@@ -101,6 +138,9 @@ export function ExcursionBooking({ onBooked }: ExcursionBookingProps) {
                     <p className="excursion-card__meta">{item.duration}</p>
                     <h3>{item.title}</h3>
                     <p>{item.blurb}</p>
+                    <p className="excursion-card__price">
+                      {item.price == null ? "Precio a confirmar" : `Desde $${item.price} USD / persona`}
+                    </p>
                   </div>
                 </button>
               );
@@ -110,10 +150,10 @@ export function ExcursionBooking({ onBooked }: ExcursionBookingProps) {
           <form className="booking-form excursion-form" onSubmit={handleSubmit} noValidate>
             <div className="excursion-form__selected">
               <small>Seleccionada</small>
-              <strong>{selected.title}</strong>
-              <span>{selected.duration}</span>
+              <strong>{selected?.title}</strong>
+              <span>{selected?.duration}</span>
               <ul>
-                {selected.highlights.map((h) => (
+                {selected?.highlights.map((h) => (
                   <li key={h}>{h}</li>
                 ))}
               </ul>
@@ -241,8 +281,12 @@ export function ExcursionBooking({ onBooked }: ExcursionBookingProps) {
 
             <div className="booking-form__footer">
               <div className="price-tag">
-                <small>Precio oficial</small>
-                <strong>Pendiente</strong>
+                <small>Total estimado</small>
+                <strong>
+                  {selected?.price == null
+                    ? "Pendiente"
+                    : `$${selected.price * passengers} USD`}
+                </strong>
               </div>
               <button type="submit" className="btn btn--primary">
                 Reservar excursión

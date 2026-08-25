@@ -424,7 +424,12 @@ export default function App() {
           </div>
           <div className="footer__bottom">
             <p>© {new Date().getFullYear()} Ersunny Travel · Punta Cana</p>
-            <p>RNC {bankPayment.rnc}</p>
+            <p>
+              RNC {bankPayment.rnc} ·{" "}
+              <a href="#/admin" style={{ color: "rgba(255,255,255,0.45)" }}>
+                Admin
+              </a>
+            </p>
           </div>
         </div>
       </footer>

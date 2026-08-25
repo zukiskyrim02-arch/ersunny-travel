@@ -1,12 +1,10 @@
-import { useMemo, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
 import {
   airportLabel,
   hotelsByZone,
-  vehicles,
-  zoneSurcharge,
-  type VehicleId,
   type Zone,
 } from "./data";
+import { useAppConfig } from "./store/hooks";
 import {
   generateReservationId,
   saveReservation,
@@ -35,12 +33,6 @@ function pricingZone(origin: Place, destination: Place): Zone {
   if (origin.kind === "hotel") return origin.zone;
   if (destination.kind === "hotel") return destination.zone;
   return "Punta Cana";
-}
-
-function vehicleForPassengers(n: number, current: VehicleId): VehicleId {
-  if (n > 5) return "van";
-  if (n > 3 && current === "sedan") return "suv";
-  return current;
 }
 
 function PlaceOptions() {
@@ -73,13 +65,16 @@ function PlaceOptions() {
 }
 
 export function BookingForm({ onBooked }: BookingFormProps) {
+  const config = useAppConfig();
+  const vehicles = config.vehicles;
+
   const [originKey, setOriginKey] = useState("airport");
   const [destinationKey, setDestinationKey] = useState(
     `hotel:Punta Cana:${hotelsByZone["Punta Cana"][0]}`,
   );
   const [wantReturn, setWantReturn] = useState(false);
   const [passengers, setPassengers] = useState(2);
-  const [vehicle, setVehicle] = useState<VehicleId>("suv");
+  const [vehicleId, setVehicleId] = useState(vehicles[0]?.id ?? "suv");
   const [date, setDate] = useState("");
   const [returnDate, setReturnDate] = useState("");
   const [flight, setFlight] = useState("");
@@ -91,19 +86,29 @@ export function BookingForm({ onBooked }: BookingFormProps) {
   const origin = useMemo(() => parsePlace(originKey), [originKey]);
   const destination = useMemo(() => parsePlace(destinationKey), [destinationKey]);
 
-  const recommendedVehicle = useMemo(() => {
-    if (passengers <= 3) return "sedan" as VehicleId;
-    if (passengers <= 5) return "suv" as VehicleId;
-    return "van" as VehicleId;
-  }, [passengers]);
+  const activeVehicle =
+    vehicles.find((v) => v.id === vehicleId) ??
+    vehicles.find((v) => passengers <= v.maxPassengers) ??
+    vehicles[0];
 
-  const activeVehicle = vehicles.find((v) => v.id === vehicle) ?? vehicles[1];
+  const recommendedVehicle = useMemo(() => {
+    const sorted = [...vehicles].sort((a, b) => a.maxPassengers - b.maxPassengers);
+    return sorted.find((v) => passengers <= v.maxPassengers) ?? sorted[sorted.length - 1];
+  }, [passengers, vehicles]);
 
   const price = useMemo(() => {
+    if (!activeVehicle) return 0;
     const zone = pricingZone(origin, destination);
-    const oneWay = activeVehicle.basePrice + zoneSurcharge[zone];
+    const oneWay = activeVehicle.basePrice + (config.zoneSurcharge[zone] ?? 0);
     return wantReturn ? oneWay * 2 : oneWay;
-  }, [activeVehicle, origin, destination, wantReturn]);
+  }, [activeVehicle, origin, destination, wantReturn, config.zoneSurcharge]);
+
+  // Keep selected vehicle valid when catalog changes
+  useEffect(() => {
+    if (!vehicles.find((v) => v.id === vehicleId) && vehicles[0]) {
+      setVehicleId(vehicles[0].id);
+    }
+  }, [vehicles, vehicleId]);
 
   function ensureDifferent(nextOrigin: string, nextDestination: string) {
     if (nextOrigin !== nextDestination) {
@@ -171,10 +176,17 @@ export function BookingForm({ onBooked }: BookingFormProps) {
     setDestinationKey(originKey);
   }
 
+  function pickVehicleForPassengers(n: number) {
+    const fit = [...vehicles]
+      .sort((a, b) => a.maxPassengers - b.maxPassengers)
+      .find((v) => n <= v.maxPassengers);
+    if (fit) setVehicleId(fit.id);
+  }
+
   function adjustPassengers(delta: number) {
     setPassengers((n) => {
-      const next = Math.min(10, Math.max(1, n + delta));
-      setVehicle((current) => vehicleForPassengers(next, current));
+      const next = Math.min(30, Math.max(1, n + delta));
+      pickVehicleForPassengers(next);
       return next;
     });
   }
@@ -193,6 +205,10 @@ export function BookingForm({ onBooked }: BookingFormProps) {
     }
     if (!name.trim() || !contactInfo.trim()) {
       setError("Completa tu nombre y WhatsApp o email.");
+      return;
+    }
+    if (!activeVehicle) {
+      setError("No hay vehículos configurados.");
       return;
     }
 
@@ -214,12 +230,13 @@ export function BookingForm({ onBooked }: BookingFormProps) {
       flight: flight || undefined,
       notes: notes || undefined,
       createdAt: new Date().toISOString(),
+      status: "pending",
     };
 
     try {
       saveReservation(reservation);
     } catch {
-      /* storage may be blocked; still continue */
+      /* ignore */
     }
     onBooked(reservation);
   }
@@ -283,12 +300,12 @@ export function BookingForm({ onBooked }: BookingFormProps) {
               id="passengers"
               type="number"
               min={1}
-              max={10}
+              max={30}
               value={passengers}
               onChange={(e) => {
-                const n = Math.min(10, Math.max(1, Number(e.target.value) || 1));
+                const n = Math.min(30, Math.max(1, Number(e.target.value) || 1));
                 setPassengers(n);
-                setVehicle((current) => vehicleForPassengers(n, current));
+                pickVehicleForPassengers(n);
               }}
               required
             />
@@ -296,13 +313,13 @@ export function BookingForm({ onBooked }: BookingFormProps) {
               type="button"
               aria-label="Agregar persona"
               onClick={() => adjustPassengers(1)}
-              disabled={passengers >= 10}
+              disabled={passengers >= 30}
             >
               +
             </button>
           </div>
           <p className="field-hint">
-            Sugerido: {vehicles.find((v) => v.id === recommendedVehicle)?.name}
+            Sugerido: {recommendedVehicle?.name ?? "—"}
           </p>
         </div>
 
@@ -369,22 +386,20 @@ export function BookingForm({ onBooked }: BookingFormProps) {
           <label>Vehículo</label>
           <div className="vehicle-picker" role="radiogroup" aria-label="Vehículo">
             {vehicles.map((v) => {
-              const tooSmall =
-                (v.id === "sedan" && passengers > 3) ||
-                (v.id === "suv" && passengers > 5);
+              const tooSmall = passengers > v.maxPassengers;
               return (
                 <button
                   key={v.id}
                   type="button"
                   role="radio"
-                  aria-checked={vehicle === v.id}
+                  aria-checked={vehicleId === v.id}
                   disabled={tooSmall}
-                  className={`vehicle-option${vehicle === v.id ? " is-active" : ""}`}
-                  onClick={() => setVehicle(v.id)}
+                  className={`vehicle-option${vehicleId === v.id ? " is-active" : ""}`}
+                  onClick={() => setVehicleId(v.id)}
                 >
                   <strong>{v.name}</strong>
                   <span>
-                    {v.capacity} · ref. ${v.basePrice}
+                    {v.capacity} · ${v.basePrice}
                   </span>
                 </button>
               );
@@ -436,11 +451,10 @@ export function BookingForm({ onBooked }: BookingFormProps) {
       <div className="booking-form__footer">
         <div className="price-tag">
           <small>
-            Referencia
-            {wantReturn ? " · ida y vuelta" : " · solo ida"} · precios oficiales
-            pendientes
+            Precio
+            {wantReturn ? " · ida y vuelta" : " · solo ida"}
           </small>
-          <strong>~${price} USD</strong>
+          <strong>${price} USD</strong>
         </div>
         <button type="submit" className="btn btn--primary">
           Reservar y pagar

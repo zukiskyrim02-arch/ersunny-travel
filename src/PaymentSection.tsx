@@ -200,7 +200,7 @@ export function PaymentSection({
             </div>
             <div>
               <span>Hora de recogida</span>
-              <strong>Por confirmar</strong>
+              <strong>{reservation.pickupTime || "Por confirmar"}</strong>
             </div>
           </div>
 
