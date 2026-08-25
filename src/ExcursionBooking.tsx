@@ -24,6 +24,7 @@ export function ExcursionBooking({ onBooked }: ExcursionBookingProps) {
   const [name, setName] = useState("");
   const [contactInfo, setContactInfo] = useState("");
   const [notes, setNotes] = useState("");
+  const [error, setError] = useState("");
 
   const selected = useMemo(
     () => excursions.find((e) => e.id === selectedId) ?? excursions[0],
@@ -36,15 +37,24 @@ export function ExcursionBooking({ onBooked }: ExcursionBookingProps) {
 
   function handleSubmit(e: FormEvent) {
     e.preventDefault();
+    setError("");
+    if (!date) {
+      setError("Selecciona la fecha de la excursión.");
+      return;
+    }
+    if (!name.trim() || !contactInfo.trim()) {
+      setError("Completa tu nombre y WhatsApp o email.");
+      return;
+    }
     const reservation: Reservation = {
       id: generateReservationId("excursion"),
       kind: "excursion",
-      name,
-      contactInfo,
+      name: name.trim(),
+      contactInfo: contactInfo.trim(),
       origin: hotelPickup,
       destination: selected.title,
       date,
-      time: "Pickup a confirmar",
+      time: "Por confirmar",
       passengers,
       vehicle: "Excursión grupal",
       wantReturn: false,
@@ -53,7 +63,11 @@ export function ExcursionBooking({ onBooked }: ExcursionBookingProps) {
       notes: notes || undefined,
       createdAt: new Date().toISOString(),
     };
-    saveReservation(reservation);
+    try {
+      saveReservation(reservation);
+    } catch {
+      /* ignore */
+    }
     onBooked(reservation);
   }
 
@@ -93,7 +107,7 @@ export function ExcursionBooking({ onBooked }: ExcursionBookingProps) {
             })}
           </div>
 
-          <form className="booking-form excursion-form" onSubmit={handleSubmit}>
+          <form className="booking-form excursion-form" onSubmit={handleSubmit} noValidate>
             <div className="excursion-form__selected">
               <small>Seleccionada</small>
               <strong>{selected.title}</strong>
@@ -218,6 +232,12 @@ export function ExcursionBooking({ onBooked }: ExcursionBookingProps) {
                 />
               </div>
             </div>
+
+            {error && (
+              <p className="form-error" role="alert">
+                {error}
+              </p>
+            )}
 
             <div className="booking-form__footer">
               <div className="price-tag">

@@ -81,13 +81,12 @@ export function BookingForm({ onBooked }: BookingFormProps) {
   const [passengers, setPassengers] = useState(2);
   const [vehicle, setVehicle] = useState<VehicleId>("suv");
   const [date, setDate] = useState("");
-  const [time, setTime] = useState("");
   const [returnDate, setReturnDate] = useState("");
-  const [returnTime, setReturnTime] = useState("");
   const [flight, setFlight] = useState("");
   const [name, setName] = useState("");
   const [contactInfo, setContactInfo] = useState("");
   const [notes, setNotes] = useState("");
+  const [error, setError] = useState("");
 
   const origin = useMemo(() => parsePlace(originKey), [originKey]);
   const destination = useMemo(() => parsePlace(destinationKey), [destinationKey]);
@@ -180,19 +179,34 @@ export function BookingForm({ onBooked }: BookingFormProps) {
     });
   }
 
-  function handleSubmit(e: FormEvent) {
+  function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    setError("");
+
+    if (!date) {
+      setError("Selecciona la fecha de ida.");
+      return;
+    }
+    if (wantReturn && !returnDate) {
+      setError("Selecciona la fecha de regreso.");
+      return;
+    }
+    if (!name.trim() || !contactInfo.trim()) {
+      setError("Completa tu nombre y WhatsApp o email.");
+      return;
+    }
+
     const reservation: Reservation = {
       id: generateReservationId("transfer"),
       kind: "transfer",
-      name,
-      contactInfo,
+      name: name.trim(),
+      contactInfo: contactInfo.trim(),
       origin: placeLabel(origin),
       destination: placeLabel(destination),
       date,
-      time,
+      time: "Por confirmar",
       returnDate: wantReturn ? returnDate : undefined,
-      returnTime: wantReturn ? returnTime : undefined,
+      returnTime: wantReturn ? "Por confirmar" : undefined,
       passengers,
       vehicle: activeVehicle.name,
       wantReturn,
@@ -201,12 +215,17 @@ export function BookingForm({ onBooked }: BookingFormProps) {
       notes: notes || undefined,
       createdAt: new Date().toISOString(),
     };
-    saveReservation(reservation);
+
+    try {
+      saveReservation(reservation);
+    } catch {
+      /* storage may be blocked; still continue */
+    }
     onBooked(reservation);
   }
 
   return (
-    <form className="booking-form" onSubmit={handleSubmit}>
+    <form className="booking-form" onSubmit={handleSubmit} noValidate>
       <div className="booking-form__grid">
         <div className="field field--full route-fields">
           <div className="field">
@@ -306,7 +325,7 @@ export function BookingForm({ onBooked }: BookingFormProps) {
           </button>
         </div>
 
-        <div className="field">
+        <div className={`field${wantReturn ? "" : " field--full"}`}>
           <label htmlFor="date">Fecha de ida</label>
           <input
             id="date"
@@ -315,42 +334,20 @@ export function BookingForm({ onBooked }: BookingFormProps) {
             value={date}
             onChange={(e) => setDate(e.target.value)}
           />
-        </div>
-
-        <div className="field">
-          <label htmlFor="time">Hora de ida</label>
-          <input
-            id="time"
-            type="time"
-            required
-            value={time}
-            onChange={(e) => setTime(e.target.value)}
-          />
+          <p className="field-hint">La hora de recogida la confirmamos nosotros.</p>
         </div>
 
         {wantReturn && (
-          <>
-            <div className="field">
-              <label htmlFor="return-date">Fecha de regreso</label>
-              <input
-                id="return-date"
-                type="date"
-                required
-                value={returnDate}
-                onChange={(e) => setReturnDate(e.target.value)}
-              />
-            </div>
-            <div className="field">
-              <label htmlFor="return-time">Hora de regreso</label>
-              <input
-                id="return-time"
-                type="time"
-                required
-                value={returnTime}
-                onChange={(e) => setReturnTime(e.target.value)}
-              />
-            </div>
-          </>
+          <div className="field">
+            <label htmlFor="return-date">Fecha de regreso</label>
+            <input
+              id="return-date"
+              type="date"
+              required
+              value={returnDate}
+              onChange={(e) => setReturnDate(e.target.value)}
+            />
+          </div>
         )}
 
         <div className="field field--full">
@@ -429,6 +426,12 @@ export function BookingForm({ onBooked }: BookingFormProps) {
           />
         </div>
       </div>
+
+      {error && (
+        <p className="form-error" role="alert">
+          {error}
+        </p>
+      )}
 
       <div className="booking-form__footer">
         <div className="price-tag">

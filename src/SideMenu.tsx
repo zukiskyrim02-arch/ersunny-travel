@@ -137,7 +137,7 @@ export function SideMenu({ open, onClose, panel, onPanelChange }: SideMenuProps)
                       <dt>Fecha</dt>
                       <dd>
                         {result.date}
-                        {result.kind === "transfer" ? ` · ${result.time}` : ""}
+                        {result.kind === "transfer" ? " · hora por confirmar" : ""}
                       </dd>
                     </div>
                     {result.wantReturn && result.returnDate && (
@@ -168,7 +168,7 @@ export function SideMenu({ open, onClose, panel, onPanelChange }: SideMenuProps)
                     <p className="tracker-ok" role="status">
                       {result.kind === "excursion"
                         ? `Excursión confirmada para el ${result.date}. Te avisamos la hora de pickup.`
-                        : `Hora de recogida confirmada. Te esperamos el ${result.date} a las ${result.time}.`}
+                        : `Recogida confirmada para el ${result.date}. Te enviaremos la hora exacta por email.`}
                     </p>
                   )}
                 </div>

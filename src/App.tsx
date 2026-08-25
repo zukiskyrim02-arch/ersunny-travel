@@ -38,6 +38,14 @@ export default function App() {
     };
   }, [menuOpen]);
 
+  useEffect(() => {
+    if (!latestReservation) return;
+    const id = window.setTimeout(() => {
+      document.getElementById("pago")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 120);
+    return () => window.clearTimeout(id);
+  }, [latestReservation]);
+
   function openMenu(panel: "tracker" | "contact" = "tracker") {
     setMenuPanel(panel);
     setMenuOpen(true);
@@ -45,9 +53,6 @@ export default function App() {
 
   function handleBooked(reservation: Reservation) {
     setLatestReservation(reservation);
-    window.setTimeout(() => {
-      document.getElementById("pago")?.scrollIntoView({ behavior: "smooth", block: "start" });
-    }, 80);
   }
 
   return (
@@ -81,7 +86,7 @@ export default function App() {
               <a href="#excursiones">Excursiones</a>
               <a href="#nosotros">Nosotros</a>
               <a href="#faq">FAQ</a>
-              {latestReservation && <a href="#pago">Pagar</a>}
+              {latestReservation && <a href="#pago">Confirmación</a>}
               <a className="nav__cta" href="#reservar">
                 Agendar
               </a>
@@ -190,7 +195,13 @@ export default function App() {
 
         <ExcursionBooking onBooked={handleBooked} />
 
-        {latestReservation && <PaymentSection reservation={latestReservation} />}
+        {latestReservation && (
+          <PaymentSection
+            reservation={latestReservation}
+            onOpenContact={() => openMenu("contact")}
+            onOpenTracker={() => openMenu("tracker")}
+          />
+        )}
 
         <section className="section section--sand" id="destinos">
           <div className="container">
@@ -377,7 +388,7 @@ export default function App() {
                 <h4>Explorar</h4>
                 <a href="#reservar">Traslados</a>
                 <a href="#excursiones">Excursiones</a>
-                {latestReservation && <a href="#pago">Pagar</a>}
+                {latestReservation && <a href="#pago">Confirmación</a>}
                 <a href="#nosotros">Nosotros</a>
                 <a href="#faq">FAQ</a>
                 <button

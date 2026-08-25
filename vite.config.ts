@@ -1,8 +1,8 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 
-// https://vite.dev/config/
-export default defineConfig({
+// Local: /  ·  GitHub Pages build: /ersunny-travel/
+export default defineConfig(({ command }) => ({
   plugins: [react()],
-  base: "/ersunny-travel/",
-});
+  base: command === "build" ? "/ersunny-travel/" : "/",
+}));
