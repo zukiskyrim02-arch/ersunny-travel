@@ -116,7 +116,7 @@ export function ExcursionBooking({ onBooked }: ExcursionBookingProps) {
           <h2 className="section__title">Reserva tu excursión</h2>
           <p className="section__lead">
             Elige la experiencia, la fecha y tu hotel de recogida. Al confirmar,
-            te mostramos el pago APAP.
+            te mostramos Pago Azul para cobrar con tarjeta.
           </p>
         </div>
 

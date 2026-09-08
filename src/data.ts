@@ -62,7 +62,7 @@ export const faqs = [
   },
   {
     q: "What payment options do I have?",
-    a: "We accept credit cards, PayPal, and bank transfers (APAP).",
+    a: "We accept credit cards via Pago Azul, and bank transfers (APAP) as an alternative.",
   },
   {
     q: "How do I find Ersunny Travel at the airport?",
@@ -182,7 +182,7 @@ export const steps = [
   },
   {
     title: "Paga de inmediato",
-    copy: "Te redirigimos a los datos bancarios APAP con tu número de reserva.",
+    copy: "Te redirigimos a Pago Azul para cobrar con tarjeta de forma segura.",
   },
   {
     title: "Confirma tu recogida",
@@ -193,56 +193,62 @@ export const steps = [
 export const excursions = [
   {
     id: "saona",
-    title: "Isla Saona",
-    duration: "Día completo",
-    blurb: "Arena blanca, aguas turquesa y almuerzo buffet en paraíso caribeño.",
+    title: "Saona Island",
+    duration: "Full day",
+    price: 65,
+    blurb: "White sand, turquoise water and buffet lunch in a Caribbean paradise.",
     image:
       "https://images.unsplash.com/photo-1559128010-7c1ad6e1b6a5?auto=format&fit=crop&w=1200&q=80",
-    highlights: ["Catamarán o speedboat", "Piscina natural", "Almuerzo incluido"],
+    highlights: ["Catamaran or speedboat", "Natural pool", "Lunch included"],
   },
   {
     id: "catalina",
-    title: "Isla Catalina",
-    duration: "Día completo",
-    blurb: "Snorkel en arrecife, playa virgen y ambiente relajado cerca de Bayahibe.",
+    title: "Catalina Island",
+    duration: "Full day",
+    price: 65,
+    blurb: "Reef snorkeling, virgin beach and a relaxed vibe near Bayahibe.",
     image:
       "https://images.unsplash.com/photo-1544551763-77ef2d0cfc6c?auto=format&fit=crop&w=1200&q=80",
-    highlights: ["Snorkel", "Playa privada", "Transporte hotel"],
-  },
-  {
-    id: "santo-domingo",
-    title: "Santo Domingo City Tour",
-    duration: "Día completo",
-    blurb: "Zona Colonial, historia y cultura de la primera ciudad del Nuevo Mundo.",
-    image:
-      "https://images.unsplash.com/photo-1518639192441-8fce0a366e2e?auto=format&fit=crop&w=1200&q=80",
-    highlights: ["Catedral Primada", "Calle Las Damas", "Guía local"],
+    highlights: ["Snorkel", "Private beach", "Hotel pickup"],
   },
   {
     id: "scape-park",
-    title: "Scape Park · Hoyo Azul",
-    duration: "Medio día / día",
-    blurb: "Cenote Hoyo Azul, tirolesas y aventura en Cap Cana.",
+    title: "Scape Park",
+    duration: "Half day",
+    price: 85,
+    blurb: "Hoyo Azul cenote, zip lines and adventure in Cap Cana.",
     image:
       "https://images.unsplash.com/photo-1501555088652-021faa106b9b?auto=format&fit=crop&w=1200&q=80",
-    highlights: ["Hoyo Azul", "Aventura", "Ideal familias"],
+    highlights: ["Hoyo Azul", "Adventure", "Family friendly"],
+  },
+  {
+    id: "buggies",
+    title: "Buggies",
+    duration: "Half day",
+    price: 55,
+    blurb: "Off-road fun through countryside trails, cenotes and local villages.",
+    image:
+      "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&w=1200&q=80",
+    highlights: ["Off-road", "Cenotes", "Photo stops"],
+  },
+  {
+    id: "santo-domingo",
+    title: "Santo Domingo",
+    duration: "Full day",
+    price: 75,
+    blurb: "Colonial Zone, history and culture of the first city of the New World.",
+    image:
+      "https://images.unsplash.com/photo-1518639192441-8fce0a366e2e?auto=format&fit=crop&w=1200&q=80",
+    highlights: ["Cathedral", "Calle Las Damas", "Local guide"],
   },
   {
     id: "catamaran",
-    title: "Catamarán Party",
-    duration: "Medio día",
-    blurb: "Música, bar a bordo y snorkel en la costa de Punta Cana.",
+    title: "Catamaran Party",
+    duration: "Half day",
+    price: 60,
+    blurb: "Music, onboard bar and snorkel along the Punta Cana coast.",
     image:
       "https://images.unsplash.com/photo-1567899378494-47b22a2ae96a?auto=format&fit=crop&w=1200&q=80",
-    highlights: ["Open bar", "Snorkel", "Ambiente festivo"],
-  },
-  {
-    id: "monkeyland",
-    title: "Monkeyland & Exotic Park",
-    duration: "Medio día",
-    blurb: "Interacción con primates y naturaleza en un entorno controlado.",
-    image:
-      "https://images.unsplash.com/photo-1540573133985-87b6da6d54a9?auto=format&fit=crop&w=1200&q=80",
-    highlights: ["Familias", "Naturaleza", "Pickup hotel"],
+    highlights: ["Open bar", "Snorkel", "Party vibe"],
   },
 ];

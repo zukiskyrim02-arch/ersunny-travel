@@ -4,6 +4,7 @@ import {
   zoneSurcharge as defaultZoneSurcharge,
   type Zone,
 } from "../data";
+import { defaultAzulConfig, type AzulConfig } from "../payments/azul";
 
 export type ManagedVehicle = {
   id: string;
@@ -28,6 +29,7 @@ export type AppConfig = {
   vehicles: ManagedVehicle[];
   zoneSurcharge: Record<Zone, number>;
   excursions: ManagedExcursion[];
+  azul: AzulConfig;
 };
 
 const CONFIG_KEY = "ersunny-config-v1";
@@ -45,9 +47,10 @@ export function defaultConfig(): AppConfig {
     zoneSurcharge: { ...defaultZoneSurcharge },
     excursions: defaultExcursions.map((e) => ({
       ...e,
-      price: null,
+      price: "price" in e ? (e.price as number | null) : null,
       active: true,
     })),
+    azul: defaultAzulConfig(),
   };
 }
 
@@ -55,16 +58,32 @@ export function getConfig(): AppConfig {
   try {
     const raw = localStorage.getItem(CONFIG_KEY);
     if (!raw) return defaultConfig();
-    const parsed = JSON.parse(raw) as AppConfig;
+    const parsed = JSON.parse(raw) as Partial<AppConfig>;
+    const base = defaultConfig();
     return {
-      vehicles: parsed.vehicles?.length ? parsed.vehicles : defaultConfig().vehicles,
+      vehicles: parsed.vehicles?.length ? parsed.vehicles : base.vehicles,
       zoneSurcharge: {
-        ...defaultConfig().zoneSurcharge,
+        ...base.zoneSurcharge,
         ...parsed.zoneSurcharge,
       },
-      excursions: parsed.excursions?.length
-        ? parsed.excursions
-        : defaultConfig().excursions,
+      excursions: (() => {
+        const list = parsed.excursions?.length
+          ? parsed.excursions
+          : base.excursions;
+        return list.map((e) => {
+          const def = base.excursions.find((d) => d.id === e.id);
+          return {
+            ...def,
+            ...e,
+            price: e.price ?? def?.price ?? null,
+            duration: e.duration || def?.duration || "",
+            title: e.title || def?.title || "",
+            image: e.image || def?.image || "",
+            active: e.active ?? true,
+          };
+        });
+      })(),
+      azul: { ...base.azul, ...parsed.azul },
     };
   } catch {
     return defaultConfig();

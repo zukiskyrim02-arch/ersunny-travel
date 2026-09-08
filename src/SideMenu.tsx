@@ -211,7 +211,7 @@ export function SideMenu({ open, onClose, panel, onPanelChange }: SideMenuProps)
               <a className="btn btn--ghost-dark btn--full" href={`mailto:${contact.email}`}>
                 Escribir por email
               </a>
-              <a className="btn btn--ghost-dark btn--full" href="#faq" onClick={onClose}>
+              <a className="btn btn--ghost-dark btn--full" href="#/about/faq" onClick={onClose}>
                 Ver preguntas frecuentes
               </a>
             </div>

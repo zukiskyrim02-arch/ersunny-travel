@@ -19,8 +19,16 @@ import {
 } from "../reservations";
 import type { Zone } from "../data";
 import { asset } from "../assets";
+import type { AzulConfig } from "../payments/azul";
+import { azulPaymentUrl } from "../payments/azul";
 
-type Tab = "overview" | "prices" | "vehicles" | "excursions" | "reservations";
+type Tab =
+  | "overview"
+  | "prices"
+  | "vehicles"
+  | "excursions"
+  | "reservations"
+  | "azul";
 
 const statusLabel: Record<ReservationStatus, string> = {
   pending: "Pendiente",
@@ -119,6 +127,7 @@ export function AdminApp() {
               ["vehicles", "Vehículos / tipos"],
               ["excursions", "Excursiones"],
               ["reservations", "Reservas"],
+              ["azul", "Pago Azul"],
             ] as const
           ).map(([id, label]) => (
             <button
@@ -214,6 +223,12 @@ export function AdminApp() {
         )}
 
         {tab === "reservations" && <ReservationsTab />}
+        {tab === "azul" && (
+          <AzulTab
+            value={draft.azul}
+            onChange={(azul) => persist({ ...draft, azul })}
+          />
+        )}
       </main>
     </div>
   );
@@ -613,6 +628,120 @@ function ReservationsTab() {
           ))}
         </div>
       )}
+    </section>
+  );
+}
+
+function AzulTab({
+  value,
+  onChange,
+}: {
+  value: AzulConfig;
+  onChange: (v: AzulConfig) => void;
+}) {
+  function patch(partial: Partial<AzulConfig>) {
+    onChange({ ...value, ...partial });
+  }
+
+  return (
+    <section>
+      <h1>Pago Azul</h1>
+      <p className="admin-lead">
+        Credenciales de la Página de Pagos AZUL (Banco Popular). Las obtienes al
+        afiliarte en{" "}
+        <a href="https://www.azul.com.do" target="_blank" rel="noreferrer">
+          azul.com.do
+        </a>
+        .
+      </p>
+
+      <div className="admin-edit-card admin-edit-card--wide">
+        <label className="admin-check">
+          <input
+            type="checkbox"
+            checked={value.enabled}
+            onChange={(e) => patch({ enabled: e.target.checked })}
+          />
+          Habilitar cobros con Pago Azul
+        </label>
+
+        <div className="admin-edit-card__row">
+          <label>
+            Ambiente
+            <select
+              value={value.env}
+              onChange={(e) =>
+                patch({ env: e.target.value as AzulConfig["env"] })
+              }
+            >
+              <option value="test">Pruebas</option>
+              <option value="production">Producción</option>
+            </select>
+          </label>
+          <label>
+            Merchant ID
+            <input
+              value={value.merchantId}
+              onChange={(e) => patch({ merchantId: e.target.value })}
+              placeholder="Asignado por AZUL"
+            />
+          </label>
+          <label>
+            Merchant Name
+            <input
+              value={value.merchantName}
+              onChange={(e) => patch({ merchantName: e.target.value })}
+            />
+          </label>
+          <label>
+            Merchant Type
+            <input
+              value={value.merchantType}
+              onChange={(e) => patch({ merchantType: e.target.value })}
+              placeholder="ECommerce"
+            />
+          </label>
+        </div>
+
+        <div className="admin-edit-card__row">
+          <label>
+            Currency Code
+            <input
+              value={value.currencyCode}
+              onChange={(e) => patch({ currencyCode: e.target.value })}
+              placeholder="$"
+            />
+          </label>
+          <label>
+            ITBIS (formato Azul)
+            <input
+              value={value.itbis}
+              onChange={(e) => patch({ itbis: e.target.value })}
+              placeholder="000 = exento"
+            />
+          </label>
+          <label>
+            AuthKey (secreto)
+            <input
+              type="password"
+              value={value.authKey}
+              onChange={(e) => patch({ authKey: e.target.value })}
+              placeholder="Entregado por AZUL"
+              autoComplete="off"
+            />
+          </label>
+        </div>
+
+        <p className="admin-note">
+          URL de pago: <code>{azulPaymentUrl(value.env)}</code>
+          <br />
+          Approved / Declined / Cancel apuntan automáticamente a este sitio con{" "}
+          <code>?azul=approved|declined|cancel</code>.
+          <br />
+          Nota: en un sitio estático el AuthKey queda en el navegador. Cuando
+          tengas backend, muévelo al servidor.
+        </p>
+      </div>
     </section>
   );
 }
