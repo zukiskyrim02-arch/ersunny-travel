@@ -3,9 +3,9 @@
   --navy-deep: #061833;
   --blue: #1a6dff;
   --yellow: #f5c518;
-  --green-wa: #25d366;
+  --green-wa: #0f8a5f;
   --ink: #0f172a;
-  --muted: #64748b;
+  --muted: #475569;
   --bg: #ffffff;
   --soft: #f4f7fb;
   --border: #e2e8f0;
@@ -17,8 +17,8 @@
   --ease: cubic-bezier(0.22, 1, 0.36, 1);
   --shadow-sm: 0 8px 24px rgba(10, 35, 66, 0.08);
   --shadow: 0 18px 45px rgba(10, 35, 66, 0.12);
-  --header-h: 78px;
-  --nav-h: 78px;
+  --header-h: 88px;
+  --nav-h: 88px;
   --contact-bar-h: 0px;
 }
 
@@ -32,6 +32,41 @@
 
 html {
   scroll-behavior: smooth;
+}
+
+.skip-link {
+  position: absolute;
+  left: 1rem;
+  top: -100px;
+  z-index: 10000;
+  padding: 0.65rem 1rem;
+  border-radius: 8px;
+  background: var(--yellow);
+  color: var(--navy-deep);
+  font-weight: 800;
+  box-shadow: var(--shadow-sm);
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+:focus-visible {
+  outline: 3px solid var(--blue);
+  outline-offset: 2px;
+}
+
+button:focus:not(:focus-visible),
+a:focus:not(:focus-visible) {
+  outline: none;
 }
 
 body {
@@ -138,7 +173,24 @@ ul {
 .site-header__logo img,
 .nav__brand img {
   width: auto;
-  height: 52px;
+  height: 64px;
+  aspect-ratio: 1 / 1;
+  object-fit: contain;
+  display: block;
+}
+
+.site-footer__logo {
+  display: inline-flex;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.site-footer__logo img {
+  width: auto;
+  height: 96px;
+  aspect-ratio: 1 / 1;
+  object-fit: contain;
+  display: block;
 }
 
 .site-header__actions {
@@ -1704,7 +1756,7 @@ ul {
 }
 
 .drawer__head {
-  min-height: 76px;
+  min-height: 88px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -1715,7 +1767,10 @@ ul {
 
 .drawer__head img {
   width: auto;
-  height: 50px;
+  height: 64px;
+  aspect-ratio: 1 / 1;
+  object-fit: contain;
+  display: block;
 }
 
 .drawer__close {
@@ -2532,7 +2587,7 @@ ul {
 .site-footer,
 .footer {
   padding: 4.5rem 0 1.5rem;
-  color: rgba(255, 255, 255, 0.68);
+  color: rgba(255, 255, 255, 0.86);
   background: var(--navy-deep);
 }
 
@@ -2544,6 +2599,7 @@ ul {
 }
 
 .site-footer h4,
+.site-footer__heading,
 .footer__cols h4 {
   margin-bottom: 0.9rem;
   color: var(--white);
@@ -2558,7 +2614,7 @@ ul {
 .footer-link-btn {
   display: block;
   margin-bottom: 0.42rem;
-  color: rgba(255, 255, 255, 0.66);
+  color: rgba(255, 255, 255, 0.88);
   font-size: 0.84rem;
   text-align: left;
   transition: color 0.2s ease;
@@ -2567,7 +2623,7 @@ ul {
 .site-footer a:hover,
 .footer__cols a:hover,
 .footer-link-btn:hover {
-  color: var(--yellow);
+  color: #ffe08a;
 }
 
 .site-footer__bottom,
@@ -2576,9 +2632,9 @@ ul {
   justify-content: space-between;
   gap: 1rem;
   padding-top: 1.25rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  color: rgba(255, 255, 255, 0.42);
-  font-size: 0.76rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 0.8rem;
 }
 
 .footer__top {
@@ -2789,13 +2845,17 @@ ul {
 
 @media (max-width: 600px) {
   :root {
-    --header-h: 70px;
-    --nav-h: 70px;
+    --header-h: 78px;
+    --nav-h: 78px;
   }
 
   .site-header__logo img,
   .nav__brand img {
-    height: 46px;
+    height: 54px;
+  }
+
+  .site-footer__logo img {
+    height: 84px;
   }
 
   .lang-switch {

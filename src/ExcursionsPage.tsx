@@ -3,7 +3,7 @@ import { ExcursionBooking } from "./ExcursionBooking";
 import { PaymentSection } from "./PaymentSection";
 import { SideMenu } from "./SideMenu";
 import { asset } from "./assets";
-import { bankPayment, contact } from "./data";
+import { contact } from "./data";
 import type { Reservation } from "./reservations";
 
 const waBookHref = `https://wa.me/${contact.whatsappDigits}?text=${encodeURIComponent(
@@ -49,12 +49,16 @@ export function ExcursionsPage() {
     <>
       <header className="site-header">
         <div className="site-header__inner">
-          <a className="site-header__logo" href="#/">
+          <a
+            className="site-header__logo"
+            href="/"
+            aria-label="Ersunny Travel home"
+          >
             <img
               src={asset("ersunny-logo.png")}
               alt="Ersunny Travel"
               width={160}
-              height={72}
+              height={160}
             />
           </a>
 
@@ -62,23 +66,23 @@ export function ExcursionsPage() {
             className={`site-nav${navOpen ? " is-open" : ""}`}
             aria-label="Main"
           >
-            <a href="#/" onClick={() => setNavOpen(false)}>
+            <a href="/" onClick={() => setNavOpen(false)}>
               Home
             </a>
-            <a href="#servicios" onClick={() => setNavOpen(false)}>
+            <a href="/#servicios" onClick={() => setNavOpen(false)}>
               Transfers
             </a>
             <a
-              href="#/excursions"
+              href="/excursions"
               className="is-active"
               onClick={() => setNavOpen(false)}
             >
               Excursions
             </a>
-            <a href="#/about" onClick={() => setNavOpen(false)}>
+            <a href="/about" onClick={() => setNavOpen(false)}>
               About Us
             </a>
-            <a href="#/contact" onClick={() => setNavOpen(false)}>
+            <a href="/contact" onClick={() => setNavOpen(false)}>
               Contact
             </a>
             {latestReservation && (
@@ -138,7 +142,7 @@ export function ExcursionsPage() {
         onPanelChange={setMenuPanel}
       />
 
-      <main className="excursions-page">
+      <main id="main-content" className="excursions-page">
         <ExcursionBooking onBooked={setLatestReservation} />
         {latestReservation && (
           <PaymentSection
@@ -151,32 +155,35 @@ export function ExcursionsPage() {
       <footer className="site-footer" id="contacto">
         <div className="container site-footer__grid">
           <div>
-            <a href="#/" className="site-footer__logo">
+            <a href="/" className="site-footer__logo" aria-label="Ersunny Travel home">
               <img
                 src={asset("ersunny-logo.png")}
                 alt="Ersunny Travel"
                 width={160}
-                height={72}
+                height={160}
               />
             </a>
-            <p>Your trip, our priority.</p>
+            <p>
+              Private transfers &amp; excursions in Punta Cana, Bávaro &amp;
+              Macao.
+            </p>
           </div>
           <div>
-            <h4>Services</h4>
-            <a href="#servicios">Transfers</a>
-            <a href="#/excursions">Excursions</a>
-            <a href="#/about">About us</a>
-            <a href="#/contact">Contact</a>
+            <p className="site-footer__heading">Services</p>
+            <a href="/#servicios">Transfers</a>
+            <a href="/excursions">Excursions</a>
+            <a href="/about">About us</a>
+            <a href="/contact">Contact</a>
           </div>
           <div>
-            <h4>Information</h4>
-            <a href="#/about/faq">FAQs</a>
+            <p className="site-footer__heading">Information</p>
+            <a href="/about/faq">FAQs</a>
             <button type="button" onClick={() => openMenu("tracker")}>
               Confirm pickup
             </button>
           </div>
           <div>
-            <h4>Contact</h4>
+            <p className="site-footer__heading">Contact</p>
             <a
               href={`https://wa.me/${contact.whatsappDigits}`}
               target="_blank"
@@ -190,7 +197,7 @@ export function ExcursionsPage() {
         </div>
         <div className="container site-footer__bottom">
           <p>
-            © {new Date().getFullYear()} Ersunny Travel · RNC {bankPayment.rnc}
+            © {new Date().getFullYear()} Ersunny Travel · designed By Ismakun
           </p>
         </div>
       </footer>
@@ -200,7 +207,7 @@ export function ExcursionsPage() {
         href={waBookHref}
         target="_blank"
         rel="noreferrer"
-        aria-label="WhatsApp"
+        aria-label="Chat on WhatsApp"
       >
         <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
           <path d="M17.5 14.4c-.3-.1-1.6-.8-1.8-.9-.2-.1-.4-.1-.6.1-.2.3-.7.9-.8 1-.2.1-.3.2-.6.1-1.6-.6-2.9-1.7-3.8-3.2-.1-.2 0-.3.1-.5l.5-.6c.1-.2.2-.3.1-.5s-.6-1.5-.8-2c-.2-.5-.4-.4-.6-.4h-.5c-.2 0-.5.1-.7.3-.2.3-.9.9-.9 2.1s.9 2.4 1 2.6c.1.2 1.8 2.9 4.4 3.9 1.6.6 2.2.7 3 .6.5-.1 1.6-.6 1.8-1.3.2-.6.2-1.2.1-1.3-.1-.1-.3-.2-.6-.3Z" />

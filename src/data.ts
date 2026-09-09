@@ -6,8 +6,8 @@ export const airportLabel = "Punta Cana Airport (PUJ)";
 
 export const contact = {
   email: "contact@ersunnytravel.com",
-  whatsapp: "+1 809 609 4729",
-  whatsappDigits: "18096094729",
+  whatsapp: "+1 809 671 0965",
+  whatsappDigits: "18096710965",
 };
 
 export const bankPayment = {

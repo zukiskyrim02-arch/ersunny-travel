@@ -52,7 +52,7 @@ export function SideMenu({ open, onClose, panel, onPanelChange }: SideMenuProps)
         aria-label="Ersunny menu"
       >
         <div className="drawer__head">
-          <img src={asset("ersunny-logo.png")} alt="Ersunny Travel" width={160} height={90} />
+          <img src={asset("ersunny-logo.png")} alt="Ersunny Travel" width={160} height={160} />
           <button type="button" className="drawer__close" onClick={onClose} aria-label="Close">
             ✕
           </button>
@@ -211,7 +211,7 @@ export function SideMenu({ open, onClose, panel, onPanelChange }: SideMenuProps)
               <a className="btn btn--ghost-dark btn--full" href={`mailto:${contact.email}`}>
                 Email us
               </a>
-              <a className="btn btn--ghost-dark btn--full" href="#/about/faq" onClick={onClose}>
+              <a className="btn btn--ghost-dark btn--full" href="/about/faq" onClick={onClose}>
                 View FAQs
               </a>
             </div>

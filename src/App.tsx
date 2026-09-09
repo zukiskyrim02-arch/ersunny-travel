@@ -2,14 +2,16 @@ import { useEffect, useState } from "react";
 import { QuoteForm } from "./QuoteForm";
 import { SideMenu } from "./SideMenu";
 import { asset } from "./assets";
-import { bankPayment, contact, excursions as showcaseExcursions } from "./data";
+import { contact, excursions as showcaseExcursions } from "./data";
 
-const HERO_IMG = asset("hero-cover.jpg");
+const HERO_IMG = asset("hero-cover.webp");
+const HERO_IMG_FALLBACK = asset("hero-cover.jpg");
 const BEACH_IMG =
-  "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=2000&q=80";
-const TRANSFER_IMG = asset("transfer-van.jpg");
+  "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=2000&q=80&fm=webp";
+const TRANSFER_IMG = asset("transfer-van.webp");
+const TRANSFER_IMG_FALLBACK = asset("transfer-van.jpg");
 const EXCURSION_IMG =
-  "https://images.unsplash.com/photo-1567899378494-47b22a2ae96a?auto=format&fit=crop&w=1200&q=80";
+  "https://images.unsplash.com/photo-1567899378494-47b22a2ae96a?auto=format&fit=crop&w=1200&q=80&fm=webp";
 
 const trustItems = [
   {
@@ -164,12 +166,12 @@ export default function App() {
     <>
       <header className="site-header">
         <div className="site-header__inner">
-          <a className="site-header__logo" href="#/">
+          <a className="site-header__logo" href="/" aria-label="Ersunny Travel home">
             <img
               src={asset("ersunny-logo.png")}
               alt="Ersunny Travel"
               width={160}
-              height={72}
+              height={160}
             />
           </a>
 
@@ -177,19 +179,19 @@ export default function App() {
             className={`site-nav${navOpen ? " is-open" : ""}`}
             aria-label="Main"
           >
-            <a href="#/" className="is-active" onClick={() => setNavOpen(false)}>
+            <a href="/" className="is-active" onClick={() => setNavOpen(false)}>
               Home
             </a>
-            <a href="#servicios" onClick={() => setNavOpen(false)}>
+            <a href="/#servicios" onClick={() => setNavOpen(false)}>
               Transfers
             </a>
-            <a href="#/excursions" onClick={() => setNavOpen(false)}>
+            <a href="/excursions" onClick={() => setNavOpen(false)}>
               Excursions
             </a>
-            <a href="#/about" onClick={() => setNavOpen(false)}>
+            <a href="/about" onClick={() => setNavOpen(false)}>
               About Us
             </a>
-            <a href="#/contact" onClick={() => setNavOpen(false)}>
+            <a href="/contact" onClick={() => setNavOpen(false)}>
               Contact
             </a>
             <button
@@ -244,26 +246,36 @@ export default function App() {
         onPanelChange={setMenuPanel}
       />
 
-      <main id="top">
-        <section className="hero-new" aria-label="Home">
-          <div className="hero-new__media" aria-hidden>
-            <img src={HERO_IMG} alt="" width={2000} height={1200} />
+      <main id="main-content">
+        <section className="hero-new" aria-label="Punta Cana airport transfers">
+          <div className="hero-new__media">
+            <picture>
+              <source srcSet={HERO_IMG} type="image/webp" />
+              <img
+                src={HERO_IMG_FALLBACK}
+                alt="Private transfer ready at Punta Cana Airport for hotel drop-off"
+                width={1600}
+                height={960}
+                fetchPriority="high"
+                decoding="async"
+              />
+            </picture>
           </div>
           <div className="hero-new__overlay" aria-hidden />
           <div className="hero-new__content">
             <p className="hero-new__eyebrow">
-              Private transfers &amp; excursions in Punta Cana
+              Affordable &amp; luxury airport transfers · Punta Cana, Bávaro &amp; Macao
             </p>
             <h1 className="hero-new__title">
-              Your arrival in <em>Punta Cana</em>, without worries.
+              Punta Cana airport transfers <em>without worries</em>
             </h1>
             <p className="hero-new__sub">
-              Private transfers from Punta Cana airport to your hotel,
-              excursions to the best destinations and personalized attention,
-              all in one place.
+              Private transfers from Punta Cana Airport (PUJ) to hotels in Punta
+              Cana, Bávaro, and Macao — budget-friendly or luxury vehicles — plus
+              excursions and WhatsApp support in one place.
             </p>
             <div className="hero-new__actions">
-              <a className="btn-yellow" href="#cotizar">
+              <a className="btn-yellow" href="/#cotizar">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
                   <path
                     d="M5 16h14l-1.2-4.2A2 2 0 0 0 15.9 10H8.1a2 2 0 0 0-1.9 1.8L5 16Z"
@@ -279,7 +291,7 @@ export default function App() {
                 </svg>
                 Book Your Transfer
               </a>
-              <a className="btn-ghost-light" href="#/excursions">
+              <a className="btn-ghost-light" href="/excursions">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
                   <circle cx="12" cy="12" r="8" stroke="currentColor" strokeWidth="1.7" />
                   <path d="m12 8 2 4 4 .5-3 2.7.8 4.3L12 17l-3.8 2.5.8-4.3-3-2.7L10 12l2-4Z" stroke="currentColor" strokeWidth="1.4" />
@@ -320,7 +332,9 @@ export default function App() {
           <div className="container">
             <div className="section__head">
               <p className="section__eyebrow">Our services</p>
-              <h2 className="section__title">Everything you need in one place</h2>
+              <h2 className="section__title">
+                Private transfers &amp; excursions in Punta Cana
+              </h2>
               <p className="section__lead">
                 Transfers and excursions designed to make your trip unforgettable.
               </p>
@@ -329,13 +343,16 @@ export default function App() {
             <div className="services-grid">
               <article className="service-card">
                 <div className="service-card__img">
-                  <img
-                    src={TRANSFER_IMG}
-                    alt="Ersunny Travel private transfer van"
-                    loading="lazy"
-                    width={800}
-                    height={480}
-                  />
+                  <picture>
+                    <source srcSet={TRANSFER_IMG} type="image/webp" />
+                    <img
+                      src={TRANSFER_IMG_FALLBACK}
+                      alt="Private van for Punta Cana airport transfers to Bávaro and Macao hotels"
+                      loading="lazy"
+                      width={800}
+                      height={480}
+                    />
+                  </picture>
                 </div>
                 <div className="service-card__body">
                   <div className="service-card__top">
@@ -354,7 +371,7 @@ export default function App() {
                     <li>Professional drivers</li>
                     <li>On-time service</li>
                   </ul>
-                  <a className="service-card__link" href="#cotizar">
+                  <a className="service-card__link" href="/#cotizar">
                     Book a Transfer →
                   </a>
                 </div>
@@ -407,7 +424,7 @@ export default function App() {
                     <li>Scape Park</li>
                     <li>Buggies, Santo Domingo and more...</li>
                   </ul>
-                  <a className="service-card__link" href="#/excursions">
+                  <a className="service-card__link" href="/excursions">
                     View Excursions →
                   </a>
                 </div>
@@ -423,14 +440,14 @@ export default function App() {
           <div className="quote-band__inner container">
             <div className="quote-band__copy">
               <p className="section__eyebrow section__eyebrow--light">
-                Quick &amp; easy booking
+                Quote your Punta Cana transfer
               </p>
               <h2>
-                Fast, simple and <em>secure</em>
+                Airport to hotel — <em>fast &amp; secure</em>
               </h2>
               <p>
-                Tell us what you need and we will take care of the rest — usually
-                with a reply in minutes on WhatsApp.
+                Tell us your flight and hotel in Punta Cana, Bávaro, or Macao.
+                We reply on WhatsApp with an affordable or luxury vehicle option.
               </p>
               <ul className="quote-perks">
                 <li>Response in minutes</li>
@@ -448,10 +465,12 @@ export default function App() {
           <div className="container">
             <div className="excursions-head">
               <div>
-                <p className="section__eyebrow">Popular excursions</p>
-                <h2 className="section__title">Live unique experiences</h2>
+                <p className="section__eyebrow">Popular Punta Cana excursions</p>
+                <h2 className="section__title">
+                  Tours &amp; experiences with hotel pickup
+                </h2>
               </div>
-              <a className="service-card__link" href="#/excursions">
+              <a className="service-card__link" href="/excursions">
                 View all excursions →
               </a>
             </div>
@@ -462,7 +481,7 @@ export default function App() {
                   <div className="excursion-card__img">
                     <img
                       src={item.image}
-                      alt=""
+                      alt={`${item.title} excursion in Punta Cana`}
                       loading="lazy"
                       width={480}
                       height={320}
@@ -505,7 +524,7 @@ export default function App() {
                         </span>
                       </li>
                     </ul>
-                    <a className="btn-blue" href="#/excursions">
+                    <a className="btn-blue" href="/excursions">
                       View details
                     </a>
                   </div>
@@ -523,11 +542,20 @@ export default function App() {
             <div className="testimonials">
               {testimonials.map((t) => (
                 <article className="testimonial-card" key={t.name}>
-                  <img src={t.avatar} alt="" width={64} height={64} loading="lazy" />
-                  <div className="testimonial-card__stars" aria-label="5 stars">
+                  <img
+                    src={t.avatar}
+                    alt={`Photo of ${t.name}`}
+                    width={64}
+                    height={64}
+                    loading="lazy"
+                  />
+                  <div className="testimonial-card__stars" aria-hidden="true">
                     {"★★★★★"}
                   </div>
-                  <p>“{t.quote}”</p>
+                  <p>
+                    <span className="visually-hidden">5 out of 5 stars. </span>
+                    “{t.quote}”
+                  </p>
                   <strong>
                     {t.name} — {t.place}
                   </strong>
@@ -541,32 +569,32 @@ export default function App() {
       <footer className="site-footer" id="contacto">
         <div className="container site-footer__grid">
           <div>
-            <a href="#/" className="site-footer__logo">
+            <a href="/" className="site-footer__logo" aria-label="Ersunny Travel home">
               <img
                 src={asset("ersunny-logo.png")}
                 alt="Ersunny Travel"
                 width={160}
-                height={72}
+                height={160}
               />
             </a>
-            <p>Your trip, our priority.</p>
+            <p>Private transfers &amp; excursions in Punta Cana, Bávaro &amp; Macao.</p>
           </div>
           <div>
-            <h4>Services</h4>
-            <a href="#cotizar">Transfers</a>
-            <a href="#/excursions">Excursions</a>
-            <a href="#/about">About us</a>
-            <a href="#/contact">Contact</a>
+            <p className="site-footer__heading">Services</p>
+            <a href="/#cotizar">Transfers</a>
+            <a href="/excursions">Excursions</a>
+            <a href="/about">About us</a>
+            <a href="/contact">Contact</a>
           </div>
           <div>
-            <h4>Information</h4>
-            <a href="#/about/faq">FAQs</a>
+            <p className="site-footer__heading">Information</p>
+            <a href="/about/faq">FAQs</a>
             <button type="button" onClick={() => openMenu("tracker")}>
               Confirm pickup
             </button>
           </div>
           <div>
-            <h4>Contact</h4>
+            <p className="site-footer__heading">Contact</p>
             <a
               href={`https://wa.me/${contact.whatsappDigits}`}
               target="_blank"
@@ -580,7 +608,7 @@ export default function App() {
         </div>
         <div className="container site-footer__bottom">
           <p>
-            © {new Date().getFullYear()} Ersunny Travel · RNC {bankPayment.rnc}
+            © {new Date().getFullYear()} Ersunny Travel · designed By Ismakun
           </p>
         </div>
       </footer>
@@ -590,7 +618,7 @@ export default function App() {
         href={waBookHref}
         target="_blank"
         rel="noreferrer"
-        aria-label="WhatsApp"
+        aria-label="Chat on WhatsApp"
       >
         <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
           <path d="M17.5 14.4c-.3-.1-1.6-.8-1.8-.9-.2-.1-.4-.1-.6.1-.2.3-.7.9-.8 1-.2.1-.3.2-.6.1-1.6-.6-2.9-1.7-3.8-3.2-.1-.2 0-.3.1-.5l.5-.6c.1-.2.2-.3.1-.5s-.6-1.5-.8-2c-.2-.5-.4-.4-.6-.4h-.5c-.2 0-.5.1-.7.3-.2.3-.9.9-.9 2.1s.9 2.4 1 2.6c.1.2 1.8 2.9 4.4 3.9 1.6.6 2.2.7 3 .6.5-.1 1.6-.6 1.8-1.3.2-.6.2-1.2.1-1.3-.1-.1-.3-.2-.6-.3Z" />

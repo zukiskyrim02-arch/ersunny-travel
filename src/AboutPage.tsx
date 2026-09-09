@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { SideMenu } from "./SideMenu";
 import { asset } from "./assets";
-import { about, bankPayment, contact, faqs } from "./data";
+import { about, contact, faqs } from "./data";
 
 const waBookHref = `https://wa.me/${contact.whatsappDigits}?text=${encodeURIComponent(
   "Hi Ersunny Travel! I'd like to book a transfer or excursion.",
@@ -15,9 +15,8 @@ export function AboutPage() {
 
   useEffect(() => {
     function goToFaqOrTop() {
-      const raw = window.location.hash.replace(/^#/, "") || "/";
-      const path = raw.startsWith("/") ? raw : `/${raw}`;
-      if (path.includes("faq")) {
+      const path = window.location.pathname || "/";
+      if (path.includes("faq") || window.location.hash === "#faq") {
         window.setTimeout(() => {
           document
             .getElementById("faq")
@@ -28,8 +27,12 @@ export function AboutPage() {
       }
     }
     goToFaqOrTop();
+    window.addEventListener("popstate", goToFaqOrTop);
     window.addEventListener("hashchange", goToFaqOrTop);
-    return () => window.removeEventListener("hashchange", goToFaqOrTop);
+    return () => {
+      window.removeEventListener("popstate", goToFaqOrTop);
+      window.removeEventListener("hashchange", goToFaqOrTop);
+    };
   }, []);
 
   useEffect(() => {
@@ -49,12 +52,16 @@ export function AboutPage() {
     <>
       <header className="site-header">
         <div className="site-header__inner">
-          <a className="site-header__logo" href="#/">
+          <a
+            className="site-header__logo"
+            href="/"
+            aria-label="Ersunny Travel home"
+          >
             <img
               src={asset("ersunny-logo.png")}
               alt="Ersunny Travel"
               width={160}
-              height={72}
+              height={160}
             />
           </a>
 
@@ -62,23 +69,23 @@ export function AboutPage() {
             className={`site-nav${navOpen ? " is-open" : ""}`}
             aria-label="Main"
           >
-            <a href="#/" onClick={() => setNavOpen(false)}>
+            <a href="/" onClick={() => setNavOpen(false)}>
               Home
             </a>
-            <a href="#servicios" onClick={() => setNavOpen(false)}>
+            <a href="/#servicios" onClick={() => setNavOpen(false)}>
               Transfers
             </a>
-            <a href="#/excursions" onClick={() => setNavOpen(false)}>
+            <a href="/excursions" onClick={() => setNavOpen(false)}>
               Excursions
             </a>
             <a
-              href="#/about"
+              href="/about"
               className="is-active"
               onClick={() => setNavOpen(false)}
             >
               About Us
             </a>
-            <a href="#/contact" onClick={() => setNavOpen(false)}>
+            <a href="/contact" onClick={() => setNavOpen(false)}>
               Contact
             </a>
             <button
@@ -133,14 +140,17 @@ export function AboutPage() {
         onPanelChange={setMenuPanel}
       />
 
-      <main className="about-page">
+      <main id="main-content" className="about-page">
         <section className="about-page__hero">
           <div className="container">
-            <p className="section__eyebrow">About us</p>
-            <h1 className="section__title">Your trip, our priority</h1>
+            <p className="section__eyebrow">About Ersunny Travel</p>
+            <h1 className="section__title">
+              Private transfers &amp; excursions in Punta Cana
+            </h1>
             <p className="section__lead">
-              Safe tourist transport and excursions that celebrate the culture
-              and beauty of every destination.
+              Safe tourist transport from Punta Cana Airport to hotels in Punta
+              Cana, Bávaro, and Macao — plus excursions that celebrate Dominican
+              culture and nature.
             </p>
           </div>
         </section>
@@ -149,11 +159,11 @@ export function AboutPage() {
           <div className="container">
             <div className="about-grid">
               <article className="about-block">
-                <h3>Mission</h3>
+                <h2>Mission</h2>
                 <p>{about.mission}</p>
               </article>
               <article className="about-block">
-                <h3>Vision</h3>
+                <h2>Vision</h2>
                 <p>{about.vision}</p>
               </article>
             </div>
@@ -212,32 +222,35 @@ export function AboutPage() {
       <footer className="site-footer" id="contacto">
         <div className="container site-footer__grid">
           <div>
-            <a href="#/" className="site-footer__logo">
+            <a href="/" className="site-footer__logo" aria-label="Ersunny Travel home">
               <img
                 src={asset("ersunny-logo.png")}
                 alt="Ersunny Travel"
                 width={160}
-                height={72}
+                height={160}
               />
             </a>
-            <p>Your trip, our priority.</p>
+            <p>
+              Private transfers &amp; excursions in Punta Cana, Bávaro &amp;
+              Macao.
+            </p>
           </div>
           <div>
-            <h4>Services</h4>
-            <a href="#servicios">Transfers</a>
-            <a href="#/excursions">Excursions</a>
-            <a href="#/about">About us</a>
-            <a href="#/contact">Contact</a>
+            <p className="site-footer__heading">Services</p>
+            <a href="/#servicios">Transfers</a>
+            <a href="/excursions">Excursions</a>
+            <a href="/about">About us</a>
+            <a href="/contact">Contact</a>
           </div>
           <div>
-            <h4>Information</h4>
-            <a href="#/about/faq">FAQs</a>
+            <p className="site-footer__heading">Information</p>
+            <a href="/about/faq">FAQs</a>
             <button type="button" onClick={() => openMenu("tracker")}>
               Confirm pickup
             </button>
           </div>
           <div>
-            <h4>Contact</h4>
+            <p className="site-footer__heading">Contact</p>
             <a
               href={`https://wa.me/${contact.whatsappDigits}`}
               target="_blank"
@@ -251,7 +264,7 @@ export function AboutPage() {
         </div>
         <div className="container site-footer__bottom">
           <p>
-            © {new Date().getFullYear()} Ersunny Travel · RNC {bankPayment.rnc}
+            © {new Date().getFullYear()} Ersunny Travel · designed By Ismakun
           </p>
         </div>
       </footer>
@@ -261,7 +274,7 @@ export function AboutPage() {
         href={waBookHref}
         target="_blank"
         rel="noreferrer"
-        aria-label="WhatsApp"
+        aria-label="Chat on WhatsApp"
       >
         <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
           <path d="M17.5 14.4c-.3-.1-1.6-.8-1.8-.9-.2-.1-.4-.1-.6.1-.2.3-.7.9-.8 1-.2.1-.3.2-.6.1-1.6-.6-2.9-1.7-3.8-3.2-.1-.2 0-.3.1-.5l.5-.6c.1-.2.2-.3.1-.5s-.6-1.5-.8-2c-.2-.5-.4-.4-.6-.4h-.5c-.2 0-.5.1-.7.3-.2.3-.9.9-.9 2.1s.9 2.4 1 2.6c.1.2 1.8 2.9 4.4 3.9 1.6.6 2.2.7 3 .6.5-.1 1.6-.6 1.8-1.3.2-.6.2-1.2.1-1.3-.1-.1-.3-.2-.6-.3Z" />

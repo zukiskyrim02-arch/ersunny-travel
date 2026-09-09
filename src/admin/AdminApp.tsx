@@ -64,7 +64,7 @@ function Login({ onOk }: { onOk: () => void }) {
   return (
     <div className="admin-login">
       <div className="admin-login__card">
-        <img src={asset("ersunny-logo.png")} alt="Ersunny Travel" width={180} height={100} />
+        <img src={asset("ersunny-logo.png")} alt="Ersunny Travel" width={180} height={180} />
         <h1>Panel admin</h1>
         <p>Gestiona precios, vehículos, excursiones y reservas.</p>
         <form onSubmit={submit}>
@@ -82,7 +82,7 @@ function Login({ onOk }: { onOk: () => void }) {
             Entrar
           </button>
         </form>
-        <a href="#/">← Volver al sitio</a>
+        <a href="/">← Volver al sitio</a>
       </div>
     </div>
   );
@@ -117,7 +117,7 @@ export function AdminApp() {
   return (
     <div className="admin">
       <aside className="admin__sidebar">
-        <img src={asset("ersunny-logo.png")} alt="" width={140} height={78} />
+        <img src={asset("ersunny-logo.png")} alt="" width={140} height={140} />
         <p className="admin__brand">Admin</p>
         <nav>
           {(
@@ -142,7 +142,7 @@ export function AdminApp() {
         </nav>
         <div className="admin__sidebar-foot">
           {savedMsg && <p className="admin-ok">{savedMsg}</p>}
-          <a href="#/">Ver sitio</a>
+          <a href="/">Ver sitio</a>
           <button
             type="button"
             onClick={() => {

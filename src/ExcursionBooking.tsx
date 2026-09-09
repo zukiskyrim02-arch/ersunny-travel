@@ -96,8 +96,8 @@ export function ExcursionBooking({ onBooked }: ExcursionBookingProps) {
       <section className="section section--ocean" id="excursiones">
         <div className="container">
           <div className="section__head">
-            <p className="section__eyebrow">Experiences</p>
-            <h2 className="section__title">Book your excursion</h2>
+            <p className="section__eyebrow">Punta Cana excursions</p>
+            <h1 className="section__title">Book tours &amp; island experiences</h1>
             <p className="section__lead">
               New experiences are coming soon. In the meantime, you can book
               your transfer.
@@ -112,8 +112,8 @@ export function ExcursionBooking({ onBooked }: ExcursionBookingProps) {
     <section className="section section--ocean" id="excursiones">
       <div className="container">
         <div className="section__head">
-          <p className="section__eyebrow">Experiences</p>
-          <h2 className="section__title">Book your excursion</h2>
+          <p className="section__eyebrow">Punta Cana excursions</p>
+          <h1 className="section__title">Book tours &amp; island experiences</h1>
           <p className="section__lead">
             Choose your experience, date, and pickup hotel. After you confirm,
             you can pay securely by card with Pago Azul.
@@ -133,7 +133,7 @@ export function ExcursionBooking({ onBooked }: ExcursionBookingProps) {
                   className={`excursion-card${active ? " is-active" : ""}`}
                   onClick={() => setSelectedId(item.id)}
                 >
-                  <img src={item.image} alt="" loading="lazy" width={640} height={420} />
+                  <img src={item.image} alt={`${item.title} in Punta Cana`} loading="lazy" width={640} height={420} />
                   <div className="excursion-card__body">
                     <p className="excursion-card__meta">{item.duration}</p>
                     <h3>{item.title}</h3>
