@@ -1,9 +1,8 @@
-import { useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import App from "./App";
 import { AboutPage } from "./AboutPage";
 import { ContactPage } from "./ContactPage";
 import { ExcursionsPage } from "./ExcursionsPage";
-import { AdminApp } from "./admin/AdminApp";
 import {
   clearAzulQueryFromUrl,
   readAzulReturnFromUrl,
@@ -19,6 +18,10 @@ import {
   websiteJsonLd,
 } from "./seo";
 import { faqs } from "./data";
+
+const AdminApp = lazy(() =>
+  import("./admin/AdminApp").then((m) => ({ default: m.AdminApp })),
+);
 
 export function Root() {
   const [path, setPath] = useState(() => {
@@ -141,7 +144,11 @@ export function Root() {
   }, []);
 
   if (path === "/admin" || path.startsWith("/admin/")) {
-    return <AdminApp />;
+    return (
+      <Suspense fallback={<div className="admin-loading">Loading admin…</div>}>
+        <AdminApp />
+      </Suspense>
+    );
   }
 
   const page =

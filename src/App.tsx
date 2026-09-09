@@ -1,17 +1,18 @@
 import { useEffect, useState } from "react";
 import { QuoteForm } from "./QuoteForm";
 import { SideMenu } from "./SideMenu";
-import { asset } from "./assets";
+import { asset, logoSrc } from "./assets";
 import { contact, excursions as showcaseExcursions } from "./data";
 
 const HERO_IMG = asset("hero-cover.webp");
+const HERO_IMG_MOBILE = asset("hero-cover-mobile.webp");
 const HERO_IMG_FALLBACK = asset("hero-cover.jpg");
-const BEACH_IMG =
-  "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=2000&q=80&fm=webp";
+const HERO_IMG_MOBILE_FALLBACK = asset("hero-cover-mobile.jpg");
+const BEACH_IMG = asset("hero-cover-mobile.webp");
 const TRANSFER_IMG = asset("transfer-van.webp");
 const TRANSFER_IMG_FALLBACK = asset("transfer-van.jpg");
 const EXCURSION_IMG =
-  "https://images.unsplash.com/photo-1567899378494-47b22a2ae96a?auto=format&fit=crop&w=1200&q=80&fm=webp";
+  "https://images.unsplash.com/photo-1567899378494-47b22a2ae96a?auto=format&fit=crop&w=640&q=65&fm=webp";
 
 const trustItems = [
   {
@@ -43,7 +44,7 @@ const testimonials = [
     quote:
       "Excellent service from pickup to drop-off. The driver was waiting with our name and the SUV was spotless.",
     avatar:
-      "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=160&q=80",
+      "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=96&q=60&fm=webp",
   },
   {
     name: "Carlos R.",
@@ -51,7 +52,7 @@ const testimonials = [
     quote:
       "Booked Saona through Ersunny and everything was seamless. Clear communication on WhatsApp the whole time.",
     avatar:
-      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=160&q=80",
+      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=96&q=60&fm=webp",
   },
   {
     name: "Emma L.",
@@ -59,7 +60,7 @@ const testimonials = [
     quote:
       "Airport transfer with kids was stress-free. On time, friendly, and fair pricing. Highly recommend.",
     avatar:
-      "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&w=160&q=80",
+      "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&w=96&q=60&fm=webp",
   },
 ];
 
@@ -168,7 +169,7 @@ export default function App() {
         <div className="site-header__inner">
           <a className="site-header__logo" href="/" aria-label="Ersunny Travel home">
             <img
-              src={asset("ersunny-logo.png")}
+              src={logoSrc()}
               alt="Ersunny Travel"
               width={160}
               height={160}
@@ -250,14 +251,25 @@ export default function App() {
         <section className="hero-new" aria-label="Punta Cana airport transfers">
           <div className="hero-new__media">
             <picture>
+              <source
+                media="(max-width: 768px)"
+                srcSet={HERO_IMG_MOBILE}
+                type="image/webp"
+              />
+              <source
+                media="(max-width: 768px)"
+                srcSet={HERO_IMG_MOBILE_FALLBACK}
+                type="image/jpeg"
+              />
               <source srcSet={HERO_IMG} type="image/webp" />
               <img
                 src={HERO_IMG_FALLBACK}
-                alt="Private transfer ready at Punta Cana Airport for hotel drop-off"
+                alt="Ersunny Travel private van and driver welcoming guests at a Punta Cana resort"
                 width={1600}
-                height={960}
+                height={900}
+                sizes="100vw"
                 fetchPriority="high"
-                decoding="async"
+                decoding="sync"
               />
             </picture>
           </div>
@@ -435,7 +447,7 @@ export default function App() {
 
         <section className="quote-band" id="cotizar">
           <div className="quote-band__media" aria-hidden>
-            <img src={BEACH_IMG} alt="" width={2000} height={1200} />
+            <img src={BEACH_IMG} alt="" width={1600} height={900} loading="lazy" decoding="async" />
           </div>
           <div className="quote-band__inner container">
             <div className="quote-band__copy">
@@ -571,7 +583,7 @@ export default function App() {
           <div>
             <a href="/" className="site-footer__logo" aria-label="Ersunny Travel home">
               <img
-                src={asset("ersunny-logo.png")}
+                src={logoSrc()}
                 alt="Ersunny Travel"
                 width={160}
                 height={160}

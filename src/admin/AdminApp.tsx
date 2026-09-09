@@ -1,4 +1,5 @@
 import { useEffect, useState, type FormEvent } from "react";
+import "../admin.css";
 import {
   ADMIN_PASSWORD,
   defaultConfig,
@@ -18,7 +19,7 @@ import {
   type ReservationStatus,
 } from "../reservations";
 import type { Zone } from "../data";
-import { asset } from "../assets";
+import { logoSrc } from "../assets";
 import type { AzulConfig } from "../payments/azul";
 import { azulPaymentUrl } from "../payments/azul";
 
@@ -64,7 +65,7 @@ function Login({ onOk }: { onOk: () => void }) {
   return (
     <div className="admin-login">
       <div className="admin-login__card">
-        <img src={asset("ersunny-logo.png")} alt="Ersunny Travel" width={180} height={180} />
+        <img src={logoSrc()} alt="Ersunny Travel" width={180} height={180} />
         <h1>Panel admin</h1>
         <p>Gestiona precios, vehículos, excursiones y reservas.</p>
         <form onSubmit={submit}>
@@ -117,7 +118,7 @@ export function AdminApp() {
   return (
     <div className="admin">
       <aside className="admin__sidebar">
-        <img src={asset("ersunny-logo.png")} alt="" width={140} height={140} />
+        <img src={logoSrc()} alt="" width={140} height={140} />
         <p className="admin__brand">Admin</p>
         <nav>
           {(
@@ -400,7 +401,7 @@ function ExcursionsTab({
         duration: "Día completo",
         blurb: "Descripción de la experiencia.",
         image:
-          "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&q=80",
+          "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=640&q=65&fm=webp",
         highlights: ["Incluye transporte", "Guía"],
         price: null,
         active: true,

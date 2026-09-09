@@ -1,5 +1,5 @@
 import { useEffect, useState, type FormEvent } from "react";
-import { asset } from "./assets";
+import { logoSrc } from "./assets";
 import { contact } from "./data";
 import { findReservation, type Reservation } from "./reservations";
 
@@ -52,7 +52,7 @@ export function SideMenu({ open, onClose, panel, onPanelChange }: SideMenuProps)
         aria-label="Ersunny menu"
       >
         <div className="drawer__head">
-          <img src={asset("ersunny-logo.png")} alt="Ersunny Travel" width={160} height={160} />
+          <img src={logoSrc()} alt="Ersunny Travel" width={160} height={160} />
           <button type="button" className="drawer__close" onClick={onClose} aria-label="Close">
             ✕
           </button>

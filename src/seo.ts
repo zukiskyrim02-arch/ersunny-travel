@@ -109,7 +109,7 @@ export function organizationJsonLd() {
     "@id": `${SITE_URL}/#organization`,
     name: "Ersunny Travel",
     url: SITE_URL,
-    logo: `${SITE_URL}/ersunny-logo.png`,
+    logo: `${SITE_URL}/ersunny-logo.webp`,
     image: defaultOgImage,
     description:
       "Private airport transfers and excursions in Punta Cana, Bávaro, and Macao — affordable and luxury options with WhatsApp support.",

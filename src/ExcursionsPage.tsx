@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { ExcursionBooking } from "./ExcursionBooking";
 import { PaymentSection } from "./PaymentSection";
 import { SideMenu } from "./SideMenu";
-import { asset } from "./assets";
+import { logoSrc } from "./assets";
 import { contact } from "./data";
 import type { Reservation } from "./reservations";
 
@@ -55,7 +55,7 @@ export function ExcursionsPage() {
             aria-label="Ersunny Travel home"
           >
             <img
-              src={asset("ersunny-logo.png")}
+              src={logoSrc()}
               alt="Ersunny Travel"
               width={160}
               height={160}
@@ -157,7 +157,7 @@ export function ExcursionsPage() {
           <div>
             <a href="/" className="site-footer__logo" aria-label="Ersunny Travel home">
               <img
-                src={asset("ersunny-logo.png")}
+                src={logoSrc()}
                 alt="Ersunny Travel"
                 width={160}
                 height={160}

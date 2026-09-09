@@ -2,8 +2,9 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/png" href="/favicon.png" />
-    <link rel="apple-touch-icon" href="/favicon.png" />
+    <link rel="icon" type="image/png" sizes="48x48" href="/favicon.png" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/favicon-192.png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta
       name="description"
@@ -41,25 +42,121 @@
       content="Private transfers from Punta Cana Airport to Punta Cana, Bávaro & Macao — affordable and luxury."
     />
     <meta name="twitter:image" content="https://www.ersunnytravel.com/hero-cover.jpg" />
-    <link rel="preload" as="image" href="/hero-cover.webp" type="image/webp" fetchpriority="high" />
+    <!-- Preload the LCP image for the active viewport -->
+    <link
+      rel="preload"
+      as="image"
+      href="/hero-cover-mobile.webp"
+      type="image/webp"
+      media="(max-width: 768px)"
+      fetchpriority="high"
+    />
+    <link
+      rel="preload"
+      as="image"
+      href="/hero-cover.webp"
+      type="image/webp"
+      media="(min-width: 769px)"
+      fetchpriority="high"
+    />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap"
       rel="stylesheet"
       media="print"
       onload="this.media='all'"
     />
     <noscript>
       <link
-        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap"
         rel="stylesheet"
       />
     </noscript>
+    <style>
+      /* Instant LCP shell before React boots (especially mobile) */
+      #boot-hero {
+        position: relative;
+        min-height: 100svh;
+        color: #fff;
+        background: #061833;
+        font-family: "Plus Jakarta Sans", system-ui, sans-serif;
+      }
+      #boot-hero__img {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: 42% center;
+      }
+      #boot-hero__shade {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(
+          105deg,
+          rgba(6, 24, 51, 0.88) 0%,
+          rgba(6, 24, 51, 0.55) 45%,
+          rgba(6, 24, 51, 0.25) 100%
+        );
+      }
+      #boot-hero__copy {
+        position: relative;
+        z-index: 1;
+        max-width: 36rem;
+        padding: 6.5rem 1.25rem 2rem;
+      }
+      #boot-hero__copy p {
+        margin: 0 0 0.75rem;
+        font-size: 0.78rem;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        opacity: 0.92;
+      }
+      #boot-hero__copy h1 {
+        margin: 0;
+        font-size: clamp(1.85rem, 7vw, 3.2rem);
+        line-height: 1.08;
+        letter-spacing: -0.03em;
+      }
+      #boot-hero__copy em {
+        color: #f5c518;
+        font-style: normal;
+      }
+      #root:not(:empty) ~ #boot-hero,
+      body:has(#root:not(:empty)) #boot-hero {
+        display: none;
+      }
+    </style>
     <title>Punta Cana Airport Transfers & Excursions | Ersunny Travel</title>
   </head>
   <body>
     <a class="skip-link" href="#main-content">Skip to main content</a>
+    <div id="boot-hero" aria-hidden="true">
+      <picture>
+        <source
+          media="(max-width: 768px)"
+          srcset="/hero-cover-mobile.webp"
+          type="image/webp"
+        />
+        <source srcset="/hero-cover.webp" type="image/webp" />
+        <img
+          id="boot-hero__img"
+          src="/hero-cover-mobile.jpg"
+          alt=""
+          width="900"
+          height="506"
+          fetchpriority="high"
+          decoding="sync"
+        />
+      </picture>
+      <div id="boot-hero__shade"></div>
+      <div id="boot-hero__copy">
+        <p>Affordable &amp; luxury airport transfers · Punta Cana, Bávaro &amp; Macao</p>
+        <h1>Punta Cana airport transfers <em>without worries</em></h1>
+      </div>
+    </div>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

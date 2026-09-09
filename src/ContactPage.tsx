@@ -1,6 +1,6 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { SideMenu } from "./SideMenu";
-import { asset } from "./assets";
+import { asset, logoSrc } from "./assets";
 import { contact } from "./data";
 
 const waBookHref = `https://wa.me/${contact.whatsappDigits}?text=${encodeURIComponent(
@@ -51,7 +51,7 @@ export function ContactPage() {
             aria-label="Ersunny Travel home"
           >
             <img
-              src={asset("ersunny-logo.png")}
+              src={logoSrc()}
               alt="Ersunny Travel"
               width={160}
               height={160}
@@ -137,10 +137,11 @@ export function ContactPage() {
         <section className="contact-hero" aria-label="Contact">
           <div className="contact-hero__media" aria-hidden>
             <img
-              src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1600&q=70&fm=webp"
+              src={asset("hero-cover-mobile.webp")}
               alt=""
-              width={1600}
-              height={960}
+              width={900}
+              height={506}
+              loading="lazy"
             />
           </div>
           <div className="contact-hero__overlay" aria-hidden />
@@ -282,7 +283,7 @@ export function ContactPage() {
           <div>
             <a href="/" className="site-footer__logo" aria-label="Ersunny Travel home">
               <img
-                src={asset("ersunny-logo.png")}
+                src={logoSrc()}
                 alt="Ersunny Travel"
                 width={160}
                 height={160}

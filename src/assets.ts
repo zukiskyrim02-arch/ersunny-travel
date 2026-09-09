@@ -4,3 +4,8 @@ export function asset(path: string) {
   const clean = path.replace(/^\//, "");
   return `${base}${clean}`;
 }
+
+/** Optimized brand logo (WebP). */
+export function logoSrc() {
+  return asset("ersunny-logo.webp");
+}

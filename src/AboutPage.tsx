@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { SideMenu } from "./SideMenu";
-import { asset } from "./assets";
+import { logoSrc } from "./assets";
 import { about, contact, faqs } from "./data";
 
 const waBookHref = `https://wa.me/${contact.whatsappDigits}?text=${encodeURIComponent(
@@ -58,7 +58,7 @@ export function AboutPage() {
             aria-label="Ersunny Travel home"
           >
             <img
-              src={asset("ersunny-logo.png")}
+              src={logoSrc()}
               alt="Ersunny Travel"
               width={160}
               height={160}
@@ -224,7 +224,7 @@ export function AboutPage() {
           <div>
             <a href="/" className="site-footer__logo" aria-label="Ersunny Travel home">
               <img
-                src={asset("ersunny-logo.png")}
+                src={logoSrc()}
                 alt="Ersunny Travel"
                 width={160}
                 height={160}

@@ -34,17 +34,13 @@ html {
   scroll-behavior: smooth;
 }
 
-.skip-link {
-  position: absolute;
-  left: 1rem;
-  top: -100px;
-  z-index: 10000;
-  padding: 0.65rem 1rem;
-  border-radius: 8px;
-  background: var(--yellow);
-  color: var(--navy-deep);
-  font-weight: 800;
-  box-shadow: var(--shadow-sm);
+.admin-loading {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  color: var(--navy);
+  font-weight: 700;
+  background: var(--soft);
 }
 
 .visually-hidden {
@@ -402,7 +398,7 @@ ul {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: 55% center;
+  object-position: 42% center;
 }
 
 .hero-new__overlay {
@@ -1706,9 +1702,7 @@ ul {
   padding: 5rem 0;
   color: var(--white);
   text-align: center;
-  background:
-    linear-gradient(100deg, rgba(6, 24, 51, 0.9), rgba(10, 35, 66, 0.78)),
-    url("https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1800&q=80") center / cover;
+  background: linear-gradient(100deg, var(--navy-deep), var(--navy));
 }
 
 .cta-band h2 {
@@ -2805,7 +2799,15 @@ ul {
   }
 
   .hero-new {
-    min-height: auto;
+    min-height: 100svh;
+  }
+
+  .hero-new__media img {
+    object-position: 35% center;
+  }
+
+  .hero-new__sub {
+    display: none;
   }
 
   .hero-new__content {
