@@ -37,13 +37,13 @@ export function QuoteForm() {
   function onSubmit(e: FormEvent) {
     e.preventDefault();
     const lines = [
-      "Hola Ersunny Travel, quiero una cotización:",
-      `• Servicio: ${service}`,
-      `• Tipo: ${transferType}`,
-      `• Fecha: ${date || "Por confirmar"}`,
-      `• Pasajeros: ${passengers}`,
-      `• Hotel/destino: ${hotel || "—"}`,
-      `• Vuelo: ${flight || "—"}`,
+      "Hi Ersunny Travel, I'd like a quote:",
+      `• Service: ${service}`,
+      `• Type: ${transferType}`,
+      `• Date: ${date || "To be confirmed"}`,
+      `• Passengers: ${passengers}`,
+      `• Hotel/destination: ${hotel || "—"}`,
+      `• Flight: ${flight || "—"}`,
       `• WhatsApp: ${whatsapp || "—"}`,
     ];
     const url = `https://wa.me/${contact.whatsappDigits}?text=${encodeURIComponent(lines.join("\n"))}`;

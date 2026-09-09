@@ -88,13 +88,13 @@ export async function buildAzulSaleFields(
   if (!azul.merchantId.trim() || !azul.authKey.trim()) {
     return {
       error:
-        "Faltan credenciales de Pago Azul (Merchant ID y AuthKey). Configúralas en Admin → Pago Azul.",
+        "Pago Azul credentials are missing (Merchant ID and AuthKey). Configure them in Admin → Pago Azul.",
     };
   }
   if (reservation.price == null || reservation.price <= 0) {
     return {
       error:
-        "Esta reserva no tiene monto definido. Confirma el precio en Admin antes de cobrar con Azul.",
+        "This reservation does not have an amount. Confirm the price in Admin before charging with Azul.",
     };
   }
 
@@ -102,10 +102,10 @@ export async function buildAzulSaleFields(
   const amount = toAzulAmount(reservation.price);
   const itbis = azul.itbis || "000";
   const use1 = "1";
-  const label1 = "Reserva";
+  const label1 = "Reservation";
   const value1 = reservation.id;
   const use2 = "1";
-  const label2 = reservation.kind === "excursion" ? "Excursion" : "Traslado";
+  const label2 = reservation.kind === "excursion" ? "Excursion" : "Transfer";
   const value2 =
     reservation.kind === "excursion"
       ? reservation.destination
@@ -149,7 +149,7 @@ export async function buildAzulSaleFields(
     UseCustomField2: use2,
     CustomField2Label: label2,
     CustomField2Value: value2,
-    Locale: "ES",
+    Locale: "EN",
     ShowTransactionResult: "1",
     AuthHash: authHash,
   };

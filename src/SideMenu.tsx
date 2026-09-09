@@ -29,7 +29,7 @@ export function SideMenu({ open, onClose, panel, onPanelChange }: SideMenuProps)
     if (!found) {
       setResult(null);
       setError(
-        "No encontramos esa reserva. Revisa el número o escríbenos a contact@ersunnytravel.com.",
+        "We couldn't find that reservation. Check the number or email us at contact@ersunnytravel.com.",
       );
       return;
     }
@@ -42,18 +42,18 @@ export function SideMenu({ open, onClose, panel, onPanelChange }: SideMenuProps)
       <button
         type="button"
         className={`drawer-backdrop${open ? " is-open" : ""}`}
-        aria-label="Cerrar menú"
+        aria-label="Close menu"
         tabIndex={open ? 0 : -1}
         onClick={onClose}
       />
       <aside
         className={`drawer${open ? " is-open" : ""}`}
         aria-hidden={!open}
-        aria-label="Menú Ersunny"
+        aria-label="Ersunny menu"
       >
         <div className="drawer__head">
           <img src={asset("ersunny-logo.png")} alt="Ersunny Travel" width={160} height={90} />
-          <button type="button" className="drawer__close" onClick={onClose} aria-label="Cerrar">
+          <button type="button" className="drawer__close" onClick={onClose} aria-label="Close">
             ✕
           </button>
         </div>
@@ -66,7 +66,7 @@ export function SideMenu({ open, onClose, panel, onPanelChange }: SideMenuProps)
             className={panel === "tracker" ? "is-active" : ""}
             onClick={() => onPanelChange("tracker")}
           >
-            Confirmar recogida
+            Confirm pickup
           </button>
           <button
             type="button"
@@ -75,29 +75,29 @@ export function SideMenu({ open, onClose, panel, onPanelChange }: SideMenuProps)
             className={panel === "contact" ? "is-active" : ""}
             onClick={() => onPanelChange("contact")}
           >
-            Contacto
+            Contact
           </button>
         </div>
 
         <div className="drawer__body">
           {panel === "tracker" ? (
             <div>
-              <h2>Rastreador de recogida</h2>
+              <h2>Pickup tracker</h2>
               <p>
-                Ingresa tu número de reserva para ver y confirmar la hora de
-                pick-up.
+                Enter your reservation number to view and confirm your pickup
+                time.
               </p>
               <form className="tracker-form" onSubmit={handleLookup}>
-                <label htmlFor="reservation-code">Número de reserva</label>
+                <label htmlFor="reservation-code">Reservation number</label>
                 <input
                   id="reservation-code"
                   value={code}
                   onChange={(e) => setCode(e.target.value)}
-                  placeholder="Ej. EST-A1B2C3"
+                  placeholder="e.g. EST-A1B2C3"
                   required
                 />
                 <button type="submit" className="btn btn--primary btn--full">
-                  Buscar reserva
+                  Find reservation
                 </button>
               </form>
 
@@ -108,18 +108,18 @@ export function SideMenu({ open, onClose, panel, onPanelChange }: SideMenuProps)
                   <p className="tracker-result__id">{result.id}</p>
                   <dl>
                     <div>
-                      <dt>Tipo</dt>
+                      <dt>Type</dt>
                       <dd>
-                        {result.kind === "excursion" ? "Excursión" : "Traslado"}
+                        {result.kind === "excursion" ? "Excursion" : "Transfer"}
                       </dd>
                     </div>
                     <div>
-                      <dt>Pasajero</dt>
+                      <dt>Passenger</dt>
                       <dd>{result.name}</dd>
                     </div>
                     <div>
                       <dt>
-                        {result.kind === "excursion" ? "Excursión" : "Ruta"}
+                        {result.kind === "excursion" ? "Excursion" : "Route"}
                       </dt>
                       <dd>
                         {result.kind === "excursion"
@@ -129,31 +129,31 @@ export function SideMenu({ open, onClose, panel, onPanelChange }: SideMenuProps)
                     </div>
                     {result.kind === "excursion" && result.hotelPickup && (
                       <div>
-                        <dt>Hotel pickup</dt>
+                        <dt>Pickup hotel</dt>
                         <dd>{result.hotelPickup}</dd>
                       </div>
                     )}
                     <div>
-                      <dt>Fecha</dt>
+                      <dt>Date</dt>
                       <dd>
                         {result.date}
                         {result.pickupTime
                           ? ` · ${result.pickupTime}`
                           : result.kind === "transfer"
-                            ? " · hora por confirmar"
+                            ? " · time to be confirmed"
                             : ""}
                       </dd>
                     </div>
                     {result.wantReturn && result.returnDate && (
                       <div>
-                        <dt>Regreso</dt>
+                        <dt>Return</dt>
                         <dd>
                           {result.returnDate} · {result.returnTime}
                         </dd>
                       </div>
                     )}
                     <div>
-                      <dt>Personas</dt>
+                      <dt>Guests</dt>
                       <dd>{result.passengers}</dd>
                     </div>
                   </dl>
@@ -165,16 +165,16 @@ export function SideMenu({ open, onClose, panel, onPanelChange }: SideMenuProps)
                       onClick={() => setConfirmed(true)}
                     >
                       {result.kind === "excursion"
-                        ? "Confirmar asistencia"
-                        : "Confirmar hora de recogida"}
+                        ? "Confirm attendance"
+                        : "Confirm pickup time"}
                     </button>
                   ) : (
                     <p className="tracker-ok" role="status">
                       {result.kind === "excursion"
-                        ? `Excursión confirmada para el ${result.date}. Te avisamos la hora de pickup.`
+                        ? `Excursion confirmed for ${result.date}. We'll let you know the pickup time.`
                         : result.pickupTime
-                          ? `Recogida confirmada: ${result.date} a las ${result.pickupTime}.`
-                          : `Recogida confirmada para el ${result.date}. Te enviaremos la hora exacta por email.`}
+                          ? `Pickup confirmed: ${result.date} at ${result.pickupTime}.`
+                          : `Pickup confirmed for ${result.date}. We'll email you the exact time.`}
                     </p>
                   )}
                 </div>
@@ -182,8 +182,8 @@ export function SideMenu({ open, onClose, panel, onPanelChange }: SideMenuProps)
             </div>
           ) : (
             <div>
-              <h2>Vías de contacto</h2>
-              <p>Estamos listos para ayudarte con reservas, cambios y recogidas.</p>
+              <h2>Contact options</h2>
+              <p>We're ready to help with bookings, changes, and pickups.</p>
               <ul className="contact-list">
                 <li>
                   <span>Email</span>
@@ -206,13 +206,13 @@ export function SideMenu({ open, onClose, panel, onPanelChange }: SideMenuProps)
                 target="_blank"
                 rel="noreferrer"
               >
-                Escribir por WhatsApp
+                Message us on WhatsApp
               </a>
               <a className="btn btn--ghost-dark btn--full" href={`mailto:${contact.email}`}>
-                Escribir por email
+                Email us
               </a>
               <a className="btn btn--ghost-dark btn--full" href="#/about/faq" onClick={onClose}>
-                Ver preguntas frecuentes
+                View FAQs
               </a>
             </div>
           )}

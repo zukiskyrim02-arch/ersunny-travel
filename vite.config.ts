@@ -1,8 +1,9 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 
-// Local: /  ·  GitHub Pages build: /ersunny-travel/
-export default defineConfig(({ command }) => ({
+// Root base for custom domain (www.ersunnytravel.com / Vercel).
+// Override with VITE_BASE=/ersunny-travel/ only if you still need GitHub Pages project path.
+export default defineConfig({
   plugins: [react()],
-  base: command === "build" ? "/ersunny-travel/" : "/",
-}));
+  base: process.env.VITE_BASE || "/",
+});

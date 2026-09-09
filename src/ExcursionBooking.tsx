@@ -53,15 +53,15 @@ export function ExcursionBooking({ onBooked }: ExcursionBookingProps) {
     e.preventDefault();
     setError("");
     if (!selected) {
-      setError("No hay excursiones disponibles.");
+      setError("No excursions are available.");
       return;
     }
     if (!date) {
-      setError("Selecciona la fecha de la excursión.");
+      setError("Select the excursion date.");
       return;
     }
     if (!name.trim() || !contactInfo.trim()) {
-      setError("Completa tu nombre y WhatsApp o email.");
+      setError("Enter your name and WhatsApp number or email.");
       return;
     }
     const unit = selected.price;
@@ -73,9 +73,9 @@ export function ExcursionBooking({ onBooked }: ExcursionBookingProps) {
       origin: hotelPickup,
       destination: selected.title,
       date,
-      time: "Por confirmar",
+      time: "To be confirmed",
       passengers,
-      vehicle: "Excursión grupal",
+      vehicle: "Group excursion",
       wantReturn: false,
       price: unit == null ? null : unit * passengers,
       hotelPickup,
@@ -96,11 +96,11 @@ export function ExcursionBooking({ onBooked }: ExcursionBookingProps) {
       <section className="section section--ocean" id="excursiones">
         <div className="container">
           <div className="section__head">
-            <p className="section__eyebrow">Experiencias</p>
-            <h2 className="section__title">Reserva tu excursión</h2>
+            <p className="section__eyebrow">Experiences</p>
+            <h2 className="section__title">Book your excursion</h2>
             <p className="section__lead">
-              Pronto publicaremos nuevas experiencias. Mientras tanto puedes
-              reservar tu traslado.
+              New experiences are coming soon. In the meantime, you can book
+              your transfer.
             </p>
           </div>
         </div>
@@ -112,16 +112,16 @@ export function ExcursionBooking({ onBooked }: ExcursionBookingProps) {
     <section className="section section--ocean" id="excursiones">
       <div className="container">
         <div className="section__head">
-          <p className="section__eyebrow">Experiencias</p>
-          <h2 className="section__title">Reserva tu excursión</h2>
+          <p className="section__eyebrow">Experiences</p>
+          <h2 className="section__title">Book your excursion</h2>
           <p className="section__lead">
-            Elige la experiencia, la fecha y tu hotel de recogida. Al confirmar,
-            te mostramos Pago Azul para cobrar con tarjeta.
+            Choose your experience, date, and pickup hotel. After you confirm,
+            you can pay securely by card with Pago Azul.
           </p>
         </div>
 
         <div className="excursion-layout">
-          <div className="excursion-grid" role="listbox" aria-label="Excursiones">
+          <div className="excursion-grid" role="listbox" aria-label="Excursions">
             {excursions.map((item) => {
               const active = item.id === selectedId;
               return (
@@ -139,7 +139,7 @@ export function ExcursionBooking({ onBooked }: ExcursionBookingProps) {
                     <h3>{item.title}</h3>
                     <p>{item.blurb}</p>
                     <p className="excursion-card__price">
-                      {item.price == null ? "Precio a confirmar" : `Desde $${item.price} USD / persona`}
+                      {item.price == null ? "Price to be confirmed" : `From $${item.price} USD / person`}
                     </p>
                   </div>
                 </button>
@@ -149,7 +149,7 @@ export function ExcursionBooking({ onBooked }: ExcursionBookingProps) {
 
           <form className="booking-form excursion-form" onSubmit={handleSubmit} noValidate>
             <div className="excursion-form__selected">
-              <small>Seleccionada</small>
+              <small>Selected</small>
               <strong>{selected?.title}</strong>
               <span>{selected?.duration}</span>
               <ul>
@@ -161,7 +161,7 @@ export function ExcursionBooking({ onBooked }: ExcursionBookingProps) {
 
             <div className="booking-form__grid">
               <div className="field field--full">
-                <label htmlFor="exc-hotel">Hotel de recogida</label>
+                <label htmlFor="exc-hotel">Pickup hotel</label>
                 <select
                   id="exc-hotel"
                   value={hotelPickup}
@@ -193,7 +193,7 @@ export function ExcursionBooking({ onBooked }: ExcursionBookingProps) {
               </div>
 
               <div className="field">
-                <label htmlFor="exc-date">Fecha</label>
+                <label htmlFor="exc-date">Date</label>
                 <input
                   id="exc-date"
                   type="date"
@@ -204,11 +204,11 @@ export function ExcursionBooking({ onBooked }: ExcursionBookingProps) {
               </div>
 
               <div className="field">
-                <label htmlFor="exc-passengers">Personas</label>
+                <label htmlFor="exc-passengers">Guests</label>
                 <div className="passenger-stepper">
                   <button
                     type="button"
-                    aria-label="Quitar persona"
+                    aria-label="Remove guest"
                     onClick={() => adjustPassengers(-1)}
                     disabled={passengers <= 1}
                   >
@@ -229,7 +229,7 @@ export function ExcursionBooking({ onBooked }: ExcursionBookingProps) {
                   />
                   <button
                     type="button"
-                    aria-label="Agregar persona"
+                    aria-label="Add guest"
                     onClick={() => adjustPassengers(1)}
                     disabled={passengers >= 20}
                   >
@@ -239,11 +239,11 @@ export function ExcursionBooking({ onBooked }: ExcursionBookingProps) {
               </div>
 
               <div className="field">
-                <label htmlFor="exc-name">Nombre</label>
+                <label htmlFor="exc-name">Name</label>
                 <input
                   id="exc-name"
                   type="text"
-                  placeholder="Tu nombre"
+                  placeholder="Your name"
                   required
                   value={name}
                   onChange={(e) => setName(e.target.value)}
@@ -255,7 +255,7 @@ export function ExcursionBooking({ onBooked }: ExcursionBookingProps) {
                 <input
                   id="exc-contact"
                   type="text"
-                  placeholder="+1 809… o correo"
+                  placeholder="+1 809… or email"
                   required
                   value={contactInfo}
                   onChange={(e) => setContactInfo(e.target.value)}
@@ -263,10 +263,10 @@ export function ExcursionBooking({ onBooked }: ExcursionBookingProps) {
               </div>
 
               <div className="field field--full">
-                <label htmlFor="exc-notes">Notas</label>
+                <label htmlFor="exc-notes">Notes</label>
                 <textarea
                   id="exc-notes"
-                  placeholder="Edades de niños, movilidad, preferencias…"
+                  placeholder="Children's ages, accessibility needs, preferences…"
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                 />
@@ -281,15 +281,15 @@ export function ExcursionBooking({ onBooked }: ExcursionBookingProps) {
 
             <div className="booking-form__footer">
               <div className="price-tag">
-                <small>Total estimado</small>
+                <small>Estimated total</small>
                 <strong>
                   {selected?.price == null
-                    ? "Pendiente"
+                    ? "Pending"
                     : `$${selected.price * passengers} USD`}
                 </strong>
               </div>
               <button type="submit" className="btn btn--primary">
-                Reservar excursión
+                Book excursion
               </button>
             </div>
           </form>

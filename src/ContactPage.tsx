@@ -34,8 +34,8 @@ export function ContactPage() {
   function onSubmit(e: FormEvent) {
     e.preventDefault();
     const lines = [
-      `Hola Ersunny Travel, soy ${name || "un cliente"}.`,
-      message || "Me gustaría más información sobre sus servicios.",
+      `Hi Ersunny Travel, I'm ${name || "a customer"}.`,
+      message || "I'd like more information about your services.",
     ];
     const url = `https://wa.me/${contact.whatsappDigits}?text=${encodeURIComponent(lines.join("\n\n"))}`;
     window.open(url, "_blank", "noopener,noreferrer");

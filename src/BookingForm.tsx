@@ -196,19 +196,19 @@ export function BookingForm({ onBooked }: BookingFormProps) {
     setError("");
 
     if (!date) {
-      setError("Selecciona la fecha de ida.");
+      setError("Select the departure date.");
       return;
     }
     if (wantReturn && !returnDate) {
-      setError("Selecciona la fecha de regreso.");
+      setError("Select the return date.");
       return;
     }
     if (!name.trim() || !contactInfo.trim()) {
-      setError("Completa tu nombre y WhatsApp o email.");
+      setError("Enter your name and WhatsApp number or email.");
       return;
     }
     if (!activeVehicle) {
-      setError("No hay vehículos configurados.");
+      setError("No vehicles are configured.");
       return;
     }
 
@@ -220,9 +220,9 @@ export function BookingForm({ onBooked }: BookingFormProps) {
       origin: placeLabel(origin),
       destination: placeLabel(destination),
       date,
-      time: "Por confirmar",
+      time: "To be confirmed",
       returnDate: wantReturn ? returnDate : undefined,
-      returnTime: wantReturn ? "Por confirmar" : undefined,
+      returnTime: wantReturn ? "To be confirmed" : undefined,
       passengers,
       vehicle: activeVehicle.name,
       wantReturn,
@@ -246,7 +246,7 @@ export function BookingForm({ onBooked }: BookingFormProps) {
       <div className="booking-form__grid">
         <div className="field field--full route-fields">
           <div className="field">
-            <label htmlFor="origin">Origen</label>
+            <label htmlFor="origin">Origin</label>
             <select
               id="origin"
               value={originKey}
@@ -260,7 +260,7 @@ export function BookingForm({ onBooked }: BookingFormProps) {
             type="button"
             className="route-swap"
             onClick={swapPlaces}
-            aria-label="Intercambiar origen y destino"
+            aria-label="Swap origin and destination"
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
               <path
@@ -274,7 +274,7 @@ export function BookingForm({ onBooked }: BookingFormProps) {
           </button>
 
           <div className="field">
-            <label htmlFor="destination">Destino</label>
+            <label htmlFor="destination">Destination</label>
             <select
               id="destination"
               value={destinationKey}
@@ -286,11 +286,11 @@ export function BookingForm({ onBooked }: BookingFormProps) {
         </div>
 
         <div className="field">
-          <label htmlFor="passengers">Personas</label>
+          <label htmlFor="passengers">Passengers</label>
           <div className="passenger-stepper">
             <button
               type="button"
-              aria-label="Quitar persona"
+              aria-label="Remove passenger"
               onClick={() => adjustPassengers(-1)}
               disabled={passengers <= 1}
             >
@@ -311,7 +311,7 @@ export function BookingForm({ onBooked }: BookingFormProps) {
             />
             <button
               type="button"
-              aria-label="Agregar persona"
+              aria-label="Add passenger"
               onClick={() => adjustPassengers(1)}
               disabled={passengers >= 30}
             >
@@ -319,12 +319,12 @@ export function BookingForm({ onBooked }: BookingFormProps) {
             </button>
           </div>
           <p className="field-hint">
-            Sugerido: {recommendedVehicle?.name ?? "—"}
+            Suggested: {recommendedVehicle?.name ?? "—"}
           </p>
         </div>
 
         <div className="field">
-          <label htmlFor="return-toggle">Regreso</label>
+          <label htmlFor="return-toggle">Return</label>
           <button
             id="return-toggle"
             type="button"
@@ -337,13 +337,13 @@ export function BookingForm({ onBooked }: BookingFormProps) {
               <span className="return-toggle__thumb" />
             </span>
             <span className="return-toggle__label">
-              {wantReturn ? "Ida y vuelta" : "Solo ida"}
+              {wantReturn ? "Round trip" : "One way"}
             </span>
           </button>
         </div>
 
         <div className={`field${wantReturn ? "" : " field--full"}`}>
-          <label htmlFor="date">Fecha de ida</label>
+          <label htmlFor="date">Departure date</label>
           <input
             id="date"
             type="date"
@@ -351,12 +351,12 @@ export function BookingForm({ onBooked }: BookingFormProps) {
             value={date}
             onChange={(e) => setDate(e.target.value)}
           />
-          <p className="field-hint">La hora de recogida la confirmamos nosotros.</p>
+          <p className="field-hint">We'll confirm your pickup time.</p>
         </div>
 
         {wantReturn && (
           <div className="field">
-            <label htmlFor="return-date">Fecha de regreso</label>
+            <label htmlFor="return-date">Return date</label>
             <input
               id="return-date"
               type="date"
@@ -368,7 +368,7 @@ export function BookingForm({ onBooked }: BookingFormProps) {
         )}
 
         <div className="field field--full">
-          <label htmlFor="flight">Nº de vuelo</label>
+          <label htmlFor="flight">Flight number</label>
           <input
             id="flight"
             type="text"
@@ -377,14 +377,14 @@ export function BookingForm({ onBooked }: BookingFormProps) {
             placeholder={
               origin.kind === "airport" || destination.kind === "airport"
                 ? "AA1234"
-                : "Opcional"
+                : "Optional"
             }
           />
         </div>
 
         <div className="field field--full">
-          <label>Vehículo</label>
-          <div className="vehicle-picker" role="radiogroup" aria-label="Vehículo">
+          <label>Vehicle</label>
+          <div className="vehicle-picker" role="radiogroup" aria-label="Vehicle">
             {vehicles.map((v) => {
               const tooSmall = passengers > v.maxPassengers;
               return (
@@ -408,11 +408,11 @@ export function BookingForm({ onBooked }: BookingFormProps) {
         </div>
 
         <div className="field">
-          <label htmlFor="name">Nombre</label>
+          <label htmlFor="name">Name</label>
           <input
             id="name"
             type="text"
-            placeholder="Tu nombre"
+            placeholder="Your name"
             required
             value={name}
             onChange={(e) => setName(e.target.value)}
@@ -424,7 +424,7 @@ export function BookingForm({ onBooked }: BookingFormProps) {
           <input
             id="contact"
             type="text"
-            placeholder="+1 809… o correo"
+            placeholder="+1 809… or email"
             required
             value={contactInfo}
             onChange={(e) => setContactInfo(e.target.value)}
@@ -432,10 +432,10 @@ export function BookingForm({ onBooked }: BookingFormProps) {
         </div>
 
         <div className="field field--full">
-          <label htmlFor="notes">Notas</label>
+          <label htmlFor="notes">Notes</label>
           <textarea
             id="notes"
-            placeholder="Asientos infantiles, equipaje especial…"
+            placeholder="Child seats, special luggage…"
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
           />
@@ -451,13 +451,13 @@ export function BookingForm({ onBooked }: BookingFormProps) {
       <div className="booking-form__footer">
         <div className="price-tag">
           <small>
-            Precio
-            {wantReturn ? " · ida y vuelta" : " · solo ida"}
+            Price
+            {wantReturn ? " · round trip" : " · one way"}
           </small>
           <strong>${price} USD</strong>
         </div>
         <button type="submit" className="btn btn--primary">
-          Reservar y pagar
+          Book and pay
         </button>
       </div>
     </form>

@@ -34,16 +34,16 @@ export function Root() {
       const found = findReservation(result.orderNumber);
       setAzulBanner(
         found
-          ? `Pago Azul aprobado para ${result.orderNumber}${result.authorizationCode ? ` · Auth ${result.authorizationCode}` : ""}.`
-          : `Pago Azul aprobado (${result.orderNumber}).`,
+          ? `Pago Azul payment approved for ${result.orderNumber}${result.authorizationCode ? ` · Auth ${result.authorizationCode}` : ""}.`
+          : `Pago Azul payment approved (${result.orderNumber}).`,
       );
       window.location.hash = "#pago";
     } else if (result.status === "declined") {
       setAzulBanner(
-        `Pago Azul declinado${result.responseMessage ? `: ${result.responseMessage}` : "."}`,
+        `Pago Azul payment declined${result.responseMessage ? `: ${result.responseMessage}` : "."}`,
       );
     } else if (result.status === "cancel") {
-      setAzulBanner("Cancelaste el pago en Azul. Puedes intentarlo de nuevo.");
+      setAzulBanner("You canceled the Azul payment. You can try again.");
     }
 
     clearAzulQueryFromUrl();
@@ -72,7 +72,7 @@ export function Root() {
         <div className="azul-banner" role="status">
           <p>{azulBanner}</p>
           <button type="button" onClick={() => setAzulBanner(null)}>
-            Cerrar
+            Close
           </button>
         </div>
       )}

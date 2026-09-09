@@ -2,7 +2,7 @@ export type Zone = "Punta Cana" | "Bávaro" | "Macao";
 
 export type VehicleId = "sedan" | "suv" | "van";
 
-export const airportLabel = "Aeropuerto Punta Cana (PUJ)";
+export const airportLabel = "Punta Cana Airport (PUJ)";
 
 export const contact = {
   email: "contact@ersunnytravel.com",
@@ -12,7 +12,7 @@ export const contact = {
 
 export const bankPayment = {
   bank: "APAP",
-  accountType: "Ahorro",
+  accountType: "Savings",
   accountNumber: "1036829162",
   holder: "ERSUNNY TRAVEL",
   rnc: "133-64000-7",
@@ -20,29 +20,29 @@ export const bankPayment = {
 
 export const about = {
   mission:
-    "Facilitar experiencias inolvidables a nuestros clientes mediante un servicio de transporte turístico seguro, confiable y cómodo, acompañado de excursiones que resalten la belleza y cultura de cada destino, contribuyendo así al disfrute y conocimiento del patrimonio natural y cultural de cada lugar.",
+    "To create unforgettable experiences for our customers through safe, reliable, and comfortable tourist transportation, complemented by excursions that showcase the beauty and culture of each destination and help travelers enjoy and discover its natural and cultural heritage.",
   vision:
-    "Ser la empresa líder en transporte turístico y excursiones, reconocida por nuestra excelencia en servicio al cliente, compromiso con la seguridad y el respeto por el medio ambiente, expandiendo nuestra oferta a nuevos destinos globales y estableciendo estándares de calidad en la industria del turismo.",
+    "To be the leading tourist transportation and excursion company, recognized for excellence in customer service, commitment to safety, and respect for the environment, while expanding to new destinations worldwide and setting quality standards in the tourism industry.",
   values: [
     {
-      title: "Compromiso con la seguridad",
-      copy: "Priorizamos la seguridad de nuestros pasajeros y empleados en todo momento.",
+      title: "Commitment to safety",
+      copy: "We prioritize the safety of our passengers and employees at all times.",
     },
     {
-      title: "Excelencia en el servicio",
-      copy: "Nos esforzamos por superar las expectativas de nuestros clientes, proporcionando un servicio amable, profesional y eficiente.",
+      title: "Service excellence",
+      copy: "We strive to exceed our customers' expectations by providing friendly, professional, and efficient service.",
     },
     {
-      title: "Sostenibilidad ambiental",
-      copy: "Promovemos prácticas sostenibles en todas nuestras operaciones para preservar los recursos naturales y reducir nuestro impacto ambiental.",
+      title: "Environmental sustainability",
+      copy: "We promote sustainable practices throughout our operations to preserve natural resources and reduce our environmental impact.",
     },
     {
-      title: "Integridad y ética",
-      copy: "Actuamos con honestidad, transparencia y ética en todas nuestras relaciones comerciales y decisiones empresariales.",
+      title: "Integrity and ethics",
+      copy: "We act with honesty, transparency, and integrity in all our business relationships and decisions.",
     },
     {
-      title: "Innovación y mejora continua",
-      copy: "Buscamos constantemente nuevas formas de mejorar nuestros servicios y procesos, adaptándonos a las necesidades cambiantes del mercado y tecnológicas.",
+      title: "Innovation and continuous improvement",
+      copy: "We constantly seek new ways to improve our services and processes, adapting to changing market needs and technological advances.",
     },
   ],
 };
@@ -119,9 +119,9 @@ export const vehicles: {
   capacity: string;
   basePrice: number;
 }[] = [
-  { id: "sedan", name: "Sedán premium", capacity: "1–3 pasajeros", basePrice: 45 },
-  { id: "suv", name: "SUV confort", capacity: "1–5 pasajeros", basePrice: 65 },
-  { id: "van", name: "Van privada", capacity: "6–10 pasajeros", basePrice: 95 },
+  { id: "sedan", name: "Premium sedan", capacity: "1–3 passengers", basePrice: 45 },
+  { id: "suv", name: "Comfort SUV", capacity: "1–5 passengers", basePrice: 65 },
+  { id: "van", name: "Private van", capacity: "6–10 passengers", basePrice: 95 },
 ];
 
 export const zoneSurcharge: Record<Zone, number> = {
@@ -133,21 +133,21 @@ export const zoneSurcharge: Record<Zone, number> = {
 export const destinations = [
   {
     zone: "Punta Cana" as Zone,
-    blurb: "Resorts icónicos frente al Caribe, a minutos del aeropuerto.",
+    blurb: "Iconic Caribbean beachfront resorts just minutes from the airport.",
     time: "25–40 min",
     image:
       "https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=1200&q=80",
   },
   {
     zone: "Bávaro" as Zone,
-    blurb: "Playas de arena blanca y la franja hotelera más vibrante.",
+    blurb: "White-sand beaches and the area's most vibrant hotel district.",
     time: "35–50 min",
     image:
       "https://images.unsplash.com/photo-1506929562872-bb421503ef21?auto=format&fit=crop&w=1200&q=80",
   },
   {
     zone: "Macao" as Zone,
-    blurb: "Costa salvaje, olas y resorts boutique más al norte.",
+    blurb: "A wild coastline, rolling waves, and boutique resorts farther north.",
     time: "45–60 min",
     image:
       "https://images.unsplash.com/photo-1473496169904-658ba7c44d8a?auto=format&fit=crop&w=1200&q=80",
@@ -156,37 +156,37 @@ export const destinations = [
 
 export const fleet = [
   {
-    label: "Privado",
-    title: "Sedán premium",
-    copy: "Ideal para parejas o viajes cortos con maletas ligeras.",
-    points: ["Aire acondicionado", "Wi‑Fi a bordo", "Agua de cortesía"],
+    label: "Private",
+    title: "Premium sedan",
+    copy: "Ideal for couples or short trips with light luggage.",
+    points: ["Air conditioning", "Onboard Wi-Fi", "Complimentary water"],
   },
   {
-    label: "Familiar",
-    title: "SUV confort",
-    copy: "Espacio extra para familias y equipaje de vacaciones largas.",
-    points: ["Hasta 5 pasajeros", "Asientos infantiles bajo pedido", "Conductor local"],
+    label: "Family",
+    title: "Comfort SUV",
+    copy: "Extra room for families and luggage on longer vacations.",
+    points: ["Up to 5 passengers", "Child seats upon request", "Local driver"],
   },
   {
-    label: "Grupo",
-    title: "Van privada",
-    copy: "Traslado exclusivo para grupos o amigos que viajan juntos.",
-    points: ["Hasta 10 pasajeros", "Puerta a puerta", "Seguimiento de vuelo"],
+    label: "Group",
+    title: "Private van",
+    copy: "Exclusive transfer for groups or friends traveling together.",
+    points: ["Up to 10 passengers", "Door-to-door service", "Flight tracking"],
   },
 ];
 
 export const steps = [
   {
-    title: "Agenda tu traslado",
-    copy: "Completa origen, destino, personas y horario en la web.",
+    title: "Schedule your transfer",
+    copy: "Enter your origin, destination, passenger count, and schedule online.",
   },
   {
-    title: "Paga de inmediato",
-    copy: "Te redirigimos a Pago Azul para cobrar con tarjeta de forma segura.",
+    title: "Pay right away",
+    copy: "We redirect you to Pago Azul for secure card payment.",
   },
   {
-    title: "Confirma tu recogida",
-    copy: "Usa el rastreador con tu número de reserva para ver la hora de pick-up.",
+    title: "Confirm your pickup",
+    copy: "Use the tracker with your reservation number to view your pickup time.",
   },
 ];
 
