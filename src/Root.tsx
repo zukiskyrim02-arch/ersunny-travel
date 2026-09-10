@@ -3,6 +3,9 @@ import App from "./App";
 import { AboutPage } from "./AboutPage";
 import { ContactPage } from "./ContactPage";
 import { ExcursionsPage } from "./ExcursionsPage";
+import { PaymentPage } from "./PaymentPage";
+import { StaffPickupPage } from "./StaffPickupPage";
+import { ConfirmPickupPage } from "./ConfirmPickupPage";
 import {
   clearAzulQueryFromUrl,
   readAzulReturnFromUrl,
@@ -130,32 +133,17 @@ export function Root() {
           ? `Pago Azul payment approved for ${result.orderNumber}${result.authorizationCode ? ` · Auth ${result.authorizationCode}` : ""}.`
           : `Pago Azul payment approved (${result.orderNumber}).`,
       );
-      if (found?.kind === "transfer") {
-        window.history.replaceState(null, "", "/#pago");
-        setPath("/");
-      } else {
-        window.history.replaceState(null, "", "/excursions#pago");
-        setPath("/excursions");
-      }
+      window.history.replaceState(
+        null,
+        "",
+        `/payment?id=${encodeURIComponent(result.orderNumber)}`,
+      );
+      setPath("/payment");
 
-      // Confirm payment by email when checkout finishes
+      // Confirm payment by email + send customer the pickup-time link
       if (found) {
-        void import("./notifyBooking").then(({ sendBookingNotification }) =>
-          sendBookingNotification({
-            _subject: `Paid booking ${found.id}`,
-            reservation_id: found.id,
-            status: "paid",
-            customer_name: found.name,
-            contact: found.contactInfo,
-            service: found.notes ?? found.kind,
-            date: found.date,
-            return_date: found.returnDate ?? "N/A",
-            route: `${found.origin} → ${found.destination}`,
-            passengers: String(found.passengers),
-            vehicle: found.vehicle,
-            price_usd: found.price != null ? String(found.price) : "N/A",
-            flight: found.flight ?? "N/A",
-          }).catch(() => undefined),
+        void import("./notifyBooking").then(({ sendPaidBookingEmails }) =>
+          sendPaidBookingEmails(found).catch(() => undefined),
         );
       }
     } else if (result.status === "declined") {
@@ -169,12 +157,20 @@ export function Root() {
     clearAzulQueryFromUrl();
   }, []);
 
+  if (path === "/admin/pickup") {
+    return <StaffPickupPage />;
+  }
+
   if (path === "/admin" || path.startsWith("/admin/")) {
     return (
       <Suspense fallback={<div className="admin-loading">Loading admin…</div>}>
         <AdminApp />
       </Suspense>
     );
+  }
+
+  if (path === "/confirm-pickup") {
+    return <ConfirmPickupPage />;
   }
 
   const page =
@@ -186,6 +182,8 @@ export function Root() {
       <ExcursionsPage />
     ) : path === "/contact" || path === "/contacto" ? (
       <ContactPage />
+    ) : path === "/payment" || path === "/pago" ? (
+      <PaymentPage />
     ) : (
       <App />
     );

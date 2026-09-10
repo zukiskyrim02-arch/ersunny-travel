@@ -105,6 +105,7 @@ export function QuoteForm({ onBooked }: QuoteFormProps) {
       kind: "transfer",
       name: name.trim(),
       contactInfo: `${whatsapp.trim()} · ${email.trim()}`,
+      email: email.trim(),
       origin,
       destination,
       date,

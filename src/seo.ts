@@ -55,6 +55,13 @@ export const pageSeo: Record<string, PageSeo> = {
     keywords:
       "contact Ersunny Travel, WhatsApp Punta Cana transfer, book transfer PUJ",
   },
+  payment: {
+    path: "/payment",
+    title: "Payment Form | Ersunny Travel",
+    description:
+      "Complete your Ersunny Travel reservation payment securely with Pago Azul or bank transfer.",
+    noindex: true,
+  },
   admin: {
     path: "/admin",
     title: "Admin | Ersunny Travel",
@@ -269,5 +276,6 @@ export function seoForPath(path: string): PageSeo {
   }
   if (path === "/excursions" || path === "/excursiones") return pageSeo.excursions;
   if (path === "/contact" || path === "/contacto") return pageSeo.contact;
+  if (path === "/payment" || path === "/pago") return pageSeo.payment;
   return pageSeo.home;
 }

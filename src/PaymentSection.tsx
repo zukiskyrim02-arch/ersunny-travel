@@ -107,7 +107,7 @@ export function PaymentSection({
               />
             </svg>
           </div>
-          <h2>Reservation requested!</h2>
+          <h1>Payment form</h1>
           <div className="confirm__ref">
             <span>Reservation number</span>
             <strong>{reservation.id}</strong>
@@ -120,7 +120,7 @@ export function PaymentSection({
             </button>
           </div>
           <p>
-            We received your {isExcursion ? "excursion" : "transfer"} request.
+            Complete payment for your {isExcursion ? "excursion" : "transfer"}.
             Pay securely with <strong>Pago Azul</strong> or contact us:
           </p>
         </div>
@@ -290,8 +290,15 @@ export function PaymentSection({
           </div>
         </article>
 
-        <div className="confirm__pay" id="datos-pago">
-          <h3>Pay with Azul</h3>
+        <form
+          className="confirm__pay payment-form"
+          id="datos-pago"
+          onSubmit={(e) => {
+            e.preventDefault();
+            void payWithAzul();
+          }}
+        >
+          <h2>Pay with Azul</h2>
           <p>
             You'll be redirected to the secure <strong>Pago Azul</strong> page
             to pay by card (Visa, Mastercard, and more). Environment:{" "}
@@ -305,10 +312,9 @@ export function PaymentSection({
           )}
 
           <button
-            type="button"
+            type="submit"
             className="btn btn--primary btn--full"
             disabled={paying || !canPayAzul}
-            onClick={() => void payWithAzul()}
           >
             {paying
               ? "Connecting to Azul…"
@@ -377,7 +383,7 @@ export function PaymentSection({
               </a>
             </>
           )}
-        </div>
+        </form>
       </div>
     </section>
   );

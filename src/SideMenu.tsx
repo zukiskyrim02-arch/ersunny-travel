@@ -1,7 +1,12 @@
-import { useEffect, useState, type FormEvent } from "react";
+import { useState, type FormEvent } from "react";
 import { logoSrc } from "./assets";
 import { contact } from "./data";
-import { findReservation, type Reservation } from "./reservations";
+import { sendCustomerConfirmedPickup } from "./notifyBooking";
+import {
+  findReservation,
+  upsertReservation,
+  type Reservation,
+} from "./reservations";
 
 type SideMenuProps = {
   open: boolean;
@@ -10,21 +15,21 @@ type SideMenuProps = {
   onPanelChange: (panel: "tracker" | "contact") => void;
 };
 
+function formatTimeLabel(value?: string) {
+  if (!value || value === "To be confirmed") return null;
+  return value;
+}
+
 export function SideMenu({ open, onClose, panel, onPanelChange }: SideMenuProps) {
   const [code, setCode] = useState("");
   const [result, setResult] = useState<Reservation | null>(null);
   const [error, setError] = useState("");
-  const [confirmed, setConfirmed] = useState(false);
-
-  useEffect(() => {
-    if (!open) {
-      setConfirmed(false);
-    }
-  }, [open]);
+  const [confirming, setConfirming] = useState(false);
+  const [statusMsg, setStatusMsg] = useState("");
 
   function handleLookup(e: FormEvent) {
     e.preventDefault();
-    setConfirmed(false);
+    setStatusMsg("");
     const found = findReservation(code);
     if (!found) {
       setResult(null);
@@ -36,6 +41,30 @@ export function SideMenu({ open, onClose, panel, onPanelChange }: SideMenuProps)
     setError("");
     setResult(found);
   }
+
+  async function confirmPickup() {
+    if (!result) return;
+    const pickup = formatTimeLabel(result.pickupTime) || formatTimeLabel(result.time);
+    if (!pickup) return;
+    setConfirming(true);
+    const updated = upsertReservation({
+      ...result,
+      customerConfirmed: true,
+      status: "confirmed",
+    });
+    setResult(updated);
+    setStatusMsg(`Pickup confirmed: ${updated.date} at ${pickup}.`);
+    try {
+      await sendCustomerConfirmedPickup(updated);
+    } catch {
+      /* best-effort */
+    }
+    setConfirming(false);
+  }
+
+  const scheduledPickup =
+    result &&
+    (formatTimeLabel(result.pickupTime) || formatTimeLabel(result.time));
 
   return (
     <>
@@ -66,7 +95,7 @@ export function SideMenu({ open, onClose, panel, onPanelChange }: SideMenuProps)
             className={panel === "tracker" ? "is-active" : ""}
             onClick={() => onPanelChange("tracker")}
           >
-            Confirm pickup
+            Pickup status
           </button>
           <button
             type="button"
@@ -84,8 +113,8 @@ export function SideMenu({ open, onClose, panel, onPanelChange }: SideMenuProps)
             <div>
               <h2>Pickup tracker</h2>
               <p>
-                Enter your reservation number to view and confirm your pickup
-                time.
+                Enter your reservation number to view your booking and confirm
+                the pickup time once Ersunny Travel has set it.
               </p>
               <form className="tracker-form" onSubmit={handleLookup}>
                 <label htmlFor="reservation-code">Reservation number</label>
@@ -137,18 +166,19 @@ export function SideMenu({ open, onClose, panel, onPanelChange }: SideMenuProps)
                       <dt>Date</dt>
                       <dd>
                         {result.date}
-                        {result.pickupTime
-                          ? ` · ${result.pickupTime}`
-                          : result.kind === "transfer"
-                            ? " · time to be confirmed"
-                            : ""}
+                        {scheduledPickup
+                          ? ` · ${scheduledPickup}`
+                          : " · time to be confirmed"}
                       </dd>
                     </div>
                     {result.wantReturn && result.returnDate && (
                       <div>
                         <dt>Return</dt>
                         <dd>
-                          {result.returnDate} · {result.returnTime}
+                          {result.returnDate}
+                          {formatTimeLabel(result.returnTime)
+                            ? ` · ${formatTimeLabel(result.returnTime)}`
+                            : " · time to be confirmed"}
                         </dd>
                       </div>
                     )}
@@ -158,25 +188,21 @@ export function SideMenu({ open, onClose, panel, onPanelChange }: SideMenuProps)
                     </div>
                   </dl>
 
-                  {!confirmed ? (
+                  {result.customerConfirmed || statusMsg ? (
+                    <p className="tracker-ok" role="status">
+                      {statusMsg ||
+                        `Pickup confirmed: ${result.date} at ${scheduledPickup}.`}
+                    </p>
+                  ) : scheduledPickup ? (
                     <button
                       type="button"
                       className="btn btn--primary btn--full"
-                      onClick={() => setConfirmed(true)}
+                      disabled={confirming}
+                      onClick={() => void confirmPickup()}
                     >
-                      {result.kind === "excursion"
-                        ? "Confirm attendance"
-                        : "Confirm pickup time"}
+                      {confirming ? "Confirming…" : "Confirm pickup time"}
                     </button>
-                  ) : (
-                    <p className="tracker-ok" role="status">
-                      {result.kind === "excursion"
-                        ? `Excursion confirmed for ${result.date}. We'll let you know the pickup time.`
-                        : result.pickupTime
-                          ? `Pickup confirmed: ${result.date} at ${result.pickupTime}.`
-                          : `Pickup confirmed for ${result.date}. We'll email you the exact time.`}
-                    </p>
-                  )}
+                  ) : null}
                 </div>
               )}
             </div>

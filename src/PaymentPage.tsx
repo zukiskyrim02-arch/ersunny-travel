@@ -1,23 +1,40 @@
-import { useEffect, useState } from "react";
-import { ExcursionBooking } from "./ExcursionBooking";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { PaymentSection } from "./PaymentSection";
 import { SideMenu } from "./SideMenu";
 import { logoSrc } from "./assets";
 import { contact } from "./data";
-import type { Reservation } from "./reservations";
+import { findReservation } from "./reservations";
 import { navigate } from "./routing";
 
 const waBookHref = `https://wa.me/${contact.whatsappDigits}?text=${encodeURIComponent(
   "Hi Ersunny Travel! I'd like to book a transfer or excursion.",
 )}`;
 
-export function ExcursionsPage() {
+function reservationIdFromUrl(): string {
+  const params = new URLSearchParams(window.location.search);
+  return (params.get("id") || params.get("order") || "").trim();
+}
+
+export function PaymentPage() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [menuPanel, setMenuPanel] = useState<"tracker" | "contact">("tracker");
   const [navOpen, setNavOpen] = useState(false);
+  const [lookupId, setLookupId] = useState(() => reservationIdFromUrl());
+  const [queryId, setQueryId] = useState(() => reservationIdFromUrl());
+  const [error, setError] = useState(() => {
+    const id = reservationIdFromUrl();
+    if (!id) return "";
+    return findReservation(id) ? "" : "Reservation not found. Check the code and try again.";
+  });
+
+  const reservation = useMemo(
+    () => (queryId ? findReservation(queryId) : undefined),
+    [queryId],
+  );
 
   useEffect(() => {
     window.scrollTo(0, 0);
-  }, []);
+  }, [queryId]);
 
   useEffect(() => {
     document.body.style.overflow = menuOpen || navOpen ? "hidden" : "";
@@ -26,14 +43,27 @@ export function ExcursionsPage() {
     };
   }, [menuOpen, navOpen]);
 
-  function handleBooked(reservation: Reservation) {
-    navigate(`/payment?id=${encodeURIComponent(reservation.id)}`);
-  }
-
   function openMenu(panel: "tracker" | "contact" = "tracker") {
     setNavOpen(false);
     setMenuPanel(panel);
     setMenuOpen(true);
+  }
+
+  function onLookup(e: FormEvent) {
+    e.preventDefault();
+    setError("");
+    const id = lookupId.trim();
+    if (!id) {
+      setError("Enter your reservation number.");
+      return;
+    }
+    const found = findReservation(id);
+    if (!found) {
+      setError("Reservation not found. Check the code and try again.");
+      return;
+    }
+    setQueryId(found.id);
+    navigate(`/payment?id=${encodeURIComponent(found.id)}`);
   }
 
   return (
@@ -63,11 +93,7 @@ export function ExcursionsPage() {
             <a href="/#servicios" onClick={() => setNavOpen(false)}>
               Transfers
             </a>
-            <a
-              href="/excursions"
-              className="is-active"
-              onClick={() => setNavOpen(false)}
-            >
+            <a href="/excursions" onClick={() => setNavOpen(false)}>
               Excursions
             </a>
             <a href="/about" onClick={() => setNavOpen(false)}>
@@ -75,6 +101,13 @@ export function ExcursionsPage() {
             </a>
             <a href="/contact" onClick={() => setNavOpen(false)}>
               Contact
+            </a>
+            <a
+              href="/payment"
+              className="is-active"
+              onClick={() => setNavOpen(false)}
+            >
+              Payment
             </a>
             <button
               type="button"
@@ -128,8 +161,49 @@ export function ExcursionsPage() {
         onPanelChange={setMenuPanel}
       />
 
-      <main id="main-content" className="excursions-page">
-        <ExcursionBooking onBooked={handleBooked} />
+      <main id="main-content" className="payment-page">
+        {reservation ? (
+          <PaymentSection
+            reservation={reservation}
+            onOpenTracker={() => openMenu("tracker")}
+          />
+        ) : (
+          <section className="section section--confirm" id="pago">
+            <div className="container confirm">
+              <div className="confirm__hero">
+                <h2>Payment form</h2>
+                <p>
+                  Enter your reservation number to open the secure payment form.
+                </p>
+              </div>
+              <form className="payment-lookup quote-form" onSubmit={onLookup}>
+                <label className="field quote-form__full">
+                  <span>Reservation number</span>
+                  <input
+                    value={lookupId}
+                    onChange={(e) => setLookupId(e.target.value)}
+                    placeholder="e.g. EST-ABCD1234"
+                    autoComplete="off"
+                    required
+                  />
+                </label>
+                {error && (
+                  <p className="form-error" role="alert">
+                    {error}
+                  </p>
+                )}
+                <button className="btn-blue quote-form__submit" type="submit">
+                  Continue to payment
+                </button>
+                <p className="payment-lookup__hint">
+                  No reservation yet?{" "}
+                  <a href="/#cotizar">Book transportation</a> or{" "}
+                  <a href="/excursions">book an excursion</a>.
+                </p>
+              </form>
+            </div>
+          </section>
+        )}
       </main>
 
       <footer className="site-footer" id="contacto">
@@ -156,23 +230,16 @@ export function ExcursionsPage() {
             <a href="/contact">Contact</a>
           </div>
           <div>
-            <p className="site-footer__heading">Information</p>
-            <a href="/about/faq">FAQs</a>
-            <button type="button" onClick={() => openMenu("tracker")}>
-              Pickup status
-            </button>
-          </div>
-          <div>
-            <p className="site-footer__heading">Contact</p>
+            <p className="site-footer__heading">Pay</p>
+            <a href="/payment">Payment form</a>
+            <a href={`mailto:${contact.email}`}>{contact.email}</a>
             <a
               href={`https://wa.me/${contact.whatsappDigits}`}
               target="_blank"
               rel="noreferrer"
             >
-              {contact.whatsapp}
+              WhatsApp {contact.whatsapp}
             </a>
-            <a href={`mailto:${contact.email}`}>{contact.email}</a>
-            <p>Punta Cana, Dominican Republic</p>
           </div>
         </div>
         <div className="container site-footer__bottom">
@@ -181,19 +248,6 @@ export function ExcursionsPage() {
           </p>
         </div>
       </footer>
-
-      <a
-        className="wa-float"
-        href={waBookHref}
-        target="_blank"
-        rel="noreferrer"
-        aria-label="Chat on WhatsApp"
-      >
-        <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
-          <path d="M17.5 14.4c-.3-.1-1.6-.8-1.8-.9-.2-.1-.4-.1-.6.1-.2.3-.7.9-.8 1-.2.1-.3.2-.6.1-1.6-.6-2.9-1.7-3.8-3.2-.1-.2 0-.3.1-.5l.5-.6c.1-.2.2-.3.1-.5s-.6-1.5-.8-2c-.2-.5-.4-.4-.6-.4h-.5c-.2 0-.5.1-.7.3-.2.3-.9.9-.9 2.1s.9 2.4 1 2.6c.1.2 1.8 2.9 4.4 3.9 1.6.6 2.2.7 3 .6.5-.1 1.6-.6 1.8-1.3.2-.6.2-1.2.1-1.3-.1-.1-.3-.2-.6-.3Z" />
-          <path d="M12 2a10 10 0 0 0-8.7 15L2 22l5.1-1.3A10 10 0 1 0 12 2Zm0 18a8 8 0 0 1-4.1-1.1l-.3-.2-3 .8.8-2.9-.2-.3A8 8 0 1 1 12 20Z" />
-        </svg>
-      </a>
     </>
   );
 }

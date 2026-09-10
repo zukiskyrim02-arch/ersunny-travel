@@ -86,7 +86,7 @@ export function ContactPage() {
               className="site-nav__tracker"
               onClick={() => openMenu("tracker")}
             >
-              Confirm pickup
+              Pickup status
             </button>
           </nav>
 
@@ -305,7 +305,7 @@ export function ContactPage() {
             <p className="site-footer__heading">Information</p>
             <a href="/about/faq">FAQs</a>
             <button type="button" onClick={() => openMenu("tracker")}>
-              Confirm pickup
+              Pickup status
             </button>
           </div>
           <div>

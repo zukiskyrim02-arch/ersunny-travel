@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
 import { QuoteForm } from "./QuoteForm";
-import { PaymentSection } from "./PaymentSection";
 import { SideMenu } from "./SideMenu";
 import { asset, logoSrc } from "./assets";
 import { contact, excursions as showcaseExcursions } from "./data";
-import { listReservations, type Reservation } from "./reservations";
+import type { Reservation } from "./reservations";
+import { navigate } from "./routing";
 
 const HERO_IMG = asset("hero-cover.webp");
 const HERO_IMG_MOBILE = asset("hero-cover-mobile.webp");
@@ -163,14 +163,6 @@ export default function App() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [menuPanel, setMenuPanel] = useState<"tracker" | "contact">("tracker");
   const [navOpen, setNavOpen] = useState(false);
-  const [latestReservation, setLatestReservation] = useState<Reservation | null>(
-    () => {
-      if (typeof window === "undefined") return null;
-      if (window.location.hash.slice(1) !== "pago") return null;
-      return listReservations().find((r) => r.kind === "transfer") ?? null;
-    },
-  );
-
   const popularExcursions = showcaseExcursions.slice(0, 5);
 
   useEffect(() => {
@@ -180,18 +172,8 @@ export default function App() {
     };
   }, [menuOpen, navOpen]);
 
-  useEffect(() => {
-    if (!latestReservation) return;
-    const id = window.setTimeout(() => {
-      document
-        .getElementById("pago")
-        ?.scrollIntoView({ behavior: "smooth", block: "start" });
-    }, 120);
-    return () => window.clearTimeout(id);
-  }, [latestReservation]);
-
   function handleBooked(reservation: Reservation) {
-    setLatestReservation(reservation);
+    navigate(`/payment?id=${encodeURIComponent(reservation.id)}`);
   }
 
   function openMenu(panel: "tracker" | "contact" = "tracker") {
@@ -241,7 +223,7 @@ export default function App() {
               className="site-nav__tracker"
               onClick={() => openMenu("tracker")}
             >
-              Confirm pickup
+              Pickup status
             </button>
           </nav>
 
@@ -514,13 +496,6 @@ export default function App() {
           </div>
         </section>
 
-        {latestReservation && (
-          <PaymentSection
-            reservation={latestReservation}
-            onOpenTracker={() => openMenu("tracker")}
-          />
-        )}
-
         <section className="section section--soft" id="excursiones-populares">
           <div className="container">
             <div className="excursions-head">
@@ -681,7 +656,7 @@ export default function App() {
             <p className="site-footer__heading">Information</p>
             <a href="/about/faq">FAQs</a>
             <button type="button" onClick={() => openMenu("tracker")}>
-              Confirm pickup
+              Pickup status
             </button>
           </div>
           <div>
