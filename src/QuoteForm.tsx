@@ -11,12 +11,16 @@ export function QuoteForm() {
   const [service, setService] = useState("Private Transfer");
   const [transferType, setTransferType] = useState("Airport → Hotel");
   const [date, setDate] = useState("");
+  const [departureDate, setDepartureDate] = useState("");
   const [passengers, setPassengers] = useState("2 Adults");
   const [hotel, setHotel] = useState("");
   const [flight, setFlight] = useState("");
+  const [returnFlight, setReturnFlight] = useState("");
   const [whatsapp, setWhatsapp] = useState("");
   const [hotelOpen, setHotelOpen] = useState(false);
   const hotelWrapRef = useRef<HTMLDivElement>(null);
+
+  const isRoundTrip = service === "Round trip";
 
   const hotelMatches = useMemo(() => {
     const q = hotel.trim().toLowerCase();
@@ -40,10 +44,14 @@ export function QuoteForm() {
       "Hi Ersunny Travel, I'd like a quote:",
       `• Service: ${service}`,
       `• Type: ${transferType}`,
-      `• Date: ${date || "To be confirmed"}`,
+      `• ${isRoundTrip ? "Arrival date" : "Date"}: ${date || "To be confirmed"}`,
+      ...(isRoundTrip
+        ? [`• Departure date: ${departureDate || "To be confirmed"}`]
+        : []),
       `• Passengers: ${passengers}`,
       `• Hotel/destination: ${hotel || "—"}`,
       `• Flight: ${flight || "—"}`,
+      ...(isRoundTrip ? [`• Return flight: ${returnFlight || "—"}`] : []),
       `• WhatsApp: ${whatsapp || "—"}`,
     ];
     const url = `https://wa.me/${contact.whatsappDigits}?text=${encodeURIComponent(lines.join("\n"))}`;
@@ -74,7 +82,7 @@ export function QuoteForm() {
           </select>
         </label>
         <label className="field">
-          <span>Pickup / Drop-off</span>
+          <span>{isRoundTrip ? "Arrival date" : "Pickup / Drop-off"}</span>
           <input
             type="date"
             value={date}
@@ -82,6 +90,18 @@ export function QuoteForm() {
             required
           />
         </label>
+        {isRoundTrip && (
+          <label className="field">
+            <span>Departure date</span>
+            <input
+              type="date"
+              value={departureDate}
+              min={date || undefined}
+              onChange={(e) => setDepartureDate(e.target.value)}
+              required
+            />
+          </label>
+        )}
         <label className="field">
           <span>Passengers</span>
           <select
@@ -139,13 +159,23 @@ export function QuoteForm() {
           )}
         </div>
         <label className="field">
-          <span>Flight number (optional)</span>
+          <span>{isRoundTrip ? "Arrival flight (optional)" : "Flight number (optional)"}</span>
           <input
             placeholder="e.g. AA123"
             value={flight}
             onChange={(e) => setFlight(e.target.value)}
           />
         </label>
+        {isRoundTrip && (
+          <label className="field">
+            <span>Departure flight (optional)</span>
+            <input
+              placeholder="e.g. AA456"
+              value={returnFlight}
+              onChange={(e) => setReturnFlight(e.target.value)}
+            />
+          </label>
+        )}
         <label className="field quote-form__full">
           <span>WhatsApp</span>
           <input
