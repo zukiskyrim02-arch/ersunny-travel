@@ -1,6 +1,6 @@
 import { useMemo, useState, type FormEvent } from "react";
 import { logoSrc } from "./assets";
-import { contact } from "./data";
+import { getSiteContact } from "./store/config";
 import { sendPickupTimesToCustomer } from "./notifyBooking";
 import {
   decodeStaffPayload,
@@ -204,7 +204,7 @@ export function StaffPickupPage() {
         </form>
 
         <p className="staff-pickup__hint">
-          Questions? {contact.email} · {contact.whatsapp}
+          Questions? {getSiteContact().email} · {getSiteContact().whatsapp}
         </p>
         <a href="/admin">Open full admin →</a>
       </div>

@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { bankPayment, contact } from "./data";
 import { useI18n } from "./i18n/I18nProvider";
 import { useAppConfig } from "./store/hooks";
 import { redirectToAzul } from "./payments/azul";
@@ -27,7 +26,7 @@ export function PaymentSection({
   onOpenTracker,
 }: PaymentSectionProps) {
   const { t, locale } = useI18n();
-  const { azul } = useAppConfig();
+  const { azul, contact, bank: bankPayment } = useAppConfig();
   const [copied, setCopied] = useState(false);
   const [copiedId, setCopiedId] = useState(false);
   const [paying, setPaying] = useState(false);

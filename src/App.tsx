@@ -3,11 +3,11 @@ import { QuoteForm } from "./QuoteForm";
 import { SideMenu } from "./SideMenu";
 import { LanguageSwitch } from "./LanguageSwitch";
 import { asset, logoSrc } from "./assets";
-import { contact, excursions as showcaseExcursions } from "./data";
 import type { Reservation } from "./reservations";
 import { navigate } from "./routing";
 import { SiteFooter } from "./SiteFooter";
 import { useI18n } from "./i18n/I18nProvider";
+import { useAppConfig } from "./store/hooks";
 
 const HERO_IMG = asset("hero-cover.webp");
 const HERO_IMG_MOBILE = asset("hero-cover-mobile.webp");
@@ -146,10 +146,14 @@ function TrustIcon({ name }: { name: string }) {
 
 export default function App() {
   const { t, locale } = useI18n();
+  const config = useAppConfig();
+  const contact = config.contact;
   const [menuOpen, setMenuOpen] = useState(false);
   const [menuPanel, setMenuPanel] = useState<"tracker" | "contact">("tracker");
   const [navOpen, setNavOpen] = useState(false);
-  const popularExcursions = showcaseExcursions.slice(0, 5);
+  const popularExcursions = config.excursions
+    .filter((e) => e.active)
+    .slice(0, 5);
 
   useEffect(() => {
     document.body.style.overflow = menuOpen || navOpen ? "hidden" : "";
@@ -171,6 +175,27 @@ export default function App() {
   const waBookHref = `https://wa.me/${contact.whatsappDigits}?text=${encodeURIComponent(
     t("common.waPrefill"),
   )}`;
+
+  const heroEyebrow =
+    locale === "es" && config.page.heroEyebrow
+      ? config.page.heroEyebrow
+      : t("hero.eyebrow");
+  const heroTitle =
+    locale === "es" && config.page.heroTitle
+      ? config.page.heroTitle
+      : t("hero.title");
+  const heroLead =
+    locale === "es" && config.page.heroLead
+      ? config.page.heroLead
+      : t("hero.lead");
+  const servicesTitle =
+    locale === "es" && config.page.servicesTitle
+      ? config.page.servicesTitle
+      : t("section.servicesTitle");
+  const servicesLead =
+    locale === "es" && config.page.servicesLead
+      ? config.page.servicesLead
+      : t("section.servicesLead");
 
   return (
     <>
@@ -227,7 +252,7 @@ export default function App() {
                 <path d="M17.5 14.4c-.3-.1-1.6-.8-1.8-.9-.2-.1-.4-.1-.6.1-.2.3-.7.9-.8 1-.2.1-.3.2-.6.1-1.6-.6-2.9-1.7-3.8-3.2-.1-.2 0-.3.1-.5l.5-.6c.1-.2.2-.3.1-.5s-.6-1.5-.8-2c-.2-.5-.4-.4-.6-.4h-.5c-.2 0-.5.1-.7.3-.2.3-.9.9-.9 2.1s.9 2.4 1 2.6c.1.2 1.8 2.9 4.4 3.9 1.6.6 2.2.7 3 .6.5-.1 1.6-.6 1.8-1.3.2-.6.2-1.2.1-1.3-.1-.1-.3-.2-.6-.3Z" />
                 <path d="M12 2a10 10 0 0 0-8.7 15L2 22l5.1-1.3A10 10 0 1 0 12 2Zm0 18a8 8 0 0 1-4.1-1.1l-.3-.2-3 .8.8-2.9-.2-.3A8 8 0 1 1 12 20Z" />
               </svg>
-              {t("nav.bookNow")}
+              <span className="btn-wa__label">{t("nav.bookNow")}</span>
             </a>
             <div className="site-header__lang-desktop">
               <LanguageSwitch />
@@ -287,9 +312,9 @@ export default function App() {
           </div>
           <div className="hero-new__overlay" aria-hidden />
           <div className="hero-new__content">
-            <p className="hero-new__eyebrow">{t("hero.eyebrow")}</p>
-            <h1 className="hero-new__title">{t("hero.title")}</h1>
-            <p className="hero-new__sub">{t("hero.lead")}</p>
+            <p className="hero-new__eyebrow">{heroEyebrow}</p>
+            <h1 className="hero-new__title">{heroTitle}</h1>
+            <p className="hero-new__sub">{heroLead}</p>
             <div className="hero-new__actions">
               <a className="btn-yellow" href="/#cotizar">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
@@ -348,8 +373,8 @@ export default function App() {
           <div className="container">
             <div className="section__head">
               <p className="section__eyebrow">{t("section.servicesEyebrow")}</p>
-              <h2 className="section__title">{t("section.servicesTitle")}</h2>
-              <p className="section__lead">{t("section.servicesLead")}</p>
+              <h2 className="section__title">{servicesTitle}</h2>
+              <p className="section__lead">{servicesLead}</p>
             </div>
 
             <div className="services-grid">

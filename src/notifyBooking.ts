@@ -1,4 +1,4 @@
-import { contact } from "./data";
+import { getSiteContact } from "./store/config";
 import {
   customerConfirmPickupUrl,
   getReservationEmail,
@@ -10,6 +10,7 @@ import {
 export async function sendBookingNotification(
   payload: Record<string, string>,
 ): Promise<void> {
+  const contact = getSiteContact();
   const res = await fetch(
     `https://formsubmit.co/ajax/${encodeURIComponent(contact.email)}`,
     {
@@ -36,6 +37,7 @@ export async function sendBookingNotification(
 export async function sendPaidBookingEmails(
   reservation: Reservation,
 ): Promise<void> {
+  const contact = getSiteContact();
   const customerEmail = getReservationEmail(reservation);
   const setPickupLink = staffPickupFormUrl(reservation);
 
@@ -83,6 +85,7 @@ export async function sendPaidBookingEmails(
 export async function sendPickupTimesToCustomer(
   reservation: Reservation,
 ): Promise<void> {
+  const contact = getSiteContact();
   const customerEmail = getReservationEmail(reservation);
   const confirmLink = customerConfirmPickupUrl(reservation);
   const schedule = [

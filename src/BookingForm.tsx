@@ -1,9 +1,5 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react";
-import {
-  airportLabel,
-  hotelsByZone,
-  type Zone,
-} from "./data";
+import { airportLabel, type Zone } from "./data";
 import { useAppConfig } from "./store/hooks";
 import {
   generateReservationId,
@@ -35,7 +31,11 @@ function pricingZone(origin: Place, destination: Place): Zone {
   return "Punta Cana";
 }
 
-function PlaceOptions() {
+function PlaceOptions({
+  hotelsByZone,
+}: {
+  hotelsByZone: Record<Zone, string[]>;
+}) {
   return (
     <>
       <option value="airport">{airportLabel}</option>
@@ -66,11 +66,12 @@ function PlaceOptions() {
 
 export function BookingForm({ onBooked }: BookingFormProps) {
   const config = useAppConfig();
-  const vehicles = config.vehicles;
+  const vehicles = config.vehicles.filter((v) => v.active !== false);
+  const hotelsByZone = config.hotelsByZone;
 
   const [originKey, setOriginKey] = useState("airport");
   const [destinationKey, setDestinationKey] = useState(
-    `hotel:Punta Cana:${hotelsByZone["Punta Cana"][0]}`,
+    `hotel:Punta Cana:${hotelsByZone["Punta Cana"][0] ?? "Hotel"}`,
   );
   const [wantReturn, setWantReturn] = useState(false);
   const [passengers, setPassengers] = useState(2);
@@ -252,7 +253,7 @@ export function BookingForm({ onBooked }: BookingFormProps) {
               value={originKey}
               onChange={(e) => handleOriginChange(e.target.value)}
             >
-              <PlaceOptions />
+              <PlaceOptions hotelsByZone={hotelsByZone} />
             </select>
           </div>
 
@@ -280,7 +281,7 @@ export function BookingForm({ onBooked }: BookingFormProps) {
               value={destinationKey}
               onChange={(e) => handleDestinationChange(e.target.value)}
             >
-              <PlaceOptions />
+              <PlaceOptions hotelsByZone={hotelsByZone} />
             </select>
           </div>
         </div>

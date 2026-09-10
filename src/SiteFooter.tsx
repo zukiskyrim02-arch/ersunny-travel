@@ -1,6 +1,6 @@
 import { logoSrc } from "./assets";
-import { contact } from "./data";
 import { useI18n } from "./i18n/I18nProvider";
+import { useAppConfig } from "./store/hooks";
 
 type SiteFooterProps = {
   onOpenTracker?: () => void;
@@ -12,6 +12,7 @@ export function SiteFooter({
   showPayColumn = false,
 }: SiteFooterProps) {
   const { t } = useI18n();
+  const { contact } = useAppConfig();
   const year = new Date().getFullYear();
 
   return (
@@ -70,7 +71,7 @@ export function SiteFooter({
               {contact.whatsapp}
             </a>
             <a href={`mailto:${contact.email}`}>{contact.email}</a>
-            <p>{t("footer.location")}</p>
+            <p>{contact.location || t("footer.location")}</p>
           </div>
         )}
       </div>

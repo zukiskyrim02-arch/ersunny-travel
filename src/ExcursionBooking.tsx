@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react";
-import { hotelsByZone } from "./data";
+import { hotelsByZone as defaultHotels } from "./data";
 import { useI18n } from "./i18n/I18nProvider";
 import { useAppConfig } from "./store/hooks";
 import {
@@ -12,12 +12,6 @@ type ExcursionBookingProps = {
   onBooked: (reservation: Reservation) => void;
 };
 
-const allHotels = [
-  ...hotelsByZone["Punta Cana"],
-  ...hotelsByZone.Bávaro,
-  ...hotelsByZone.Macao,
-];
-
 function durationKey(duration: string) {
   return duration === "Half day" ? "exc.duration.half" : "exc.duration.full";
 }
@@ -25,6 +19,12 @@ function durationKey(duration: string) {
 export function ExcursionBooking({ onBooked }: ExcursionBookingProps) {
   const { t, locale } = useI18n();
   const config = useAppConfig();
+  const hotelsByZone = config.hotelsByZone ?? defaultHotels;
+  const allHotels = [
+    ...hotelsByZone["Punta Cana"],
+    ...hotelsByZone.Bávaro,
+    ...hotelsByZone.Macao,
+  ];
   const excursions = useMemo(
     () => config.excursions.filter((e) => e.active),
     [config.excursions],

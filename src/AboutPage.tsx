@@ -1,19 +1,28 @@
 import { useEffect, useState } from "react";
+import { logoSrc } from "./assets";
+import { useI18n } from "./i18n/I18nProvider";
+import { useAppConfig } from "./store/hooks";
+import { SiteFooter } from "./SiteFooter";
 import { LanguageSwitch } from "./LanguageSwitch";
 import { SideMenu } from "./SideMenu";
-import { logoSrc } from "./assets";
-import { contact } from "./data";
-import { useI18n } from "./i18n/I18nProvider";
-import { SiteFooter } from "./SiteFooter";
 
 const VALUE_INDICES = [0, 1, 2, 3, 4] as const;
 const FAQ_INDICES = [0, 1, 2, 3, 4, 5, 6, 7, 8] as const;
 
 export function AboutPage() {
   const { t, locale } = useI18n();
+  const { contact, page } = useAppConfig();
   const waBookHref = `https://wa.me/${contact.whatsappDigits}?text=${encodeURIComponent(
     t("common.waPrefill"),
   )}`;
+  const mission =
+    locale === "es" && page.aboutMission
+      ? page.aboutMission
+      : t("about.mission");
+  const vision =
+    locale === "es" && page.aboutVision
+      ? page.aboutVision
+      : t("about.vision");
   const [menuOpen, setMenuOpen] = useState(false);
   const [menuPanel, setMenuPanel] = useState<"tracker" | "contact">("tracker");
   const [navOpen, setNavOpen] = useState(false);
@@ -117,7 +126,7 @@ export function AboutPage() {
                 <path d="M17.5 14.4c-.3-.1-1.6-.8-1.8-.9-.2-.1-.4-.1-.6.1-.2.3-.7.9-.8 1-.2.1-.3.2-.6.1-1.6-.6-2.9-1.7-3.8-3.2-.1-.2 0-.3.1-.5l.5-.6c.1-.2.2-.3.1-.5s-.6-1.5-.8-2c-.2-.5-.4-.4-.6-.4h-.5c-.2 0-.5.1-.7.3-.2.3-.9.9-.9 2.1s.9 2.4 1 2.6c.1.2 1.8 2.9 4.4 3.9 1.6.6 2.2.7 3 .6.5-.1 1.6-.6 1.8-1.3.2-.6.2-1.2.1-1.3-.1-.1-.3-.2-.6-.3Z" />
                 <path d="M12 2a10 10 0 0 0-8.7 15L2 22l5.1-1.3A10 10 0 1 0 12 2Zm0 18a8 8 0 0 1-4.1-1.1l-.3-.2-3 .8.8-2.9-.2-.3A8 8 0 1 1 12 20Z" />
               </svg>
-              {t("nav.bookNow")}
+              <span className="btn-wa__label">{t("nav.bookNow")}</span>
             </a>
             <div className="site-header__lang-desktop">
               <LanguageSwitch />
@@ -163,11 +172,11 @@ export function AboutPage() {
             <div className="about-grid">
               <article className="about-block">
                 <h2>{t("about.missionTitle")}</h2>
-                <p>{t("about.mission")}</p>
+                <p>{mission}</p>
               </article>
               <article className="about-block">
                 <h2>{t("about.visionTitle")}</h2>
-                <p>{t("about.vision")}</p>
+                <p>{vision}</p>
               </article>
             </div>
           </div>

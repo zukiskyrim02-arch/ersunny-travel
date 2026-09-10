@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
-import { airportLabel, hotelsByZone } from "./data";
+import { airportLabel } from "./data";
 import { useI18n } from "./i18n/I18nProvider";
 import { sendBookingNotification } from "./notifyBooking";
 import {
@@ -9,19 +9,19 @@ import {
 } from "./reservations";
 import { useAppConfig } from "./store/hooks";
 
-const hotels = [
-  ...hotelsByZone["Punta Cana"],
-  ...hotelsByZone.Bávaro,
-  ...hotelsByZone.Macao,
-];
-
 type QuoteFormProps = {
   onBooked: (reservation: Reservation) => void;
 };
 
 export function QuoteForm({ onBooked }: QuoteFormProps) {
   const { t } = useI18n();
-  const { vehicles } = useAppConfig();
+  const { vehicles: allVehicles, hotelsByZone } = useAppConfig();
+  const vehicles = allVehicles.filter((v) => v.active !== false);
+  const hotels = [
+    ...hotelsByZone["Punta Cana"],
+    ...hotelsByZone.Bávaro,
+    ...hotelsByZone.Macao,
+  ];
   const [service, setService] = useState("Private Transfer");
   const [transferType, setTransferType] = useState("Airport → Hotel");
   const [rideClass, setRideClass] = useState("Private");

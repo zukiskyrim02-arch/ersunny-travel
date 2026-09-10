@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { logoSrc } from "./assets";
-import { contact } from "./data";
 import { useI18n } from "./i18n/I18nProvider";
+import { getSiteContact } from "./store/config";
 import { sendCustomerConfirmedPickup } from "./notifyBooking";
 import {
   decodeStaffPayload,
@@ -160,8 +160,8 @@ export function ConfirmPickupPage() {
 
         <p className="staff-pickup__hint">
           {t("confirm.hint", {
-            whatsapp: contact.whatsapp,
-            email: contact.email,
+            whatsapp: getSiteContact().whatsapp,
+            email: getSiteContact().email,
           })}
         </p>
         <a href="/">{t("confirm.backHome")}</a>

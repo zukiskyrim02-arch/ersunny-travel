@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { logoSrc } from "./assets";
-import { contact } from "./data";
 import { useI18n } from "./i18n/I18nProvider";
+import { useAppConfig } from "./store/hooks";
 import { sendCustomerConfirmedPickup } from "./notifyBooking";
 import {
   findReservation,
@@ -23,6 +23,7 @@ function formatTimeLabel(value?: string) {
 
 export function SideMenu({ open, onClose, panel, onPanelChange }: SideMenuProps) {
   const { t } = useI18n();
+  const { contact } = useAppConfig();
   const [code, setCode] = useState("");
   const [result, setResult] = useState<Reservation | null>(null);
   const [error, setError] = useState("");
