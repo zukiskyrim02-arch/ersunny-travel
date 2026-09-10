@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { logoSrc } from "./assets";
 import { contact } from "./data";
+import { useI18n } from "./i18n/I18nProvider";
 import { sendCustomerConfirmedPickup } from "./notifyBooking";
 import {
   decodeStaffPayload,
@@ -52,6 +53,7 @@ function loadFromUrl(): Reservation | null {
 }
 
 export function ConfirmPickupPage() {
+  const { t } = useI18n();
   const initial = useMemo(() => loadFromUrl(), []);
   const [reservation, setReservation] = useState<Reservation | null>(initial);
   const [confirming, setConfirming] = useState(false);
@@ -79,67 +81,65 @@ export function ConfirmPickupPage() {
     setConfirming(false);
   }
 
+  const returnSuffix =
+    reservation?.wantReturn && reservation.returnTime
+      ? ` · ${t("confirm.return")} ${reservation.returnDate} · ${reservation.returnTime}`
+      : "";
+
   return (
     <main className="staff-pickup">
       <div className="staff-pickup__card">
         <img src={logoSrc()} alt="Ersunny Travel" width={120} height={120} />
-        <h1>Confirm pickup</h1>
+        <h1>{t("confirm.title")}</h1>
 
         {!reservation ? (
-          <p>
-            We couldn&apos;t load this reservation. Use the link from your email
-            or check status with your reservation number on the website.
-          </p>
+          <p>{t("confirm.missing")}</p>
         ) : (
           <>
             <p className="staff-pickup__id">{reservation.id}</p>
             <dl className="staff-pickup__meta">
               <div>
-                <dt>Route</dt>
+                <dt>{t("confirm.route")}</dt>
                 <dd>
                   {reservation.origin} → {reservation.destination}
                 </dd>
               </div>
               <div>
-                <dt>Pickup</dt>
+                <dt>{t("confirm.pickup")}</dt>
                 <dd>
                   {reservation.date}
-                  {hasSchedule ? ` · ${reservation.pickupTime}` : " · pending"}
+                  {hasSchedule
+                    ? ` · ${reservation.pickupTime}`
+                    : ` · ${t("confirm.pending")}`}
                 </dd>
               </div>
               {reservation.wantReturn && reservation.returnDate && (
                 <div>
-                  <dt>Return</dt>
+                  <dt>{t("confirm.return")}</dt>
                   <dd>
                     {reservation.returnDate}
                     {reservation.returnTime &&
                     reservation.returnTime !== "To be confirmed"
                       ? ` · ${reservation.returnTime}`
-                      : " · pending"}
+                      : ` · ${t("confirm.pending")}`}
                   </dd>
                 </div>
               )}
             </dl>
 
             {!hasSchedule ? (
-              <p>
-                Your pickup time is not set yet. Ersunny Travel will email you
-                when it is confirmed.
-              </p>
+              <p>{t("confirm.waiting")}</p>
             ) : reservation.customerConfirmed ? (
               <p className="tracker-ok" role="status">
-                Pickup confirmed for {reservation.date} at {reservation.pickupTime}
-                {reservation.wantReturn && reservation.returnTime
-                  ? ` · return ${reservation.returnDate} at ${reservation.returnTime}`
-                  : ""}
-                .
+                {t("confirm.confirmed", {
+                  date: reservation.date,
+                  time: reservation.pickupTime ?? "",
+                  return: returnSuffix,
+                })}
               </p>
             ) : (
               <>
-                <p>
-                  Please confirm you agree with this pickup schedule assigned by
-                  Ersunny Travel.
-                </p>
+                <p>{t("confirm.pleaseConfirm")}</p>
                 {error && (
                   <p className="form-error" role="alert">
                     {error}
@@ -151,7 +151,7 @@ export function ConfirmPickupPage() {
                   disabled={confirming}
                   onClick={() => void confirmPickup()}
                 >
-                  {confirming ? "Confirming…" : "Confirm pickup time"}
+                  {confirming ? t("confirm.confirming") : t("confirm.button")}
                 </button>
               </>
             )}
@@ -159,9 +159,12 @@ export function ConfirmPickupPage() {
         )}
 
         <p className="staff-pickup__hint">
-          Need a change? WhatsApp {contact.whatsapp} or {contact.email}
+          {t("confirm.hint", {
+            whatsapp: contact.whatsapp,
+            email: contact.email,
+          })}
         </p>
-        <a href="/">Back to home</a>
+        <a href="/">{t("confirm.backHome")}</a>
       </div>
     </main>
   );

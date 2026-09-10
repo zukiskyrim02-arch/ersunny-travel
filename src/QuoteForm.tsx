@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { airportLabel, hotelsByZone } from "./data";
+import { useI18n } from "./i18n/I18nProvider";
 import { sendBookingNotification } from "./notifyBooking";
 import {
   generateReservationId,
@@ -18,23 +19,16 @@ type QuoteFormProps = {
   onBooked: (reservation: Reservation) => void;
 };
 
-function passengerCount(label: string): number {
-  if (label.startsWith("1 ")) return 1;
-  if (label.startsWith("2 ")) return 2;
-  if (label.startsWith("3 ")) return 3;
-  if (label.startsWith("4 ")) return 4;
-  if (label.startsWith("5")) return 6;
-  if (label.includes("Family")) return 4;
-  return 2;
-}
-
 export function QuoteForm({ onBooked }: QuoteFormProps) {
+  const { t } = useI18n();
   const { vehicles } = useAppConfig();
   const [service, setService] = useState("Private Transfer");
   const [transferType, setTransferType] = useState("Airport → Hotel");
+  const [rideClass, setRideClass] = useState("Private");
   const [date, setDate] = useState("");
   const [departureDate, setDepartureDate] = useState("");
-  const [passengers, setPassengers] = useState("2 Adults");
+  const [adults, setAdults] = useState(2);
+  const [children, setChildren] = useState(0);
   const [hotel, setHotel] = useState("");
   const [airline, setAirline] = useState("");
   const [flight, setFlight] = useState("");
@@ -49,6 +43,9 @@ export function QuoteForm({ onBooked }: QuoteFormProps) {
   const hotelWrapRef = useRef<HTMLDivElement>(null);
 
   const isRoundTrip = service === "Round trip";
+  const isSharedService = service === "Shared transportation";
+  const isShared =
+    isSharedService || (isRoundTrip && rideClass === "Shared");
 
   const hotelMatches = useMemo(() => {
     const q = hotel.trim().toLowerCase();
@@ -71,7 +68,16 @@ export function QuoteForm({ onBooked }: QuoteFormProps) {
     setError("");
     setSubmitting(true);
 
-    const pax = passengerCount(passengers);
+    const safeAdults = Math.max(0, adults);
+    const safeChildren = Math.max(0, children);
+    const pax = safeAdults + safeChildren;
+
+    if (safeAdults < 1) {
+      setError(t("quote.errorAdults"));
+      setSubmitting(false);
+      return;
+    }
+
     const vehicle =
       [...vehicles]
         .sort((a, b) => a.maxPassengers - b.maxPassengers)
@@ -79,26 +85,41 @@ export function QuoteForm({ onBooked }: QuoteFormProps) {
       vehicles[vehicles.length - 1];
 
     if (!vehicle) {
-      setError("No vehicles are configured.");
+      setError(t("quote.errorVehicles"));
       setSubmitting(false);
       return;
     }
 
     const base = vehicle.basePrice;
-    const price = Math.round(base * (isRoundTrip ? 1.9 : 1));
+    const sharedFactor = isShared ? 0.75 : 1;
+    const price = Math.round(base * (isRoundTrip ? 1.9 : 1) * sharedFactor);
 
-    const origin =
-      transferType === "Hotel → Airport" || transferType === "Hotel → Hotel"
+    const origin = isRoundTrip
+      ? airportLabel
+      : transferType === "Hotel → Airport" || transferType === "Hotel → Hotel"
         ? hotel.trim()
         : airportLabel;
-    const destination =
-      transferType === "Airport → Hotel" || transferType === "Hotel → Hotel"
+    const destination = isRoundTrip
+      ? hotel.trim()
+      : transferType === "Airport → Hotel" || transferType === "Hotel → Hotel"
         ? hotel.trim()
         : airportLabel;
 
     const flightNotes = isRoundTrip
       ? `Arrival: ${airline} ${flight} · Departure: ${returnAirline} ${returnFlight}`
       : `${airline} ${flight}`;
+
+    const passengerLabel = `${safeAdults} adult${safeAdults === 1 ? "" : "s"}${
+      safeChildren > 0
+        ? ` · ${safeChildren} child${safeChildren === 1 ? "" : "ren"}`
+        : ""
+    }`;
+
+    const typeLabel = isRoundTrip
+      ? rideClass
+      : isSharedService
+        ? "Shared"
+        : transferType;
 
     const reservation: Reservation = {
       id: generateReservationId("transfer"),
@@ -113,12 +134,12 @@ export function QuoteForm({ onBooked }: QuoteFormProps) {
       returnDate: isRoundTrip ? departureDate : undefined,
       returnTime: isRoundTrip ? "To be confirmed" : undefined,
       passengers: pax,
-      vehicle: vehicle.name,
+      vehicle: isShared ? "Shared transfer" : vehicle.name,
       wantReturn: isRoundTrip,
       price,
       flight: flightNotes,
       hotelPickup: hotel.trim(),
-      notes: `Service: ${service} · Type: ${transferType}`,
+      notes: `Service: ${service} · Type: ${typeLabel} · Passengers: ${passengerLabel}`,
       createdAt: new Date().toISOString(),
       status: "pending",
     };
@@ -137,12 +158,14 @@ export function QuoteForm({ onBooked }: QuoteFormProps) {
         email: email.trim(),
         whatsapp_app: whatsapp.trim(),
         service,
-        transfer_type: transferType,
+        transfer_type: typeLabel,
         arrival_or_pickup_date: date,
         departure_date: isRoundTrip ? departureDate : "N/A",
-        passengers,
+        passengers: passengerLabel,
+        adults: String(safeAdults),
+        children: String(safeChildren),
         hotel: hotel.trim(),
-        vehicle: vehicle.name,
+        vehicle: reservation.vehicle,
         price_usd: String(price),
         arrival_airline: airline.trim(),
         arrival_flight: flight.trim(),
@@ -160,29 +183,44 @@ export function QuoteForm({ onBooked }: QuoteFormProps) {
 
   return (
     <form className="quote-form" onSubmit={onSubmit}>
-      <h3>Book transportation</h3>
+      <h3>{t("quote.title")}</h3>
       <div className="quote-form__grid">
         <label className="field">
-          <span>Service</span>
+          <span>{t("quote.service")}</span>
           <select value={service} onChange={(e) => setService(e.target.value)} required>
-            <option>Private Transfer</option>
-            <option>Round trip</option>
+            <option value="Private Transfer">{t("quote.privateTransfer")}</option>
+            <option value="Shared transportation">{t("quote.sharedTransportation")}</option>
+            <option value="Round trip">{t("quote.roundTrip")}</option>
           </select>
         </label>
+        {isRoundTrip ? (
+          <label className="field">
+            <span>{t("quote.rideType")}</span>
+            <select
+              value={rideClass}
+              onChange={(e) => setRideClass(e.target.value)}
+              required
+            >
+              <option value="Private">{t("quote.private")}</option>
+              <option value="Shared">{t("quote.shared")}</option>
+            </select>
+          </label>
+        ) : (
+          <label className="field">
+            <span>{t("quote.transferType")}</span>
+            <select
+              value={transferType}
+              onChange={(e) => setTransferType(e.target.value)}
+              required
+            >
+              <option value="Airport → Hotel">{t("quote.airportHotel")}</option>
+              <option value="Hotel → Airport">{t("quote.hotelAirport")}</option>
+              <option value="Hotel → Hotel">{t("quote.hotelHotel")}</option>
+            </select>
+          </label>
+        )}
         <label className="field">
-          <span>Transfer type</span>
-          <select
-            value={transferType}
-            onChange={(e) => setTransferType(e.target.value)}
-            required
-          >
-            <option>Airport → Hotel</option>
-            <option>Hotel → Airport</option>
-            <option>Hotel → Hotel</option>
-          </select>
-        </label>
-        <label className="field">
-          <span>{isRoundTrip ? "Arrival date" : "Pickup / Drop-off"}</span>
+          <span>{isRoundTrip ? t("quote.arrivalDate") : t("quote.pickupDropoff")}</span>
           <input
             type="date"
             value={date}
@@ -192,7 +230,7 @@ export function QuoteForm({ onBooked }: QuoteFormProps) {
         </label>
         {isRoundTrip && (
           <label className="field">
-            <span>Departure date</span>
+            <span>{t("quote.departureDate")}</span>
             <input
               type="date"
               value={departureDate}
@@ -203,26 +241,33 @@ export function QuoteForm({ onBooked }: QuoteFormProps) {
           </label>
         )}
         <label className="field">
-          <span>Passengers</span>
-          <select
-            value={passengers}
-            onChange={(e) => setPassengers(e.target.value)}
+          <span>{t("quote.adults")}</span>
+          <input
+            type="number"
+            min={1}
+            max={20}
+            value={adults}
+            onChange={(e) => setAdults(Number(e.target.value) || 0)}
             required
-          >
-            <option>1 Adult</option>
-            <option>2 Adults</option>
-            <option>3 Adults</option>
-            <option>4 Adults</option>
-            <option>5+ Adults</option>
-            <option>Family with kids</option>
-          </select>
+          />
+        </label>
+        <label className="field">
+          <span>{t("quote.children")}</span>
+          <input
+            type="number"
+            min={0}
+            max={20}
+            value={children}
+            onChange={(e) => setChildren(Number(e.target.value) || 0)}
+            required
+          />
         </label>
         <div className="field hotel-combo" ref={hotelWrapRef}>
-          <label htmlFor="quote-hotel">Hotel (or destination)</label>
+          <label htmlFor="quote-hotel">{t("quote.hotel")}</label>
           <input
             id="quote-hotel"
             role="combobox"
-            placeholder="e.g. Paradisus Palma Real"
+            placeholder={t("quote.hotelPh")}
             value={hotel}
             autoComplete="off"
             required
@@ -262,36 +307,36 @@ export function QuoteForm({ onBooked }: QuoteFormProps) {
         {isRoundTrip ? (
           <>
             <label className="field">
-              <span>Arrival airline</span>
+              <span>{t("quote.arrivalAirline")}</span>
               <input
-                placeholder="e.g. American Airlines"
+                placeholder={t("quote.airlinePh")}
                 value={airline}
                 onChange={(e) => setAirline(e.target.value)}
                 required
               />
             </label>
             <label className="field">
-              <span>Arrival flight</span>
+              <span>{t("quote.arrivalFlight")}</span>
               <input
-                placeholder="e.g. AA123"
+                placeholder={t("quote.flightPh")}
                 value={flight}
                 onChange={(e) => setFlight(e.target.value)}
                 required
               />
             </label>
             <label className="field">
-              <span>Departure airline</span>
+              <span>{t("quote.departureAirline")}</span>
               <input
-                placeholder="e.g. JetBlue"
+                placeholder={t("quote.airlinePh")}
                 value={returnAirline}
                 onChange={(e) => setReturnAirline(e.target.value)}
                 required
               />
             </label>
             <label className="field">
-              <span>Departure flight</span>
+              <span>{t("quote.departureFlight")}</span>
               <input
-                placeholder="e.g. AA456"
+                placeholder={t("quote.flightPh")}
                 value={returnFlight}
                 onChange={(e) => setReturnFlight(e.target.value)}
                 required
@@ -301,18 +346,18 @@ export function QuoteForm({ onBooked }: QuoteFormProps) {
         ) : (
           <>
             <label className="field">
-              <span>Airline name</span>
+              <span>{t("quote.airline")}</span>
               <input
-                placeholder="e.g. American Airlines"
+                placeholder={t("quote.airlinePh")}
                 value={airline}
                 onChange={(e) => setAirline(e.target.value)}
                 required
               />
             </label>
             <label className="field">
-              <span>Flight number</span>
+              <span>{t("quote.flight")}</span>
               <input
-                placeholder="e.g. AA123"
+                placeholder={t("quote.flightPh")}
                 value={flight}
                 onChange={(e) => setFlight(e.target.value)}
                 required
@@ -321,9 +366,9 @@ export function QuoteForm({ onBooked }: QuoteFormProps) {
           </>
         )}
         <label className="field">
-          <span>Full name</span>
+          <span>{t("quote.fullName")}</span>
           <input
-            placeholder="Your full name"
+            placeholder={t("quote.fullNamePh")}
             value={name}
             onChange={(e) => setName(e.target.value)}
             autoComplete="name"
@@ -331,10 +376,10 @@ export function QuoteForm({ onBooked }: QuoteFormProps) {
           />
         </label>
         <label className="field">
-          <span>Email</span>
+          <span>{t("quote.email")}</span>
           <input
             type="email"
-            placeholder="you@email.com"
+            placeholder={t("quote.emailPh")}
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             autoComplete="email"
@@ -342,10 +387,10 @@ export function QuoteForm({ onBooked }: QuoteFormProps) {
           />
         </label>
         <label className="field quote-form__full">
-          <span>WhatsApp app</span>
+          <span>{t("quote.whatsapp")}</span>
           <input
             type="tel"
-            placeholder="+1 809…"
+            placeholder={t("quote.whatsappPh")}
             value={whatsapp}
             onChange={(e) => setWhatsapp(e.target.value)}
             autoComplete="tel"
@@ -366,7 +411,7 @@ export function QuoteForm({ onBooked }: QuoteFormProps) {
         <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
           <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H5.2L4 17.2V4h16v12z" />
         </svg>
-        {submitting ? "Sending…" : "Request transfer"}
+        {submitting ? t("quote.sending") : t("quote.submit")}
       </button>
     </form>
   );

@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { logoSrc } from "./assets";
 import { contact } from "./data";
+import { useI18n } from "./i18n/I18nProvider";
 import { sendCustomerConfirmedPickup } from "./notifyBooking";
 import {
   findReservation,
@@ -21,6 +22,7 @@ function formatTimeLabel(value?: string) {
 }
 
 export function SideMenu({ open, onClose, panel, onPanelChange }: SideMenuProps) {
+  const { t } = useI18n();
   const [code, setCode] = useState("");
   const [result, setResult] = useState<Reservation | null>(null);
   const [error, setError] = useState("");
@@ -33,9 +35,7 @@ export function SideMenu({ open, onClose, panel, onPanelChange }: SideMenuProps)
     const found = findReservation(code);
     if (!found) {
       setResult(null);
-      setError(
-        "We couldn't find that reservation. Check the number or email us at contact@ersunnytravel.com.",
-      );
+      setError(t("side.notFound"));
       return;
     }
     setError("");
@@ -71,7 +71,7 @@ export function SideMenu({ open, onClose, panel, onPanelChange }: SideMenuProps)
       <button
         type="button"
         className={`drawer-backdrop${open ? " is-open" : ""}`}
-        aria-label="Close menu"
+        aria-label={t("side.closeMenu")}
         tabIndex={open ? 0 : -1}
         onClick={onClose}
       />
@@ -82,7 +82,7 @@ export function SideMenu({ open, onClose, panel, onPanelChange }: SideMenuProps)
       >
         <div className="drawer__head">
           <img src={logoSrc()} alt="Ersunny Travel" width={160} height={160} />
-          <button type="button" className="drawer__close" onClick={onClose} aria-label="Close">
+          <button type="button" className="drawer__close" onClick={onClose} aria-label={t("side.close")}>
             ✕
           </button>
         </div>
@@ -95,7 +95,7 @@ export function SideMenu({ open, onClose, panel, onPanelChange }: SideMenuProps)
             className={panel === "tracker" ? "is-active" : ""}
             onClick={() => onPanelChange("tracker")}
           >
-            Pickup status
+            {t("side.pickupStatus")}
           </button>
           <button
             type="button"
@@ -104,29 +104,26 @@ export function SideMenu({ open, onClose, panel, onPanelChange }: SideMenuProps)
             className={panel === "contact" ? "is-active" : ""}
             onClick={() => onPanelChange("contact")}
           >
-            Contact
+            {t("side.contact")}
           </button>
         </div>
 
         <div className="drawer__body">
           {panel === "tracker" ? (
             <div>
-              <h2>Pickup tracker</h2>
-              <p>
-                Enter your reservation number to view your booking and confirm
-                the pickup time once Ersunny Travel has set it.
-              </p>
+              <h2>{t("side.trackerTitle")}</h2>
+              <p>{t("side.trackerLead")}</p>
               <form className="tracker-form" onSubmit={handleLookup}>
-                <label htmlFor="reservation-code">Reservation number</label>
+                <label htmlFor="reservation-code">{t("side.reservationNumber")}</label>
                 <input
                   id="reservation-code"
                   value={code}
                   onChange={(e) => setCode(e.target.value)}
-                  placeholder="e.g. EST-A1B2C3"
+                  placeholder={t("side.reservationPh")}
                   required
                 />
                 <button type="submit" className="btn btn--primary btn--full">
-                  Find reservation
+                  {t("side.find")}
                 </button>
               </form>
 
@@ -137,18 +134,22 @@ export function SideMenu({ open, onClose, panel, onPanelChange }: SideMenuProps)
                   <p className="tracker-result__id">{result.id}</p>
                   <dl>
                     <div>
-                      <dt>Type</dt>
+                      <dt>{t("side.type")}</dt>
                       <dd>
-                        {result.kind === "excursion" ? "Excursion" : "Transfer"}
+                        {result.kind === "excursion"
+                          ? t("side.excursion")
+                          : t("side.transfer")}
                       </dd>
                     </div>
                     <div>
-                      <dt>Passenger</dt>
+                      <dt>{t("side.passenger")}</dt>
                       <dd>{result.name}</dd>
                     </div>
                     <div>
                       <dt>
-                        {result.kind === "excursion" ? "Excursion" : "Route"}
+                        {result.kind === "excursion"
+                          ? t("side.excursion")
+                          : t("side.route")}
                       </dt>
                       <dd>
                         {result.kind === "excursion"
@@ -158,32 +159,32 @@ export function SideMenu({ open, onClose, panel, onPanelChange }: SideMenuProps)
                     </div>
                     {result.kind === "excursion" && result.hotelPickup && (
                       <div>
-                        <dt>Pickup hotel</dt>
+                        <dt>{t("side.pickupHotel")}</dt>
                         <dd>{result.hotelPickup}</dd>
                       </div>
                     )}
                     <div>
-                      <dt>Date</dt>
+                      <dt>{t("side.date")}</dt>
                       <dd>
                         {result.date}
                         {scheduledPickup
                           ? ` · ${scheduledPickup}`
-                          : " · time to be confirmed"}
+                          : ` · ${t("side.timePending")}`}
                       </dd>
                     </div>
                     {result.wantReturn && result.returnDate && (
                       <div>
-                        <dt>Return</dt>
+                        <dt>{t("side.return")}</dt>
                         <dd>
                           {result.returnDate}
                           {formatTimeLabel(result.returnTime)
                             ? ` · ${formatTimeLabel(result.returnTime)}`
-                            : " · time to be confirmed"}
+                            : ` · ${t("side.timePending")}`}
                         </dd>
                       </div>
                     )}
                     <div>
-                      <dt>Guests</dt>
+                      <dt>{t("side.guests")}</dt>
                       <dd>{result.passengers}</dd>
                     </div>
                   </dl>
@@ -200,7 +201,7 @@ export function SideMenu({ open, onClose, panel, onPanelChange }: SideMenuProps)
                       disabled={confirming}
                       onClick={() => void confirmPickup()}
                     >
-                      {confirming ? "Confirming…" : "Confirm pickup time"}
+                      {confirming ? t("side.confirming") : t("side.confirmPickup")}
                     </button>
                   ) : null}
                 </div>
@@ -208,8 +209,8 @@ export function SideMenu({ open, onClose, panel, onPanelChange }: SideMenuProps)
             </div>
           ) : (
             <div>
-              <h2>Contact options</h2>
-              <p>We're ready to help with bookings, changes, and pickups.</p>
+              <h2>{t("side.contactTitle")}</h2>
+              <p>{t("side.contactLead")}</p>
               <ul className="contact-list">
                 <li>
                   <span>Email</span>
@@ -232,13 +233,13 @@ export function SideMenu({ open, onClose, panel, onPanelChange }: SideMenuProps)
                 target="_blank"
                 rel="noreferrer"
               >
-                Message us on WhatsApp
+                {t("side.messageWa")}
               </a>
               <a className="btn btn--ghost-dark btn--full" href={`mailto:${contact.email}`}>
-                Email us
+                {t("side.emailUs")}
               </a>
               <a className="btn btn--ghost-dark btn--full" href="/about/faq" onClick={onClose}>
-                View FAQs
+                {t("side.viewFaqs")}
               </a>
             </div>
           )}

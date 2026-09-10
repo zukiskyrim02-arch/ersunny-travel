@@ -1,13 +1,19 @@
 import { useEffect, useState } from "react";
+import { LanguageSwitch } from "./LanguageSwitch";
 import { SideMenu } from "./SideMenu";
 import { logoSrc } from "./assets";
-import { about, contact, faqs } from "./data";
+import { contact } from "./data";
+import { useI18n } from "./i18n/I18nProvider";
+import { SiteFooter } from "./SiteFooter";
 
-const waBookHref = `https://wa.me/${contact.whatsappDigits}?text=${encodeURIComponent(
-  "Hi Ersunny Travel! I'd like to book a transfer or excursion.",
-)}`;
+const VALUE_INDICES = [0, 1, 2, 3, 4] as const;
+const FAQ_INDICES = [0, 1, 2, 3, 4, 5, 6, 7, 8] as const;
 
 export function AboutPage() {
+  const { t, locale } = useI18n();
+  const waBookHref = `https://wa.me/${contact.whatsappDigits}?text=${encodeURIComponent(
+    t("common.waPrefill"),
+  )}`;
   const [menuOpen, setMenuOpen] = useState(false);
   const [menuPanel, setMenuPanel] = useState<"tracker" | "contact">("tracker");
   const [navOpen, setNavOpen] = useState(false);
@@ -55,7 +61,7 @@ export function AboutPage() {
           <a
             className="site-header__logo"
             href="/"
-            aria-label="Ersunny Travel home"
+            aria-label={t("nav.logoAria")}
           >
             <img
               src={logoSrc()}
@@ -67,34 +73,37 @@ export function AboutPage() {
 
           <nav
             className={`site-nav${navOpen ? " is-open" : ""}`}
-            aria-label="Main"
+            aria-label={t("nav.home")}
           >
             <a href="/" onClick={() => setNavOpen(false)}>
-              Home
+              {t("nav.home")}
             </a>
             <a href="/#servicios" onClick={() => setNavOpen(false)}>
-              Transfers
+              {t("nav.transfers")}
             </a>
             <a href="/excursions" onClick={() => setNavOpen(false)}>
-              Excursions
+              {t("nav.excursions")}
             </a>
             <a
               href="/about"
               className="is-active"
               onClick={() => setNavOpen(false)}
             >
-              About Us
+              {t("nav.about")}
             </a>
             <a href="/contact" onClick={() => setNavOpen(false)}>
-              Contact
+              {t("nav.contact")}
             </a>
             <button
               type="button"
               className="site-nav__tracker"
               onClick={() => openMenu("tracker")}
             >
-              Pickup status
+              {t("nav.pickupStatus")}
             </button>
+            <div className="site-nav__lang-mobile">
+              <LanguageSwitch />
+            </div>
           </nav>
 
           <div className="site-header__actions">
@@ -108,15 +117,15 @@ export function AboutPage() {
                 <path d="M17.5 14.4c-.3-.1-1.6-.8-1.8-.9-.2-.1-.4-.1-.6.1-.2.3-.7.9-.8 1-.2.1-.3.2-.6.1-1.6-.6-2.9-1.7-3.8-3.2-.1-.2 0-.3.1-.5l.5-.6c.1-.2.2-.3.1-.5s-.6-1.5-.8-2c-.2-.5-.4-.4-.6-.4h-.5c-.2 0-.5.1-.7.3-.2.3-.9.9-.9 2.1s.9 2.4 1 2.6c.1.2 1.8 2.9 4.4 3.9 1.6.6 2.2.7 3 .6.5-.1 1.6-.6 1.8-1.3.2-.6.2-1.2.1-1.3-.1-.1-.3-.2-.6-.3Z" />
                 <path d="M12 2a10 10 0 0 0-8.7 15L2 22l5.1-1.3A10 10 0 1 0 12 2Zm0 18a8 8 0 0 1-4.1-1.1l-.3-.2-3 .8.8-2.9-.2-.3A8 8 0 1 1 12 20Z" />
               </svg>
-              Book Now
+              {t("nav.bookNow")}
             </a>
-            <span className="lang-switch" aria-label="Language">
-              <span aria-hidden>🇺🇸</span> EN
-            </span>
+            <div className="site-header__lang-desktop">
+              <LanguageSwitch />
+            </div>
             <button
               className="menu-toggle"
               type="button"
-              aria-label="Open menu"
+              aria-label={t("nav.openMenu")}
               aria-expanded={navOpen}
               onClick={() => setNavOpen((v) => !v)}
             >
@@ -140,18 +149,12 @@ export function AboutPage() {
         onPanelChange={setMenuPanel}
       />
 
-      <main id="main-content" className="about-page">
+      <main id="main-content" className="about-page" key={`about-${locale}`}>
         <section className="about-page__hero">
           <div className="container">
-            <p className="section__eyebrow">About Ersunny Travel</p>
-            <h1 className="section__title">
-              Private transfers &amp; excursions in Punta Cana
-            </h1>
-            <p className="section__lead">
-              Safe tourist transport from Punta Cana Airport to hotels in Punta
-              Cana, Bávaro, and Macao — plus excursions that celebrate Dominican
-              culture and nature.
-            </p>
+            <p className="section__eyebrow">{t("about.eyebrow")}</p>
+            <h1 className="section__title">{t("about.title")}</h1>
+            <p className="section__lead">{t("about.lead")}</p>
           </div>
         </section>
 
@@ -159,12 +162,12 @@ export function AboutPage() {
           <div className="container">
             <div className="about-grid">
               <article className="about-block">
-                <h2>Mission</h2>
-                <p>{about.mission}</p>
+                <h2>{t("about.missionTitle")}</h2>
+                <p>{t("about.mission")}</p>
               </article>
               <article className="about-block">
-                <h2>Vision</h2>
-                <p>{about.vision}</p>
+                <h2>{t("about.visionTitle")}</h2>
+                <p>{t("about.vision")}</p>
               </article>
             </div>
           </div>
@@ -173,14 +176,14 @@ export function AboutPage() {
         <section className="section">
           <div className="container">
             <div className="section__head section__head--center">
-              <p className="section__eyebrow">Our values</p>
-              <h2 className="section__title">What guides every transfer</h2>
+              <p className="section__eyebrow">{t("about.valuesEyebrow")}</p>
+              <h2 className="section__title">{t("about.valuesTitle")}</h2>
             </div>
             <div className="values-grid">
-              {about.values.map((value) => (
-                <article className="value-item" key={value.title}>
-                  <h3>{value.title}</h3>
-                  <p>{value.copy}</p>
+              {VALUE_INDICES.map((i) => (
+                <article className="value-item" key={i}>
+                  <h3>{t(`about.value.${i}.title`)}</h3>
+                  <p>{t(`about.value.${i}.copy`)}</p>
                 </article>
               ))}
             </div>
@@ -190,16 +193,16 @@ export function AboutPage() {
         <section className="section section--soft" id="faq">
           <div className="container">
             <div className="section__head section__head--center">
-              <p className="section__eyebrow">FAQ</p>
-              <h2 className="section__title">Frequently asked questions</h2>
+              <p className="section__eyebrow">{t("about.faqEyebrow")}</p>
+              <h2 className="section__title">{t("about.faqTitle")}</h2>
             </div>
             <div className="faq-list">
-              {faqs.map((item, index) => {
+              {FAQ_INDICES.map((index) => {
                 const isOpen = openFaq === index;
                 return (
                   <div
                     className={`faq-item${isOpen ? " is-open" : ""}`}
-                    key={item.q}
+                    key={index}
                   >
                     <button
                       type="button"
@@ -207,10 +210,12 @@ export function AboutPage() {
                       aria-expanded={isOpen}
                       onClick={() => setOpenFaq(isOpen ? null : index)}
                     >
-                      <span>{item.q}</span>
+                      <span>{t(`faq.${index}.q`)}</span>
                       <span aria-hidden>{isOpen ? "−" : "+"}</span>
                     </button>
-                    {isOpen && <p className="faq-item__a">{item.a}</p>}
+                    {isOpen && (
+                      <p className="faq-item__a">{t(`faq.${index}.a`)}</p>
+                    )}
                   </div>
                 );
               })}
@@ -219,62 +224,14 @@ export function AboutPage() {
         </section>
       </main>
 
-      <footer className="site-footer" id="contacto">
-        <div className="container site-footer__grid">
-          <div>
-            <a href="/" className="site-footer__logo" aria-label="Ersunny Travel home">
-              <img
-                src={logoSrc()}
-                alt="Ersunny Travel"
-                width={160}
-                height={160}
-              />
-            </a>
-            <p>
-              Private transfers &amp; excursions in Punta Cana, Bávaro &amp;
-              Macao.
-            </p>
-          </div>
-          <div>
-            <p className="site-footer__heading">Services</p>
-            <a href="/#servicios">Transfers</a>
-            <a href="/excursions">Excursions</a>
-            <a href="/about">About us</a>
-            <a href="/contact">Contact</a>
-          </div>
-          <div>
-            <p className="site-footer__heading">Information</p>
-            <a href="/about/faq">FAQs</a>
-            <button type="button" onClick={() => openMenu("tracker")}>
-              Pickup status
-            </button>
-          </div>
-          <div>
-            <p className="site-footer__heading">Contact</p>
-            <a
-              href={`https://wa.me/${contact.whatsappDigits}`}
-              target="_blank"
-              rel="noreferrer"
-            >
-              {contact.whatsapp}
-            </a>
-            <a href={`mailto:${contact.email}`}>{contact.email}</a>
-            <p>Punta Cana, Dominican Republic</p>
-          </div>
-        </div>
-        <div className="container site-footer__bottom">
-          <p>
-            © {new Date().getFullYear()} Ersunny Travel · Design By Ismakun
-          </p>
-        </div>
-      </footer>
+      <SiteFooter key={locale} onOpenTracker={() => openMenu("tracker")} />
 
       <a
         className="wa-float"
         href={waBookHref}
         target="_blank"
         rel="noreferrer"
-        aria-label="Chat on WhatsApp"
+        aria-label={t("common.waFloat")}
       >
         <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
           <path d="M17.5 14.4c-.3-.1-1.6-.8-1.8-.9-.2-.1-.4-.1-.6.1-.2.3-.7.9-.8 1-.2.1-.3.2-.6.1-1.6-.6-2.9-1.7-3.8-3.2-.1-.2 0-.3.1-.5l.5-.6c.1-.2.2-.3.1-.5s-.6-1.5-.8-2c-.2-.5-.4-.4-.6-.4h-.5c-.2 0-.5.1-.7.3-.2.3-.9.9-.9 2.1s.9 2.4 1 2.6c.1.2 1.8 2.9 4.4 3.9 1.6.6 2.2.7 3 .6.5-.1 1.6-.6 1.8-1.3.2-.6.2-1.2.1-1.3-.1-.1-.3-.2-.6-.3Z" />

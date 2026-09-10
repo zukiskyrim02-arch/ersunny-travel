@@ -1,13 +1,16 @@
 import { useEffect, useState, type FormEvent } from "react";
+import { LanguageSwitch } from "./LanguageSwitch";
 import { SideMenu } from "./SideMenu";
 import { asset, logoSrc } from "./assets";
 import { contact } from "./data";
-
-const waBookHref = `https://wa.me/${contact.whatsappDigits}?text=${encodeURIComponent(
-  "Hi Ersunny Travel! I'd like to book a transfer or excursion.",
-)}`;
+import { useI18n } from "./i18n/I18nProvider";
+import { SiteFooter } from "./SiteFooter";
 
 export function ContactPage() {
+  const { t, locale } = useI18n();
+  const waBookHref = `https://wa.me/${contact.whatsappDigits}?text=${encodeURIComponent(
+    t("common.waPrefill"),
+  )}`;
   const [menuOpen, setMenuOpen] = useState(false);
   const [menuPanel, setMenuPanel] = useState<"tracker" | "contact">("contact");
   const [navOpen, setNavOpen] = useState(false);
@@ -48,7 +51,7 @@ export function ContactPage() {
           <a
             className="site-header__logo"
             href="/"
-            aria-label="Ersunny Travel home"
+            aria-label={t("nav.logoAria")}
           >
             <img
               src={logoSrc()}
@@ -60,34 +63,37 @@ export function ContactPage() {
 
           <nav
             className={`site-nav${navOpen ? " is-open" : ""}`}
-            aria-label="Main"
+            aria-label={t("nav.home")}
           >
             <a href="/" onClick={() => setNavOpen(false)}>
-              Home
+              {t("nav.home")}
             </a>
             <a href="/#servicios" onClick={() => setNavOpen(false)}>
-              Transfers
+              {t("nav.transfers")}
             </a>
             <a href="/excursions" onClick={() => setNavOpen(false)}>
-              Excursions
+              {t("nav.excursions")}
             </a>
             <a href="/about" onClick={() => setNavOpen(false)}>
-              About Us
+              {t("nav.about")}
             </a>
             <a
               href="/contact"
               className="is-active"
               onClick={() => setNavOpen(false)}
             >
-              Contact
+              {t("nav.contact")}
             </a>
             <button
               type="button"
               className="site-nav__tracker"
               onClick={() => openMenu("tracker")}
             >
-              Pickup status
+              {t("nav.pickupStatus")}
             </button>
+            <div className="site-nav__lang-mobile">
+              <LanguageSwitch />
+            </div>
           </nav>
 
           <div className="site-header__actions">
@@ -101,15 +107,15 @@ export function ContactPage() {
                 <path d="M17.5 14.4c-.3-.1-1.6-.8-1.8-.9-.2-.1-.4-.1-.6.1-.2.3-.7.9-.8 1-.2.1-.3.2-.6.1-1.6-.6-2.9-1.7-3.8-3.2-.1-.2 0-.3.1-.5l.5-.6c.1-.2.2-.3.1-.5s-.6-1.5-.8-2c-.2-.5-.4-.4-.6-.4h-.5c-.2 0-.5.1-.7.3-.2.3-.9.9-.9 2.1s.9 2.4 1 2.6c.1.2 1.8 2.9 4.4 3.9 1.6.6 2.2.7 3 .6.5-.1 1.6-.6 1.8-1.3.2-.6.2-1.2.1-1.3-.1-.1-.3-.2-.6-.3Z" />
                 <path d="M12 2a10 10 0 0 0-8.7 15L2 22l5.1-1.3A10 10 0 1 0 12 2Zm0 18a8 8 0 0 1-4.1-1.1l-.3-.2-3 .8.8-2.9-.2-.3A8 8 0 1 1 12 20Z" />
               </svg>
-              Book Now
+              {t("nav.bookNow")}
             </a>
-            <span className="lang-switch" aria-label="Language">
-              <span aria-hidden>🇺🇸</span> EN
-            </span>
+            <div className="site-header__lang-desktop">
+              <LanguageSwitch />
+            </div>
             <button
               className="menu-toggle"
               type="button"
-              aria-label="Open menu"
+              aria-label={t("nav.openMenu")}
               aria-expanded={navOpen}
               onClick={() => setNavOpen((v) => !v)}
             >
@@ -147,15 +153,9 @@ export function ContactPage() {
           <div className="contact-hero__overlay" aria-hidden />
           <div className="contact-hero__inner container">
             <div className="contact-hero__copy">
-              <p className="contact-hero__eyebrow">Contact · Punta Cana</p>
-              <h1>
-                Book your <em>transfer</em> or excursion
-              </h1>
-              <p>
-                Message us on WhatsApp or email for private airport transfers to
-                Punta Cana, Bávaro, and Macao — affordable or luxury — and local
-                excursions. We usually reply within minutes.
-              </p>
+              <p className="contact-hero__eyebrow">{t("contact.eyebrow")}</p>
+              <h1>{t("contact.title")}</h1>
+              <p>{t("contact.lead")}</p>
               <div className="contact-hero__actions">
                 <a
                   className="btn-wa"
@@ -163,7 +163,7 @@ export function ContactPage() {
                   target="_blank"
                   rel="noreferrer"
                 >
-                  WhatsApp {contact.whatsapp}
+                  {t("contact.waCta")} {contact.whatsapp}
                 </a>
                 <a className="btn-ghost-light" href={`mailto:${contact.email}`}>
                   {contact.email}
@@ -172,33 +172,31 @@ export function ContactPage() {
             </div>
 
             <form className="contact-form contact-form--hero" onSubmit={onSubmit}>
-              <p className="contact-form__label">Quick message</p>
-              <h2>Send us a note</h2>
-              <p className="contact-form__lead">
-                We’ll open WhatsApp with your message so we can reply faster.
-              </p>
+              <p className="contact-form__label">{t("contact.formLabel")}</p>
+              <h2>{t("contact.formTitle")}</h2>
+              <p className="contact-form__lead">{t("contact.formLead")}</p>
               <label className="field">
-                <span>Name</span>
+                <span>{t("contact.name")}</span>
                 <input
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder="Your name"
+                  placeholder={t("contact.namePh")}
                   autoComplete="name"
                   required
                 />
               </label>
               <label className="field">
-                <span>Message</span>
+                <span>{t("contact.message")}</span>
                 <textarea
                   rows={4}
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
-                  placeholder="Tell us about your transfer or excursion…"
+                  placeholder={t("contact.messagePh")}
                   required
                 />
               </label>
               <button className="btn-blue" type="submit">
-                Continue on WhatsApp
+                {t("contact.submit")}
               </button>
             </form>
           </div>
@@ -207,8 +205,8 @@ export function ContactPage() {
         <section className="section contact-channels">
           <div className="container">
             <div className="section__head section__head--center">
-              <p className="section__eyebrow">Ways to reach us</p>
-              <h2 className="section__title">Pick what works best for you</h2>
+              <p className="section__eyebrow">{t("contact.channelsEyebrow")}</p>
+              <h2 className="section__title">{t("contact.channelsTitle")}</h2>
             </div>
             <div className="contact-channels__grid">
               <a
@@ -222,8 +220,8 @@ export function ContactPage() {
                     <path d="M12 2a10 10 0 0 0-8.7 15L2 22l5.1-1.3A10 10 0 1 0 12 2Zm0 18a8 8 0 0 1-4.1-1.1l-.3-.2-3 .8.8-2.9-.2-.3A8 8 0 1 1 12 20Z" />
                   </svg>
                 </span>
-                <h3>WhatsApp</h3>
-                <p>Fastest replies for bookings and pickup updates.</p>
+                <h3>{t("contact.waTitle")}</h3>
+                <p>{t("contact.waCopy")}</p>
                 <strong>{contact.whatsapp}</strong>
               </a>
 
@@ -247,8 +245,8 @@ export function ContactPage() {
                     />
                   </svg>
                 </span>
-                <h3>Email</h3>
-                <p>Perfect for itineraries, invoices and detailed requests.</p>
+                <h3>{t("contact.emailTitle")}</h3>
+                <p>{t("contact.emailCopy")}</p>
                 <strong>{contact.email}</strong>
               </a>
 
@@ -269,71 +267,23 @@ export function ContactPage() {
                     />
                   </svg>
                 </span>
-                <h3>Based in Punta Cana</h3>
-                <p>Airport transfers and excursions across the east coast.</p>
-                <strong>Dominican Republic</strong>
+                <h3>{t("contact.locationTitle")}</h3>
+                <p>{t("contact.locationCopy")}</p>
+                <strong>{t("contact.country")}</strong>
               </div>
             </div>
           </div>
         </section>
       </main>
 
-      <footer className="site-footer">
-        <div className="container site-footer__grid">
-          <div>
-            <a href="/" className="site-footer__logo" aria-label="Ersunny Travel home">
-              <img
-                src={logoSrc()}
-                alt="Ersunny Travel"
-                width={160}
-                height={160}
-              />
-            </a>
-            <p>
-              Private transfers &amp; excursions in Punta Cana, Bávaro &amp;
-              Macao.
-            </p>
-          </div>
-          <div>
-            <p className="site-footer__heading">Services</p>
-            <a href="/#servicios">Transfers</a>
-            <a href="/excursions">Excursions</a>
-            <a href="/about">About us</a>
-            <a href="/contact">Contact</a>
-          </div>
-          <div>
-            <p className="site-footer__heading">Information</p>
-            <a href="/about/faq">FAQs</a>
-            <button type="button" onClick={() => openMenu("tracker")}>
-              Pickup status
-            </button>
-          </div>
-          <div>
-            <p className="site-footer__heading">Contact</p>
-            <a
-              href={`https://wa.me/${contact.whatsappDigits}`}
-              target="_blank"
-              rel="noreferrer"
-            >
-              {contact.whatsapp}
-            </a>
-            <a href={`mailto:${contact.email}`}>{contact.email}</a>
-            <p>Punta Cana, Dominican Republic</p>
-          </div>
-        </div>
-        <div className="container site-footer__bottom">
-          <p>
-            © {new Date().getFullYear()} Ersunny Travel · Design By Ismakun
-          </p>
-        </div>
-      </footer>
+      <SiteFooter key={locale} onOpenTracker={() => openMenu("tracker")} />
 
       <a
         className="wa-float"
         href={waBookHref}
         target="_blank"
         rel="noreferrer"
-        aria-label="Chat on WhatsApp"
+        aria-label={t("common.waFloat")}
       >
         <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
           <path d="M17.5 14.4c-.3-.1-1.6-.8-1.8-.9-.2-.1-.4-.1-.6.1-.2.3-.7.9-.8 1-.2.1-.3.2-.6.1-1.6-.6-2.9-1.7-3.8-3.2-.1-.2 0-.3.1-.5l.5-.6c.1-.2.2-.3.1-.5s-.6-1.5-.8-2c-.2-.5-.4-.4-.6-.4h-.5c-.2 0-.5.1-.7.3-.2.3-.9.9-.9 2.1s.9 2.4 1 2.6c.1.2 1.8 2.9 4.4 3.9 1.6.6 2.2.7 3 .6.5-.1 1.6-.6 1.8-1.3.2-.6.2-1.2.1-1.3-.1-.1-.3-.2-.6-.3Z" />

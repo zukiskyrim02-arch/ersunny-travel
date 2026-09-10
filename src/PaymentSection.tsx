@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { bankPayment, contact } from "./data";
+import { useI18n } from "./i18n/I18nProvider";
 import { useAppConfig } from "./store/hooks";
 import { redirectToAzul } from "./payments/azul";
 import type { Reservation } from "./reservations";
@@ -9,11 +10,12 @@ type PaymentSectionProps = {
   onOpenTracker?: () => void;
 };
 
-function formatDate(iso: string) {
+function formatDate(iso: string, locale: string) {
   if (!iso) return "—";
   const d = new Date(`${iso}T12:00:00`);
   if (Number.isNaN(d.getTime())) return iso;
-  return d.toLocaleDateString("en-US", {
+  const loc = locale === "zh" ? "zh-CN" : locale;
+  return d.toLocaleDateString(loc, {
     day: "numeric",
     month: "short",
     year: "numeric",
@@ -24,6 +26,7 @@ export function PaymentSection({
   reservation,
   onOpenTracker,
 }: PaymentSectionProps) {
+  const { t, locale } = useI18n();
   const { azul } = useAppConfig();
   const [copied, setCopied] = useState(false);
   const [copiedId, setCopiedId] = useState(false);
@@ -54,7 +57,7 @@ export function PaymentSection({
       const err = await redirectToAzul(azul, reservation);
       if (err) setPayError(err);
     } catch {
-      setPayError("Pago Azul could not be started. Please try again.");
+      setPayError(t("pay.azulError"));
     } finally {
       setPaying(false);
     }
@@ -62,20 +65,25 @@ export function PaymentSection({
 
   const dateLabel =
     reservation.wantReturn && reservation.returnDate
-      ? `${formatDate(reservation.date)} – ${formatDate(reservation.returnDate)}`
-      : formatDate(reservation.date);
+      ? `${formatDate(reservation.date, locale)} – ${formatDate(reservation.returnDate, locale)}`
+      : formatDate(reservation.date, locale);
 
   const serviceSubtitle = isExcursion
     ? reservation.destination
     : reservation.wantReturn
-      ? "Private · round trip"
-      : "Private · one way";
+      ? t("pay.privateRound")
+      : t("pay.privateOne");
 
   const canPayAzul =
     azul.enabled &&
     reservation.price != null &&
     reservation.price > 0 &&
     Boolean(azul.merchantId.trim() && azul.authKey.trim());
+
+  const pickupTimeLabel =
+    reservation.pickupTime && reservation.pickupTime !== "To be confirmed"
+      ? reservation.pickupTime
+      : t("pay.toConfirm");
 
   return (
     <section className="section section--confirm" id="pago">
@@ -107,21 +115,20 @@ export function PaymentSection({
               />
             </svg>
           </div>
-          <h1>Payment form</h1>
+          <h1>{t("pay.title")}</h1>
           <div className="confirm__ref">
-            <span>Reservation number</span>
+            <span>{t("pay.reservationNumber")}</span>
             <strong>{reservation.id}</strong>
             <button
               type="button"
               className="copy-btn"
               onClick={() => copyText(reservation.id, "id")}
             >
-              {copiedId ? "Copied" : "Copy"}
+              {copiedId ? t("pay.copied") : t("pay.copy")}
             </button>
           </div>
           <p>
-            Complete payment for your {isExcursion ? "excursion" : "transfer"}.
-            Pay securely with <strong>Pago Azul</strong> or contact us:
+            {isExcursion ? t("pay.receivedExcursion") : t("pay.receivedTransfer")}
           </p>
         </div>
 
@@ -150,7 +157,7 @@ export function PaymentSection({
                 />
               </svg>
             </span>
-            <strong>Email</strong>
+            <strong>{t("pay.email")}</strong>
             <small>{contact.email}</small>
           </a>
 
@@ -163,7 +170,7 @@ export function PaymentSection({
             <span className="confirm__contact-icon confirm__contact-icon--wa" aria-hidden>
               WA
             </span>
-            <strong>WhatsApp</strong>
+            <strong>{t("pay.whatsapp")}</strong>
             <small>{contact.whatsapp}</small>
           </a>
 
@@ -179,8 +186,8 @@ export function PaymentSection({
                 />
               </svg>
             </span>
-            <strong>Pickup</strong>
-            <small>Confirm time</small>
+            <strong>{t("pay.pickup")}</strong>
+            <small>{t("pay.confirmTime")}</small>
           </button>
 
           <button type="button" className="confirm__contact" onClick={() => void payWithAzul()}>
@@ -198,8 +205,8 @@ export function PaymentSection({
                 <path d="M3 10h18" stroke="currentColor" strokeWidth="1.8" />
               </svg>
             </span>
-            <strong>Pago Azul</strong>
-            <small>Card</small>
+            <strong>{t("pay.azul")}</strong>
+            <small>{t("pay.card")}</small>
           </button>
         </div>
 
@@ -210,7 +217,7 @@ export function PaymentSection({
             </div>
             <div>
               <p className="confirm__service-label">
-                {isExcursion ? "EXCURSION" : "TRANSFER"}
+                {isExcursion ? t("pay.excursion") : t("pay.transfer")}
               </p>
               <h3>{serviceSubtitle}</h3>
               <p className="confirm__service-id">{reservation.id}</p>
@@ -219,28 +226,24 @@ export function PaymentSection({
 
           <div className="confirm__meta">
             <div>
-              <span>Date</span>
+              <span>{t("pay.date")}</span>
               <strong>{dateLabel}</strong>
             </div>
             <div>
-              <span>Pickup time</span>
-              <strong>{reservation.pickupTime || "To be confirmed"}</strong>
+              <span>{t("pay.pickupTime")}</span>
+              <strong>{pickupTimeLabel}</strong>
             </div>
           </div>
 
           <div className="confirm__route">
             <p className="confirm__route-title">
-              {isExcursion
-                ? "Details"
-                : reservation.wantReturn
-                  ? "Route (round trip)"
-                  : "Route"}
+              {isExcursion ? t("pay.details") : t("pay.route")}
             </p>
             <ol className="confirm__timeline">
               <li>
                 <span className="confirm__dot confirm__dot--start" />
                 <div>
-                  <small>{isExcursion ? "Hotel / pickup" : "Origin / pickup"}</small>
+                  <small>{t("pay.origin")}</small>
                   <strong>
                     {isExcursion
                       ? reservation.hotelPickup || reservation.origin
@@ -251,7 +254,9 @@ export function PaymentSection({
               <li>
                 <span className="confirm__dot confirm__dot--end" />
                 <div>
-                  <small>{isExcursion ? "Excursion" : "Destination"}</small>
+                  <small>
+                    {isExcursion ? t("pay.excursionType") : t("pay.destination")}
+                  </small>
                   <strong>{reservation.destination}</strong>
                 </div>
               </li>
@@ -260,30 +265,30 @@ export function PaymentSection({
 
           <div className="confirm__meta confirm__meta--footer">
             <div>
-              <span>Passengers</span>
+              <span>{t("pay.passengers")}</span>
               <strong>{reservation.passengers}</strong>
             </div>
             <div>
-              <span>Service type</span>
+              <span>{t("pay.serviceType")}</span>
               <strong>
                 {isExcursion
-                  ? "Excursion"
+                  ? t("pay.excursionType")
                   : reservation.wantReturn
-                    ? "Private transfer (round trip)"
-                    : "Private transfer (one way)"}
+                    ? t("pay.privateRound")
+                    : t("pay.privateOne")}
               </strong>
             </div>
             {!isExcursion && (
               <div>
-                <span>Vehicle</span>
+                <span>{t("pay.vehicle")}</span>
                 <strong>{reservation.vehicle}</strong>
               </div>
             )}
             <div>
-              <span>Amount</span>
+              <span>{t("pay.amount")}</span>
               <strong>
                 {reservation.price == null
-                  ? "To be confirmed"
+                  ? t("pay.toConfirm")
                   : `$${reservation.price} USD`}
               </strong>
             </div>
@@ -298,11 +303,11 @@ export function PaymentSection({
             void payWithAzul();
           }}
         >
-          <h2>Pay with Azul</h2>
+          <h2>{t("pay.payAzulTitle")}</h2>
           <p>
-            You'll be redirected to the secure <strong>Pago Azul</strong> page
-            to pay by card (Visa, Mastercard, and more). Environment:{" "}
-            {azul.env === "production" ? "production" : "test"}.
+            {t("pay.payAzulLead", {
+              env: azul.env === "production" ? "production" : "test",
+            })}
           </p>
 
           {payError && (
@@ -317,17 +322,14 @@ export function PaymentSection({
             disabled={paying || !canPayAzul}
           >
             {paying
-              ? "Connecting to Azul…"
+              ? t("pay.connecting")
               : reservation.price == null
-                ? "Price pending — payment is not available yet"
-                : `Pay $${reservation.price} USD with Azul`}
+                ? t("pay.pricePending")
+                : t("pay.payAmount", { price: reservation.price })}
           </button>
 
           {!azul.merchantId || !azul.authKey ? (
-            <p className="confirm__pay-hint">
-              Configure the Merchant ID and AuthKey in Admin → Pago Azul to
-              enable live payments.
-            </p>
+            <p className="confirm__pay-hint">{t("pay.azulHint")}</p>
           ) : null}
 
           <button
@@ -335,26 +337,23 @@ export function PaymentSection({
             className="confirm__apap-toggle"
             onClick={() => setShowApap((v) => !v)}
           >
-            {showApap ? "Hide bank transfer" : "Also pay by APAP bank transfer"}
+            {showApap ? t("pay.hideApap") : t("pay.showApap")}
           </button>
 
           {showApap && (
             <>
-              <p>
-                Alternative: transfer to our business account. Include{" "}
-                <strong>{reservation.id}</strong> in the payment reference.
-              </p>
+              <p>{t("pay.apapLead", { id: reservation.id })}</p>
               <dl className="payment__details">
                 <div>
-                  <dt>Bank</dt>
+                  <dt>{t("pay.bank")}</dt>
                   <dd>{bankPayment.bank}</dd>
                 </div>
                 <div>
-                  <dt>Account type</dt>
+                  <dt>{t("pay.accountType")}</dt>
                   <dd>{bankPayment.accountType}</dd>
                 </div>
                 <div>
-                  <dt>Account number</dt>
+                  <dt>{t("pay.accountNumber")}</dt>
                   <dd>
                     <span>{bankPayment.accountNumber}</span>
                     <button
@@ -362,16 +361,16 @@ export function PaymentSection({
                       className="copy-btn"
                       onClick={() => copyText(bankPayment.accountNumber, "account")}
                     >
-                      {copied ? "Copied" : "Copy"}
+                      {copied ? t("pay.copied") : t("pay.copy")}
                     </button>
                   </dd>
                 </div>
                 <div>
-                  <dt>Account holder</dt>
+                  <dt>{t("pay.accountHolder")}</dt>
                   <dd>{bankPayment.holder}</dd>
                 </div>
                 <div>
-                  <dt>RNC</dt>
+                  <dt>{t("pay.rnc")}</dt>
                   <dd>{bankPayment.rnc}</dd>
                 </div>
               </dl>
@@ -379,7 +378,7 @@ export function PaymentSection({
                 className="btn btn--primary"
                 href={`mailto:${contact.email}?subject=Payment%20receipt%20${reservation.id}`}
               >
-                Send payment receipt
+                {t("pay.sendReceipt")}
               </a>
             </>
           )}

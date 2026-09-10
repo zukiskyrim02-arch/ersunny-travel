@@ -1,16 +1,19 @@
 import { useEffect, useState } from "react";
 import { ExcursionBooking } from "./ExcursionBooking";
+import { LanguageSwitch } from "./LanguageSwitch";
 import { SideMenu } from "./SideMenu";
 import { logoSrc } from "./assets";
 import { contact } from "./data";
+import { useI18n } from "./i18n/I18nProvider";
 import type { Reservation } from "./reservations";
 import { navigate } from "./routing";
-
-const waBookHref = `https://wa.me/${contact.whatsappDigits}?text=${encodeURIComponent(
-  "Hi Ersunny Travel! I'd like to book a transfer or excursion.",
-)}`;
+import { SiteFooter } from "./SiteFooter";
 
 export function ExcursionsPage() {
+  const { t, locale } = useI18n();
+  const waBookHref = `https://wa.me/${contact.whatsappDigits}?text=${encodeURIComponent(
+    t("common.waPrefill"),
+  )}`;
   const [menuOpen, setMenuOpen] = useState(false);
   const [menuPanel, setMenuPanel] = useState<"tracker" | "contact">("tracker");
   const [navOpen, setNavOpen] = useState(false);
@@ -43,7 +46,7 @@ export function ExcursionsPage() {
           <a
             className="site-header__logo"
             href="/"
-            aria-label="Ersunny Travel home"
+            aria-label={t("nav.logoAria")}
           >
             <img
               src={logoSrc()}
@@ -55,34 +58,37 @@ export function ExcursionsPage() {
 
           <nav
             className={`site-nav${navOpen ? " is-open" : ""}`}
-            aria-label="Main"
+            aria-label={t("nav.home")}
           >
             <a href="/" onClick={() => setNavOpen(false)}>
-              Home
+              {t("nav.home")}
             </a>
             <a href="/#servicios" onClick={() => setNavOpen(false)}>
-              Transfers
+              {t("nav.transfers")}
             </a>
             <a
               href="/excursions"
               className="is-active"
               onClick={() => setNavOpen(false)}
             >
-              Excursions
+              {t("nav.excursions")}
             </a>
             <a href="/about" onClick={() => setNavOpen(false)}>
-              About Us
+              {t("nav.about")}
             </a>
             <a href="/contact" onClick={() => setNavOpen(false)}>
-              Contact
+              {t("nav.contact")}
             </a>
             <button
               type="button"
               className="site-nav__tracker"
               onClick={() => openMenu("tracker")}
             >
-              Pickup status
+              {t("nav.pickupStatus")}
             </button>
+            <div className="site-nav__lang-mobile">
+              <LanguageSwitch />
+            </div>
           </nav>
 
           <div className="site-header__actions">
@@ -96,15 +102,15 @@ export function ExcursionsPage() {
                 <path d="M17.5 14.4c-.3-.1-1.6-.8-1.8-.9-.2-.1-.4-.1-.6.1-.2.3-.7.9-.8 1-.2.1-.3.2-.6.1-1.6-.6-2.9-1.7-3.8-3.2-.1-.2 0-.3.1-.5l.5-.6c.1-.2.2-.3.1-.5s-.6-1.5-.8-2c-.2-.5-.4-.4-.6-.4h-.5c-.2 0-.5.1-.7.3-.2.3-.9.9-.9 2.1s.9 2.4 1 2.6c.1.2 1.8 2.9 4.4 3.9 1.6.6 2.2.7 3 .6.5-.1 1.6-.6 1.8-1.3.2-.6.2-1.2.1-1.3-.1-.1-.3-.2-.6-.3Z" />
                 <path d="M12 2a10 10 0 0 0-8.7 15L2 22l5.1-1.3A10 10 0 1 0 12 2Zm0 18a8 8 0 0 1-4.1-1.1l-.3-.2-3 .8.8-2.9-.2-.3A8 8 0 1 1 12 20Z" />
               </svg>
-              Book Now
+              {t("nav.bookNow")}
             </a>
-            <span className="lang-switch" aria-label="Language">
-              <span aria-hidden>🇺🇸</span> EN
-            </span>
+            <div className="site-header__lang-desktop">
+              <LanguageSwitch />
+            </div>
             <button
               className="menu-toggle"
               type="button"
-              aria-label="Open menu"
+              aria-label={t("nav.openMenu")}
               aria-expanded={navOpen}
               onClick={() => setNavOpen((v) => !v)}
             >
@@ -132,62 +138,14 @@ export function ExcursionsPage() {
         <ExcursionBooking onBooked={handleBooked} />
       </main>
 
-      <footer className="site-footer" id="contacto">
-        <div className="container site-footer__grid">
-          <div>
-            <a href="/" className="site-footer__logo" aria-label="Ersunny Travel home">
-              <img
-                src={logoSrc()}
-                alt="Ersunny Travel"
-                width={160}
-                height={160}
-              />
-            </a>
-            <p>
-              Private transfers &amp; excursions in Punta Cana, Bávaro &amp;
-              Macao.
-            </p>
-          </div>
-          <div>
-            <p className="site-footer__heading">Services</p>
-            <a href="/#servicios">Transfers</a>
-            <a href="/excursions">Excursions</a>
-            <a href="/about">About us</a>
-            <a href="/contact">Contact</a>
-          </div>
-          <div>
-            <p className="site-footer__heading">Information</p>
-            <a href="/about/faq">FAQs</a>
-            <button type="button" onClick={() => openMenu("tracker")}>
-              Pickup status
-            </button>
-          </div>
-          <div>
-            <p className="site-footer__heading">Contact</p>
-            <a
-              href={`https://wa.me/${contact.whatsappDigits}`}
-              target="_blank"
-              rel="noreferrer"
-            >
-              {contact.whatsapp}
-            </a>
-            <a href={`mailto:${contact.email}`}>{contact.email}</a>
-            <p>Punta Cana, Dominican Republic</p>
-          </div>
-        </div>
-        <div className="container site-footer__bottom">
-          <p>
-            © {new Date().getFullYear()} Ersunny Travel · Design By Ismakun
-          </p>
-        </div>
-      </footer>
+      <SiteFooter key={locale} onOpenTracker={() => openMenu("tracker")} />
 
       <a
         className="wa-float"
         href={waBookHref}
         target="_blank"
         rel="noreferrer"
-        aria-label="Chat on WhatsApp"
+        aria-label={t("common.waFloat")}
       >
         <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
           <path d="M17.5 14.4c-.3-.1-1.6-.8-1.8-.9-.2-.1-.4-.1-.6.1-.2.3-.7.9-.8 1-.2.1-.3.2-.6.1-1.6-.6-2.9-1.7-3.8-3.2-.1-.2 0-.3.1-.5l.5-.6c.1-.2.2-.3.1-.5s-.6-1.5-.8-2c-.2-.5-.4-.4-.6-.4h-.5c-.2 0-.5.1-.7.3-.2.3-.9.9-.9 2.1s.9 2.4 1 2.6c.1.2 1.8 2.9 4.4 3.9 1.6.6 2.2.7 3 .6.5-.1 1.6-.6 1.8-1.3.2-.6.2-1.2.1-1.3-.1-.1-.3-.2-.6-.3Z" />
