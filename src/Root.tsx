@@ -130,8 +130,34 @@ export function Root() {
           ? `Pago Azul payment approved for ${result.orderNumber}${result.authorizationCode ? ` · Auth ${result.authorizationCode}` : ""}.`
           : `Pago Azul payment approved (${result.orderNumber}).`,
       );
-      window.history.replaceState(null, "", "/excursions#pago");
-      setPath("/excursions");
+      if (found?.kind === "transfer") {
+        window.history.replaceState(null, "", "/#pago");
+        setPath("/");
+      } else {
+        window.history.replaceState(null, "", "/excursions#pago");
+        setPath("/excursions");
+      }
+
+      // Confirm payment by email when checkout finishes
+      if (found) {
+        void import("./notifyBooking").then(({ sendBookingNotification }) =>
+          sendBookingNotification({
+            _subject: `Paid booking ${found.id}`,
+            reservation_id: found.id,
+            status: "paid",
+            customer_name: found.name,
+            contact: found.contactInfo,
+            service: found.notes ?? found.kind,
+            date: found.date,
+            return_date: found.returnDate ?? "N/A",
+            route: `${found.origin} → ${found.destination}`,
+            passengers: String(found.passengers),
+            vehicle: found.vehicle,
+            price_usd: found.price != null ? String(found.price) : "N/A",
+            flight: found.flight ?? "N/A",
+          }).catch(() => undefined),
+        );
+      }
     } else if (result.status === "declined") {
       setAzulBanner(
         `Pago Azul payment declined${result.responseMessage ? `: ${result.responseMessage}` : "."}`,

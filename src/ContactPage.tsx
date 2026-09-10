@@ -323,7 +323,7 @@ export function ContactPage() {
         </div>
         <div className="container site-footer__bottom">
           <p>
-            © {new Date().getFullYear()} Ersunny Travel · designed By Ismakun
+            © {new Date().getFullYear()} Ersunny Travel · Design By Ismakun
           </p>
         </div>
       </footer>

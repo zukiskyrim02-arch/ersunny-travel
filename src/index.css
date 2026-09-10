@@ -34,6 +34,35 @@ html {
   scroll-behavior: smooth;
 }
 
+.skip-link {
+  position: absolute;
+  left: 1rem;
+  top: 1rem;
+  z-index: 10000;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  border: 0;
+  white-space: nowrap;
+  background: var(--yellow);
+  color: var(--navy-deep);
+  font-weight: 800;
+  box-shadow: var(--shadow-sm);
+}
+
+.skip-link:focus,
+.skip-link:focus-visible {
+  clip: auto;
+  width: auto;
+  height: auto;
+  padding: 0.65rem 1rem;
+  border-radius: 8px;
+  outline: 3px solid var(--blue);
+  outline-offset: 2px;
+}
+
 .admin-loading {
   min-height: 100vh;
   display: grid;
