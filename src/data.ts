@@ -136,21 +136,21 @@ export const destinations = [
     blurb: "Iconic Caribbean beachfront resorts just minutes from the airport.",
     time: "25–40 min",
     image:
-      "https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=640&q=65&fm=webp",
+      "https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=480&q=55&fm=webp",
   },
   {
     zone: "Bávaro" as Zone,
     blurb: "White-sand beaches and the area's most vibrant hotel district.",
     time: "35–50 min",
     image:
-      "https://images.unsplash.com/photo-1506929562872-bb421503ef21?auto=format&fit=crop&w=640&q=65&fm=webp",
+      "https://images.unsplash.com/photo-1506929562872-bb421503ef21?auto=format&fit=crop&w=480&q=55&fm=webp",
   },
   {
     zone: "Macao" as Zone,
     blurb: "A wild coastline, rolling waves, and boutique resorts farther north.",
     time: "45–60 min",
     image:
-      "https://images.unsplash.com/photo-1473496169904-658ba7c44d8a?auto=format&fit=crop&w=640&q=65&fm=webp",
+      "https://images.unsplash.com/photo-1473496169904-658ba7c44d8a?auto=format&fit=crop&w=480&q=55&fm=webp",
   },
 ];
 
@@ -198,7 +198,7 @@ export const excursions = [
     price: 65,
     blurb: "White sand, turquoise water and buffet lunch in a Caribbean paradise.",
     image:
-      "https://images.unsplash.com/photo-1559128010-7c1ad6e1b6a5?auto=format&fit=crop&w=640&q=65&fm=webp",
+      "https://images.unsplash.com/photo-1559128010-7c1ad6e1b6a5?auto=format&fit=crop&w=480&q=55&fm=webp",
     highlights: ["Catamaran or speedboat", "Natural pool", "Lunch included"],
   },
   {
@@ -208,7 +208,7 @@ export const excursions = [
     price: 65,
     blurb: "Reef snorkeling, virgin beach and a relaxed vibe near Bayahibe.",
     image:
-      "https://images.unsplash.com/photo-1544551763-77ef2d0cfc6c?auto=format&fit=crop&w=640&q=65&fm=webp",
+      "https://images.unsplash.com/photo-1544551763-77ef2d0cfc6c?auto=format&fit=crop&w=480&q=55&fm=webp",
     highlights: ["Snorkel", "Private beach", "Hotel pickup"],
   },
   {
@@ -218,7 +218,7 @@ export const excursions = [
     price: 85,
     blurb: "Hoyo Azul cenote, zip lines and adventure in Cap Cana.",
     image:
-      "https://images.unsplash.com/photo-1501555088652-021faa106b9b?auto=format&fit=crop&w=640&q=65&fm=webp",
+      "https://images.unsplash.com/photo-1501555088652-021faa106b9b?auto=format&fit=crop&w=480&q=55&fm=webp",
     highlights: ["Hoyo Azul", "Adventure", "Family friendly"],
   },
   {
@@ -228,7 +228,7 @@ export const excursions = [
     price: 55,
     blurb: "Off-road fun through countryside trails, cenotes and local villages.",
     image:
-      "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&w=640&q=65&fm=webp",
+      "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&w=480&q=55&fm=webp",
     highlights: ["Off-road", "Cenotes", "Photo stops"],
   },
   {
@@ -238,7 +238,7 @@ export const excursions = [
     price: 75,
     blurb: "Colonial Zone, history and culture of the first city of the New World.",
     image:
-      "https://images.unsplash.com/photo-1518639192441-8fce0a366e2e?auto=format&fit=crop&w=640&q=65&fm=webp",
+      "https://images.unsplash.com/photo-1518639192441-8fce0a366e2e?auto=format&fit=crop&w=480&q=55&fm=webp",
     highlights: ["Cathedral", "Calle Las Damas", "Local guide"],
   },
   {
@@ -248,7 +248,7 @@ export const excursions = [
     price: 60,
     blurb: "Music, onboard bar and snorkel along the Punta Cana coast.",
     image:
-      "https://images.unsplash.com/photo-1567899378494-47b22a2ae96a?auto=format&fit=crop&w=640&q=65&fm=webp",
+      "https://images.unsplash.com/photo-1567899378494-47b22a2ae96a?auto=format&fit=crop&w=480&q=55&fm=webp",
     highlights: ["Open bar", "Snorkel", "Party vibe"],
   },
 ];

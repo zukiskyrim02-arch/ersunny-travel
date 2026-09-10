@@ -12,7 +12,7 @@ const BEACH_IMG = asset("hero-cover-mobile.webp");
 const TRANSFER_IMG = asset("transfer-van.webp");
 const TRANSFER_IMG_FALLBACK = asset("transfer-van.jpg");
 const EXCURSION_IMG =
-  "https://images.unsplash.com/photo-1567899378494-47b22a2ae96a?auto=format&fit=crop&w=640&q=65&fm=webp";
+  "https://images.unsplash.com/photo-1567899378494-47b22a2ae96a?auto=format&fit=crop&w=480&q=55&fm=webp";
 
 const trustItems = [
   {
@@ -41,28 +41,46 @@ const testimonials = [
   {
     name: "Maria G.",
     place: "United States",
+    trip: "Airport transfer · SUV",
     quote:
       "Excellent service from pickup to drop-off. The driver was waiting with our name and the SUV was spotless.",
     avatar:
-      "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=96&q=60&fm=webp",
+      "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=160&q=70&fm=webp",
   },
   {
     name: "Carlos R.",
     place: "Spain",
+    trip: "Saona Island excursion",
     quote:
       "Booked Saona through Ersunny and everything was seamless. Clear communication on WhatsApp the whole time.",
     avatar:
-      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=96&q=60&fm=webp",
+      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=160&q=70&fm=webp",
   },
   {
     name: "Emma L.",
     place: "Canada",
+    trip: "Family airport transfer",
     quote:
       "Airport transfer with kids was stress-free. On time, friendly, and fair pricing. Highly recommend.",
     avatar:
-      "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&w=96&q=60&fm=webp",
+      "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&w=160&q=70&fm=webp",
   },
 ];
+
+function Stars() {
+  return (
+    <div className="review-stars" aria-label="5 out of 5 stars">
+      {Array.from({ length: 5 }, (_, i) => (
+        <svg key={i} viewBox="0 0 20 20" width="16" height="16" aria-hidden>
+          <path
+            fill="currentColor"
+            d="M10 1.6 12.7 7l5.9.5-4.5 3.9 1.4 5.7L10 14.8 4.5 17.1l1.4-5.7L1.4 7.5 7.3 7 10 1.6Z"
+          />
+        </svg>
+      ))}
+    </div>
+  );
+}
 
 function TrustIcon({ name }: { name: string }) {
   if (name === "shield") {
@@ -447,7 +465,7 @@ export default function App() {
 
         <section className="quote-band" id="cotizar">
           <div className="quote-band__media" aria-hidden>
-            <img src={BEACH_IMG} alt="" width={1600} height={900} loading="lazy" decoding="async" />
+            <img src={BEACH_IMG} alt="" width={800} height={450} loading="lazy" decoding="async" />
           </div>
           <div className="quote-band__inner container">
             <div className="quote-band__copy">
@@ -546,33 +564,64 @@ export default function App() {
           </div>
         </section>
 
-        <section className="section section--soft" id="testimonios">
+        <section className="section reviews" id="testimonios">
           <div className="container">
-            <div className="section__head section__head--center">
+            <div className="section__head">
+              <p className="section__eyebrow">Guest reviews</p>
               <h2 className="section__title">What our travelers say</h2>
+              <p className="section__lead">
+                Real arrivals in Punta Cana, Bávaro, and Macao — private
+                transfers and excursions booked with WhatsApp support.
+              </p>
             </div>
-            <div className="testimonials">
-              {testimonials.map((t) => (
-                <article className="testimonial-card" key={t.name}>
+
+            <div className="reviews-board">
+              <article className="review review--featured">
+                <span className="review__mark" aria-hidden>
+                  “
+                </span>
+                <Stars />
+                <blockquote>{testimonials[0].quote}</blockquote>
+                <footer className="review__author">
                   <img
-                    src={t.avatar}
-                    alt={`Photo of ${t.name}`}
-                    width={64}
-                    height={64}
+                    src={testimonials[0].avatar}
+                    alt=""
+                    width={72}
+                    height={72}
                     loading="lazy"
                   />
-                  <div className="testimonial-card__stars" aria-hidden="true">
-                    {"★★★★★"}
+                  <div>
+                    <strong>{testimonials[0].name}</strong>
+                    <span>
+                      {testimonials[0].place} · {testimonials[0].trip}
+                    </span>
                   </div>
-                  <p>
-                    <span className="visually-hidden">5 out of 5 stars. </span>
-                    “{t.quote}”
-                  </p>
-                  <strong>
-                    {t.name} — {t.place}
-                  </strong>
-                </article>
-              ))}
+                </footer>
+              </article>
+
+              <div className="reviews-board__side">
+                {testimonials.slice(1).map((t) => (
+                  <article className="review" key={t.name}>
+                    <Stars />
+                    <blockquote>{t.quote}</blockquote>
+                    <footer className="review__author">
+                      <img
+                        src={t.avatar}
+                        alt=""
+                        width={56}
+                        height={56}
+                        loading="lazy"
+                      />
+                      <div>
+                        <strong>{t.name}</strong>
+                        <span>
+                          {t.place} · {t.trip}
+                        </span>
+                      </div>
+                    </footer>
+                  </article>
+                ))}
+              </div>
             </div>
           </div>
         </section>

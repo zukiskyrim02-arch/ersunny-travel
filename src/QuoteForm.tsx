@@ -100,12 +100,14 @@ export function QuoteForm() {
           <label htmlFor="quote-hotel">Hotel (or destination)</label>
           <input
             id="quote-hotel"
+            role="combobox"
             placeholder="e.g. Paradisus Palma Real"
             value={hotel}
             autoComplete="off"
             required
             aria-autocomplete="list"
             aria-expanded={hotelOpen}
+            aria-controls="quote-hotel-list"
             onFocus={() => setHotelOpen(true)}
             onChange={(e) => {
               setHotel(e.target.value);
@@ -113,7 +115,11 @@ export function QuoteForm() {
             }}
           />
           {hotelOpen && hotelMatches.length > 0 && (
-            <ul className="hotel-combo__list" role="listbox">
+            <ul
+              id="quote-hotel-list"
+              className="hotel-combo__list"
+              role="listbox"
+            >
               {hotelMatches.map((h) => (
                 <li key={h}>
                   <button

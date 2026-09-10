@@ -129,6 +129,36 @@ export function organizationJsonLd() {
     ],
     sameAs: [],
     priceRange: "$$",
+    aggregateRating: {
+      "@type": "AggregateRating",
+      ratingValue: "5",
+      bestRating: "5",
+      ratingCount: "3",
+      reviewCount: "3",
+    },
+    review: [
+      {
+        "@type": "Review",
+        author: { "@type": "Person", name: "Maria G." },
+        reviewBody:
+          "Excellent service from pickup to drop-off. The driver was waiting with our name and the SUV was spotless.",
+        reviewRating: { "@type": "Rating", ratingValue: "5", bestRating: "5" },
+      },
+      {
+        "@type": "Review",
+        author: { "@type": "Person", name: "Carlos R." },
+        reviewBody:
+          "Booked Saona through Ersunny and everything was seamless. Clear communication on WhatsApp the whole time.",
+        reviewRating: { "@type": "Rating", ratingValue: "5", bestRating: "5" },
+      },
+      {
+        "@type": "Review",
+        author: { "@type": "Person", name: "Emma L." },
+        reviewBody:
+          "Airport transfer with kids was stress-free. On time, friendly, and fair pricing. Highly recommend.",
+        reviewRating: { "@type": "Rating", ratingValue: "5", bestRating: "5" },
+      },
+    ],
     openingHoursSpecification: {
       "@type": "OpeningHoursSpecification",
       dayOfWeek: [
