@@ -9,7 +9,7 @@ export type LocaleMeta = {
 
 export const LOCALES: LocaleMeta[] = [
   { code: "en", label: "EN", name: "English", flag: "🇺🇸" },
-  { code: "es", label: "SPA", name: "Español", flag: "🇪🇸" },
+  { code: "es", label: "ES", name: "Español", flag: "🇪🇸" },
   { code: "fr", label: "FR", name: "Français", flag: "🇫🇷" },
   { code: "de", label: "DE", name: "Deutsch", flag: "🇩🇪" },
   { code: "zh", label: "中文", name: "中文", flag: "🇨🇳" },

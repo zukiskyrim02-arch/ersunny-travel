@@ -26,7 +26,7 @@ const en: Dict = {
   "footer.pay": "Pay",
   "footer.paymentForm": "Payment form",
   "footer.location": "Punta Cana, Dominican Republic",
-  "footer.copyright": "© {year} Ersunny Travel · Design By Ismakun",
+  "footer.copyright": "© {year} Ersunny Travel",
   "footer.whatsappPrefix": "WhatsApp",
 
   "hero.aria": "Punta Cana airport transfers",
@@ -34,7 +34,7 @@ const en: Dict = {
     "Affordable & luxury airport transfers · Punta Cana, Bávaro & Macao",
   "hero.title": "Punta Cana airport transfers without worries",
   "hero.lead":
-    "Private transfers from Punta Cana Airport (PUJ) to hotels in Punta Cana, Bávaro, and Macao — budget-friendly or luxury vehicles — plus excursions and WhatsApp support in one place.",
+    "Private transfers from Punta Cana Airport (PUJ) to hotels in Punta Cana, Bávaro, and Macao — budget-friendly or luxury vehicles — plus excursions and we reply through email or WhatsApp.",
   "hero.ctaTransfer": "Book Your Transfer",
   "hero.ctaExcursions": "View Excursions",
 
@@ -278,7 +278,7 @@ const es: Dict = {
   "footer.pay": "Pagar",
   "footer.paymentForm": "Formulario de pago",
   "footer.location": "Punta Cana, República Dominicana",
-  "footer.copyright": "© {year} Ersunny Travel · Design By Ismakun",
+  "footer.copyright": "© {year} Ersunny Travel",
   "footer.whatsappPrefix": "WhatsApp",
 
   "hero.aria": "Traslados aeropuerto Punta Cana",
@@ -286,7 +286,7 @@ const es: Dict = {
     "Traslados asequibles y de lujo · Punta Cana, Bávaro y Macao",
   "hero.title": "Traslados al aeropuerto de Punta Cana sin preocupaciones",
   "hero.lead":
-    "Traslados privados desde el Aeropuerto de Punta Cana (PUJ) a hoteles en Punta Cana, Bávaro y Macao — económicos o de lujo — más excursiones y soporte por WhatsApp.",
+    "Traslados privados desde el Aeropuerto de Punta Cana (PUJ) a hoteles en Punta Cana, Bávaro y Macao — económicos o de lujo — más excursiones y respondemos por email o WhatsApp.",
   "hero.ctaTransfer": "Reservar traslado",
   "hero.ctaExcursions": "Ver excursiones",
 
@@ -530,7 +530,7 @@ const fr: Dict = {
   "footer.pay": "Payer",
   "footer.paymentForm": "Formulaire de paiement",
   "footer.location": "Punta Cana, République dominicaine",
-  "footer.copyright": "© {year} Ersunny Travel · Design By Ismakun",
+  "footer.copyright": "© {year} Ersunny Travel",
   "footer.whatsappPrefix": "WhatsApp",
 
   "hero.aria": "Transferts aéroport Punta Cana",
@@ -538,7 +538,7 @@ const fr: Dict = {
     "Transferts abordables et luxe · Punta Cana, Bávaro et Macao",
   "hero.title": "Transferts aéroport Punta Cana sans souci",
   "hero.lead":
-    "Transferts privés depuis l'aéroport de Punta Cana (PUJ) vers les hôtels à Punta Cana, Bávaro et Macao — économiques ou luxe — plus excursions et support WhatsApp.",
+    "Transferts privés depuis l'aéroport de Punta Cana (PUJ) vers les hôtels à Punta Cana, Bávaro et Macao — économiques ou luxe — plus excursions et nous répondons par e-mail ou WhatsApp.",
   "hero.ctaTransfer": "Réserver un transfert",
   "hero.ctaExcursions": "Voir les excursions",
 
@@ -782,7 +782,7 @@ const de: Dict = {
   "footer.pay": "Bezahlen",
   "footer.paymentForm": "Zahlungsformular",
   "footer.location": "Punta Cana, Dominikanische Republik",
-  "footer.copyright": "© {year} Ersunny Travel · Design By Ismakun",
+  "footer.copyright": "© {year} Ersunny Travel",
   "footer.whatsappPrefix": "WhatsApp",
 
   "hero.aria": "Flughafentransfers Punta Cana",
@@ -790,7 +790,7 @@ const de: Dict = {
     "Günstige und Luxus-Transfers · Punta Cana, Bávaro und Macao",
   "hero.title": "Punta-Cana-Flughafentransfers ohne Sorgen",
   "hero.lead":
-    "Private Transfers vom Flughafen Punta Cana (PUJ) zu Hotels in Punta Cana, Bávaro und Macao — günstig oder luxuriös — plus Ausflüge und WhatsApp-Support.",
+    "Private Transfers vom Flughafen Punta Cana (PUJ) zu Hotels in Punta Cana, Bávaro und Macao — günstig oder luxuriös — plus Ausflüge und wir antworten per E-Mail oder WhatsApp.",
   "hero.ctaTransfer": "Transfer buchen",
   "hero.ctaExcursions": "Ausflüge ansehen",
 
@@ -1033,14 +1033,14 @@ const zh: Dict = {
   "footer.pay": "付款",
   "footer.paymentForm": "付款表单",
   "footer.location": "多米尼加共和国蓬塔卡纳",
-  "footer.copyright": "© {year} Ersunny Travel · Design By Ismakun",
+  "footer.copyright": "© {year} Ersunny Travel",
   "footer.whatsappPrefix": "WhatsApp",
 
   "hero.aria": "蓬塔卡纳机场接送",
   "hero.eyebrow": "实惠与豪华机场接送 · 蓬塔卡纳、巴瓦罗和马考",
   "hero.title": "无忧的蓬塔卡纳机场接送",
   "hero.lead":
-    "从蓬塔卡纳机场（PUJ）到蓬塔卡纳、巴瓦罗和马考酒店的私人接送 — 经济或豪华车型 — 另有短途游与 WhatsApp 支持。",
+    "从蓬塔卡纳机场（PUJ）到蓬塔卡纳、巴瓦罗和马考酒店的私人接送 — 经济或豪华车型 — 另有短途游，我们通过邮件或 WhatsApp 回复。",
   "hero.ctaTransfer": "预订接送",
   "hero.ctaExcursions": "查看短途游",
 
@@ -1272,7 +1272,7 @@ const ru: Dict = {
   "footer.pay": "Оплата",
   "footer.paymentForm": "Форма оплаты",
   "footer.location": "Пунта-Кана, Доминиканская Республика",
-  "footer.copyright": "© {year} Ersunny Travel · Design By Ismakun",
+  "footer.copyright": "© {year} Ersunny Travel",
   "footer.whatsappPrefix": "WhatsApp",
 
   "hero.aria": "Трансферы из аэропорта Пунта-Каны",
@@ -1280,7 +1280,7 @@ const ru: Dict = {
     "Доступные и люксовые трансферы · Пунта-Кана, Баваро и Макао",
   "hero.title": "Трансферы из аэропорта Пунта-Каны без забот",
   "hero.lead":
-    "Частные трансферы из аэропорта Пунта-Каны (PUJ) в отели Пунта-Каны, Баваро и Макао — бюджетные или люксовые — плюс экскурсии и поддержка в WhatsApp.",
+    "Частные трансферы из аэропорта Пунта-Каны (PUJ) в отели Пунта-Каны, Баваро и Макао — бюджетные или люксовые — плюс экскурсии, и мы отвечаем по email или WhatsApp.",
   "hero.ctaTransfer": "Заказать трансфер",
   "hero.ctaExcursions": "Смотреть экскурсии",
 

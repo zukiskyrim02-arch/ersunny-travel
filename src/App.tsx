@@ -17,7 +17,7 @@ const BEACH_IMG = asset("hero-cover-mobile.webp");
 const TRANSFER_IMG = asset("transfer-van.webp");
 const TRANSFER_IMG_FALLBACK = asset("transfer-van.jpg");
 const EXCURSION_IMG =
-  "https://images.unsplash.com/photo-1567899378494-47b22a2ae96a?auto=format&fit=crop&w=480&q=55&fm=webp";
+  "https://images.unsplash.com/photo-1559128010-7c1ad6e1b6a5?auto=format&fit=crop&w=480&q=55&fm=webp";
 
 const trustItems = [
   { titleKey: "trust.safe", copyKey: "trust.safeCopy", icon: "shield" },
@@ -418,7 +418,7 @@ export default function App() {
                 <div className="service-card__img">
                   <img
                     src={EXCURSION_IMG}
-                    alt="Catamaran excursion in Punta Cana"
+                    alt="Isla Saona excursion in Punta Cana"
                     loading="lazy"
                     width={800}
                     height={480}
