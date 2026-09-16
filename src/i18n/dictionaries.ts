@@ -167,7 +167,7 @@ const en: Dict = {
   "exc.eyebrow": "Punta Cana excursions",
   "exc.title": "Book tours & island experiences",
   "exc.lead":
-    "Choose your experience, date, and pickup hotel. After you confirm, you can pay securely by card with Pago Azul.",
+    "Choose your experience, date, and pickup hotel. After you confirm, you can pay securely by card with PayPal.",
   "exc.emptyTitle": "Book tours & island experiences",
   "exc.emptyLead":
     "New experiences are coming soon. Meanwhile, you can book your transfer.",
@@ -419,7 +419,7 @@ const es: Dict = {
   "exc.eyebrow": "Excursiones en Punta Cana",
   "exc.title": "Reserva tours y experiencias en islas",
   "exc.lead":
-    "Elige tu experiencia, fecha y hotel de recogida. Tras confirmar, puedes pagar de forma segura con tarjeta vía Pago Azul.",
+    "Elige tu experiencia, fecha y hotel de recogida. Tras confirmar, puedes pagar de forma segura con tarjeta vía PayPal.",
   "exc.emptyTitle": "Reserva tours y experiencias en islas",
   "exc.emptyLead":
     "Pronto habrá nuevas experiencias. Mientras tanto, puedes reservar tu traslado.",
@@ -671,7 +671,7 @@ const fr: Dict = {
   "exc.eyebrow": "Excursions à Punta Cana",
   "exc.title": "Réservez tours et expériences insulaires",
   "exc.lead":
-    "Choisissez votre expérience, la date et l'hôtel de prise en charge. Après confirmation, payez en toute sécurité par carte avec Pago Azul.",
+    "Choisissez votre expérience, la date et l'hôtel de prise en charge. Après confirmation, payez en toute sécurité par carte avec PayPal.",
   "exc.emptyTitle": "Réservez tours et expériences insulaires",
   "exc.emptyLead":
     "De nouvelles expériences arrivent bientôt. En attendant, réservez votre transfert.",
@@ -923,7 +923,7 @@ const de: Dict = {
   "exc.eyebrow": "Ausflüge in Punta Cana",
   "exc.title": "Touren und Inselerlebnisse buchen",
   "exc.lead":
-    "Wählen Sie Erlebnis, Datum und Abholhotel. Nach der Bestätigung zahlen Sie sicher per Karte mit Pago Azul.",
+    "Wählen Sie Erlebnis, Datum und Abholhotel. Nach der Bestätigung zahlen Sie sicher per Karte mit PayPal.",
   "exc.emptyTitle": "Touren und Inselerlebnisse buchen",
   "exc.emptyLead":
     "Neue Erlebnisse kommen bald. Bis dahin können Sie Ihren Transfer buchen.",
@@ -1169,7 +1169,7 @@ const zh: Dict = {
   "exc.eyebrow": "蓬塔卡纳短途游",
   "exc.title": "预订海岛行程与体验",
   "exc.lead":
-    "选择体验、日期和接机酒店。确认后可通过 Pago Azul 安全刷卡付款。",
+    "选择体验、日期和接机酒店。确认后可通过 PayPal 安全刷卡付款。",
   "exc.emptyTitle": "预订海岛行程与体验",
   "exc.emptyLead": "新体验即将推出。在此期间，您可以预订接送。",
   "exc.selected": "已选",
@@ -1413,7 +1413,7 @@ const ru: Dict = {
   "exc.eyebrow": "Экскурсии в Пунта-Кане",
   "exc.title": "Бронирование туров и островных впечатлений",
   "exc.lead":
-    "Выберите впечатление, дату и отель подачи. После подтверждения можно безопасно оплатить картой через Pago Azul.",
+    "Выберите впечатление, дату и отель подачи. После подтверждения можно безопасно оплатить картой через PayPal.",
   "exc.emptyTitle": "Бронирование туров и островных впечатлений",
   "exc.emptyLead":
     "Скоро появятся новые впечатления. Пока можно забронировать трансфер.",

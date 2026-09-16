@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useI18n } from "./i18n/I18nProvider";
 import { useAppConfig } from "./store/hooks";
-import { redirectToAzul } from "./payments/azul";
+import { PayPalHostedButton } from "./PayPalHostedButton";
 import type { Reservation } from "./reservations";
 
 type PaymentSectionProps = {
@@ -26,40 +26,25 @@ export function PaymentSection({
   onOpenTracker,
 }: PaymentSectionProps) {
   const { t, locale } = useI18n();
-  const { azul, contact, bank: bankPayment } = useAppConfig();
-  const [copied, setCopied] = useState(false);
+  const { contact } = useAppConfig();
   const [copiedId, setCopiedId] = useState(false);
-  const [paying, setPaying] = useState(false);
-  const [payError, setPayError] = useState("");
-  const [showApap, setShowApap] = useState(false);
   const isExcursion = reservation.kind === "excursion";
 
-  async function copyText(value: string, kind: "account" | "id") {
+  async function copyId() {
     try {
-      await navigator.clipboard.writeText(value);
-      if (kind === "account") {
-        setCopied(true);
-        window.setTimeout(() => setCopied(false), 2000);
-      } else {
-        setCopiedId(true);
-        window.setTimeout(() => setCopiedId(false), 2000);
-      }
+      await navigator.clipboard.writeText(reservation.id);
+      setCopiedId(true);
+      window.setTimeout(() => setCopiedId(false), 2000);
     } catch {
       /* ignore */
     }
   }
 
-  async function payWithAzul() {
-    setPayError("");
-    setPaying(true);
-    try {
-      const err = await redirectToAzul(azul, reservation);
-      if (err) setPayError(err);
-    } catch {
-      setPayError(t("pay.azulError"));
-    } finally {
-      setPaying(false);
-    }
+  function scrollToPayPal() {
+    document.getElementById("datos-pago")?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
   }
 
   const dateLabel =
@@ -72,12 +57,6 @@ export function PaymentSection({
     : reservation.wantReturn
       ? t("pay.privateRound")
       : t("pay.privateOne");
-
-  const canPayAzul =
-    azul.enabled &&
-    reservation.price != null &&
-    reservation.price > 0 &&
-    Boolean(azul.merchantId.trim() && azul.authKey.trim());
 
   const pickupTimeLabel =
     reservation.pickupTime && reservation.pickupTime !== "To be confirmed"
@@ -121,7 +100,7 @@ export function PaymentSection({
             <button
               type="button"
               className="copy-btn"
-              onClick={() => copyText(reservation.id, "id")}
+              onClick={() => void copyId()}
             >
               {copiedId ? t("pay.copied") : t("pay.copy")}
             </button>
@@ -189,7 +168,7 @@ export function PaymentSection({
             <small>{t("pay.confirmTime")}</small>
           </button>
 
-          <button type="button" className="confirm__contact" onClick={() => void payWithAzul()}>
+          <button type="button" className="confirm__contact" onClick={scrollToPayPal}>
             <span className="confirm__contact-icon" aria-hidden>
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
                 <rect
@@ -204,7 +183,7 @@ export function PaymentSection({
                 <path d="M3 10h18" stroke="currentColor" strokeWidth="1.8" />
               </svg>
             </span>
-            <strong>{t("pay.azul")}</strong>
+            <strong>{t("pay.paypal")}</strong>
             <small>{t("pay.card")}</small>
           </button>
         </div>
@@ -294,94 +273,20 @@ export function PaymentSection({
           </div>
         </article>
 
-        <form
-          className="confirm__pay payment-form"
-          id="datos-pago"
-          onSubmit={(e) => {
-            e.preventDefault();
-            void payWithAzul();
-          }}
-        >
-          <h2>{t("pay.payAzulTitle")}</h2>
+        <div className="confirm__pay payment-form" id="datos-pago">
+          <h2>{t("pay.paypalTitle")}</h2>
           <p>
-            {t("pay.payAzulLead", {
-              env: azul.env === "production" ? "production" : "test",
-            })}
+            {reservation.price == null
+              ? t("pay.paypalLeadPending")
+              : t("pay.paypalLead", { price: reservation.price })}
           </p>
 
-          {payError && (
-            <p className="form-error" role="alert">
-              {payError}
-            </p>
-          )}
+          <PayPalHostedButton reservation={reservation} amount={reservation.price} />
 
-          <button
-            type="submit"
-            className="btn btn--primary btn--full"
-            disabled={paying || !canPayAzul}
-          >
-            {paying
-              ? t("pay.connecting")
-              : reservation.price == null
-                ? t("pay.pricePending")
-                : t("pay.payAmount", { price: reservation.price })}
-          </button>
-
-          {!azul.merchantId || !azul.authKey ? (
-            <p className="confirm__pay-hint">{t("pay.azulHint")}</p>
-          ) : null}
-
-          <button
-            type="button"
-            className="confirm__apap-toggle"
-            onClick={() => setShowApap((v) => !v)}
-          >
-            {showApap ? t("pay.hideApap") : t("pay.showApap")}
-          </button>
-
-          {showApap && (
-            <>
-              <p>{t("pay.apapLead", { id: reservation.id })}</p>
-              <dl className="payment__details">
-                <div>
-                  <dt>{t("pay.bank")}</dt>
-                  <dd>{bankPayment.bank}</dd>
-                </div>
-                <div>
-                  <dt>{t("pay.accountType")}</dt>
-                  <dd>{bankPayment.accountType}</dd>
-                </div>
-                <div>
-                  <dt>{t("pay.accountNumber")}</dt>
-                  <dd>
-                    <span>{bankPayment.accountNumber}</span>
-                    <button
-                      type="button"
-                      className="copy-btn"
-                      onClick={() => copyText(bankPayment.accountNumber, "account")}
-                    >
-                      {copied ? t("pay.copied") : t("pay.copy")}
-                    </button>
-                  </dd>
-                </div>
-                <div>
-                  <dt>{t("pay.accountHolder")}</dt>
-                  <dd>{bankPayment.holder}</dd>
-                </div>
-                <div>
-                  <dt>{t("pay.rnc")}</dt>
-                  <dd>{bankPayment.rnc}</dd>
-                </div>
-              </dl>
-              <a
-                className="btn btn--primary"
-                href={`mailto:${contact.email}?subject=Payment%20receipt%20${reservation.id}`}
-              >
-                {t("pay.sendReceipt")}
-              </a>
-            </>
-          )}
-        </form>
+          <p className="confirm__pay-hint">
+            {t("pay.paypalHint", { id: reservation.id })}
+          </p>
+        </div>
       </div>
     </section>
   );

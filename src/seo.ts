@@ -35,9 +35,9 @@ export const pageSeo: Record<string, PageSeo> = {
     path: "/about/faq",
     title: "FAQ | Punta Cana Airport Transfers — Ersunny Travel",
     description:
-      "Answers about booking transfers, flight delays, payments with Pago Azul, airport pickup, and excursions in Punta Cana with Ersunny Travel.",
+      "Answers about booking transfers, flight delays, payments with PayPal, airport pickup, and excursions in Punta Cana with Ersunny Travel.",
     keywords:
-      "Punta Cana transfer FAQ, airport pickup, cancel flight transfer, Pago Azul",
+      "Punta Cana transfer FAQ, airport pickup, cancel flight transfer, PayPal",
   },
   excursions: {
     path: "/excursions",
@@ -59,7 +59,7 @@ export const pageSeo: Record<string, PageSeo> = {
     path: "/payment",
     title: "Payment Form | Ersunny Travel",
     description:
-      "Complete your Ersunny Travel reservation payment securely with Pago Azul or bank transfer.",
+      "Complete your Ersunny Travel reservation payment securely with PayPal or bank transfer.",
     noindex: true,
   },
   admin: {

@@ -62,7 +62,7 @@ export const faqs = [
   },
   {
     q: "What payment options do I have?",
-    a: "We accept credit cards via Pago Azul, and bank transfers (APAP) as an alternative.",
+    a: "We accept PayPal (card or balance), and bank transfers (APAP) as an alternative.",
   },
   {
     q: "How do I find Ersunny Travel at the airport?",
@@ -182,7 +182,7 @@ export const steps = [
   },
   {
     title: "Pay right away",
-    copy: "We redirect you to Pago Azul for secure card payment.",
+    copy: "We redirect you to PayPal for secure payment.",
   },
   {
     title: "Confirm your pickup",

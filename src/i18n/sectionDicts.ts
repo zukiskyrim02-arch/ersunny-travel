@@ -89,7 +89,7 @@ const en: Dict = {
     "If you cannot travel due to illness, please reach out as soon as possible, and we will work on rescheduling or canceling your transfer as needed.",
   "faq.3.q": "What payment options do I have?",
   "faq.3.a":
-    "We accept credit cards via Pago Azul, and bank transfers (APAP) as an alternative.",
+    "We accept PayPal (card or balance), and bank transfers (APAP) as an alternative.",
   "faq.4.q": "How do I find Ersunny Travel at the airport?",
   "faq.4.a":
     "Our driver will be waiting for you at the airport exit area with your full name on a tablet. Look for our friendly driver in his identified uniform.",
@@ -148,16 +148,17 @@ const en: Dict = {
   "pay.copy": "Copy",
   "pay.copied": "Copied",
   "pay.receivedTransfer":
-    "Complete payment for your transfer. Pay securely with Pago Azul or contact us:",
+    "Complete payment for your transfer. Pay securely with PayPal or contact us:",
   "pay.receivedExcursion":
-    "Complete payment for your excursion. Pay securely with Pago Azul or contact us:",
-  "pay.paySecurely": "Pay securely with Pago Azul or contact us:",
+    "Complete payment for your excursion. Pay securely with PayPal or contact us:",
+  "pay.paySecurely": "Pay securely with PayPal or contact us:",
   "pay.email": "Email",
   "pay.whatsapp": "WhatsApp",
   "pay.pickup": "Pickup",
   "pay.confirmTime": "Confirm time",
-  "pay.azul": "Pago Azul",
-  "pay.card": "Card",
+  "pay.azul": "PayPal",
+  "pay.paypal": "PayPal",
+  "pay.card": "Card / PayPal",
   "pay.excursion": "EXCURSION",
   "pay.transfer": "TRANSFER",
   "pay.date": "Date",
@@ -174,14 +175,25 @@ const en: Dict = {
   "pay.privateRound": "Private · round trip",
   "pay.privateOne": "Private · one way",
   "pay.excursionType": "Excursion",
-  "pay.payAzulTitle": "Pay with Azul",
+  "pay.payAzulTitle": "Pay with PayPal",
   "pay.payAzulLead":
-    "You'll be redirected to the secure Pago Azul page to pay by card (Visa, Mastercard, and more). Environment: {env}.",
-  "pay.connecting": "Connecting to Azul…",
+    "Pay securely with PayPal (card or PayPal balance).",
+  "pay.paypalTitle": "Pay with PayPal",
+  "pay.paypalLead":
+    "Pay {price} USD securely with PayPal. You can use your PayPal balance or a card.",
+  "pay.paypalLeadPending":
+    "Pay securely with PayPal. You can use your PayPal balance or a card.",
+  "pay.paypalHint":
+    "The amount is filled automatically from your reservation. After paying, email us your receipt with {id}.",
+  "pay.ticketLabel": "Reservation confirmation ticket",
+  "pay.ticketEyebrow": "Confirmation ticket",
+  "pay.paypalPaid":
+    "Payment received for {id}. We emailed your confirmation — Ersunny will send the pickup time next.",
+  "pay.connecting": "Loading PayPal…",
   "pay.pricePending": "Price pending — payment is not available yet",
-  "pay.payAmount": "Pay {price} USD with Azul",
+  "pay.payAmount": "Pay {price} USD with PayPal",
   "pay.azulHint":
-    "Configure the Merchant ID and AuthKey in Admin → Pago Azul to enable live payments.",
+    "Pay securely below with the PayPal button.",
   "pay.showApap": "Also pay by APAP bank transfer",
   "pay.hideApap": "Hide bank transfer",
   "pay.apapLead":
@@ -192,13 +204,13 @@ const en: Dict = {
   "pay.accountHolder": "Account holder",
   "pay.rnc": "RNC",
   "pay.sendReceipt": "Send payment receipt",
-  "pay.azulError": "Pago Azul could not be started. Please try again.",
+  "pay.azulError": "PayPal could not be started. Please try again.",
   "pay.savings": "Savings",
 
   "exc.eyebrow": "Punta Cana excursions",
   "exc.title": "Book tours & island experiences",
   "exc.lead":
-    "Choose your experience, date, and pickup hotel. After you confirm, you can pay securely by card with Pago Azul.",
+    "Choose your experience, date, and pickup hotel. After you confirm, you can pay securely with PayPal.",
   "exc.emptyTitle": "Book tours & island experiences",
   "exc.emptyLead":
     "New experiences are coming soon. In the meantime, you can book your transfer.",
@@ -337,7 +349,7 @@ const es: Dict = {
     "Si no puedes viajar por enfermedad, contáctanos lo antes posible y trabajaremos en reprogramar o cancelar tu traslado según sea necesario.",
   "faq.3.q": "¿Qué opciones de pago tengo?",
   "faq.3.a":
-    "Aceptamos tarjetas de crédito vía Pago Azul y transferencias bancarias (APAP) como alternativa.",
+    "Aceptamos PayPal (tarjeta o saldo) y transferencias bancarias (APAP) como alternativa.",
   "faq.4.q": "¿Cómo encuentro a Ersunny Travel en el aeropuerto?",
   "faq.4.a":
     "Nuestro conductor te estará esperando en la zona de salida del aeropuerto con tu nombre completo en una tablet. Busca a nuestro amable conductor con uniforme identificado.",
@@ -398,16 +410,17 @@ const es: Dict = {
   "pay.copy": "Copiar",
   "pay.copied": "Copiado",
   "pay.receivedTransfer":
-    "Completa el pago de tu traslado. Paga de forma segura con Pago Azul o contáctanos:",
+    "Completa el pago de tu traslado. Paga de forma segura con PayPal o contáctanos:",
   "pay.receivedExcursion":
-    "Completa el pago de tu excursión. Paga de forma segura con Pago Azul o contáctanos:",
-  "pay.paySecurely": "Paga de forma segura con Pago Azul o contáctanos:",
+    "Completa el pago de tu excursión. Paga de forma segura con PayPal o contáctanos:",
+  "pay.paySecurely": "Paga de forma segura con PayPal o contáctanos:",
   "pay.email": "Correo",
   "pay.whatsapp": "WhatsApp",
   "pay.pickup": "Pickup",
   "pay.confirmTime": "Confirmar hora",
-  "pay.azul": "Pago Azul",
-  "pay.card": "Tarjeta",
+  "pay.azul": "PayPal",
+  "pay.paypal": "PayPal",
+  "pay.card": "Tarjeta / PayPal",
   "pay.excursion": "EXCURSIÓN",
   "pay.transfer": "TRASLADO",
   "pay.date": "Fecha",
@@ -424,14 +437,25 @@ const es: Dict = {
   "pay.privateRound": "Privado · ida y vuelta",
   "pay.privateOne": "Privado · solo ida",
   "pay.excursionType": "Excursión",
-  "pay.payAzulTitle": "Pagar con Azul",
+  "pay.payAzulTitle": "Pagar con PayPal",
+  "pay.paypalTitle": "Pagar con PayPal",
   "pay.payAzulLead":
-    "Serás redirigido a la página segura de Pago Azul para pagar con tarjeta (Visa, Mastercard y más). Entorno: {env}.",
-  "pay.connecting": "Conectando con Azul…",
+    "Paga de forma segura con PayPal (tarjeta o saldo).",
+  "pay.paypalLead":
+    "Paga {price} USD de forma segura con PayPal. Puedes usar tu saldo PayPal o una tarjeta.",
+  "pay.paypalLeadPending":
+    "Paga de forma segura con PayPal. Puedes usar tu saldo PayPal o una tarjeta.",
+  "pay.paypalHint":
+    "El monto se completa automáticamente con tu reserva. Después de pagar, envíanos el comprobante con {id}.",
+  "pay.ticketLabel": "Tiquete de confirmación de reserva",
+  "pay.ticketEyebrow": "Tiquete de confirmación",
+  "pay.paypalPaid":
+    "Pago recibido para {id}. Enviamos tu confirmación — Ersunny te enviará la hora de pickup.",
+  "pay.connecting": "Cargando PayPal…",
   "pay.pricePending": "Precio pendiente — el pago aún no está disponible",
-  "pay.payAmount": "Pagar {price} USD con Azul",
+  "pay.payAmount": "Pagar {price} USD con PayPal",
   "pay.azulHint":
-    "Configura el Merchant ID y AuthKey en Admin → Pago Azul para habilitar pagos en vivo.",
+    "Paga de forma segura abajo con el botón de PayPal.",
   "pay.showApap": "También pagar por transferencia bancaria APAP",
   "pay.hideApap": "Ocultar transferencia bancaria",
   "pay.apapLead":
@@ -442,13 +466,13 @@ const es: Dict = {
   "pay.accountHolder": "Titular de la cuenta",
   "pay.rnc": "RNC",
   "pay.sendReceipt": "Enviar comprobante de pago",
-  "pay.azulError": "No se pudo iniciar Pago Azul. Inténtalo de nuevo.",
+  "pay.azulError": "No se pudo iniciar PayPal. Inténtalo de nuevo.",
   "pay.savings": "Ahorros",
 
   "exc.eyebrow": "Excursiones en Punta Cana",
   "exc.title": "Reserva tours y experiencias en islas",
   "exc.lead":
-    "Elige tu experiencia, fecha y hotel de recogida. Tras confirmar, puedes pagar de forma segura con tarjeta vía Pago Azul.",
+    "Elige tu experiencia, fecha y hotel de recogida. Tras confirmar, puedes pagar de forma segura con PayPal.",
   "exc.emptyTitle": "Reserva tours y experiencias en islas",
   "exc.emptyLead":
     "Pronto habrá nuevas experiencias. Mientras tanto, puedes reservar tu traslado.",
@@ -587,7 +611,7 @@ const fr: Dict = {
     "Si vous ne pouvez pas voyager pour cause de maladie, contactez-nous dès que possible et nous travaillerons à reprogrammer ou annuler votre transfert selon vos besoins.",
   "faq.3.q": "Quelles options de paiement ai-je ?",
   "faq.3.a":
-    "Nous acceptons les cartes de crédit via Pago Azul et les virements bancaires (APAP) en alternative.",
+    "Nous acceptons PayPal (carte ou solde) et les virements bancaires (APAP) en alternative.",
   "faq.4.q": "Comment trouver Ersunny Travel à l'aéroport ?",
   "faq.4.a":
     "Notre chauffeur vous attendra à la sortie de l'aéroport avec votre nom complet sur une tablette. Cherchez notre chauffeur sympathique en uniforme identifié.",
@@ -648,15 +672,16 @@ const fr: Dict = {
   "pay.copy": "Copier",
   "pay.copied": "Copié",
   "pay.receivedTransfer":
-    "Complétez le paiement de votre transfert. Payez en toute sécurité avec Pago Azul ou contactez-nous :",
+    "Complétez le paiement de votre transfert. Payez en toute sécurité avec PayPal ou contactez-nous :",
   "pay.receivedExcursion":
-    "Complétez le paiement de votre excursion. Payez en toute sécurité avec Pago Azul ou contactez-nous :",
-  "pay.paySecurely": "Payez en toute sécurité avec Pago Azul ou contactez-nous :",
+    "Complétez le paiement de votre excursion. Payez en toute sécurité avec PayPal ou contactez-nous :",
+  "pay.paySecurely": "Payez en toute sécurité avec PayPal ou contactez-nous :",
   "pay.email": "E-mail",
   "pay.whatsapp": "WhatsApp",
   "pay.pickup": "Pickup",
   "pay.confirmTime": "Confirmer l'heure",
-  "pay.azul": "Pago Azul",
+  "pay.azul": "PayPal",
+  "pay.paypal": "PayPal",
   "pay.card": "Carte",
   "pay.excursion": "EXCURSION",
   "pay.transfer": "TRANSFERT",
@@ -674,14 +699,21 @@ const fr: Dict = {
   "pay.privateRound": "Privé · aller-retour",
   "pay.privateOne": "Privé · aller simple",
   "pay.excursionType": "Excursion",
-  "pay.payAzulTitle": "Payer avec Azul",
+  "pay.payAzulTitle": "Payer avec PayPal",
+  "pay.paypalTitle": "Payer avec PayPal",
   "pay.payAzulLead":
-    "Vous serez redirigé vers la page sécurisée Pago Azul pour payer par carte (Visa, Mastercard et plus). Environnement : {env}.",
-  "pay.connecting": "Connexion à Azul…",
+    "Payez en toute sécurité avec PayPal (carte ou solde).",
+  "pay.paypalLead":
+    "Payez {price} USD en toute sécurité avec PayPal.",
+  "pay.paypalLeadPending":
+    "Payez en toute sécurité avec PayPal.",
+  "pay.paypalHint":
+    "Indiquez la réservation {id} dans la note PayPal si demandé, puis envoyez-nous le reçu.",
+  "pay.connecting": "Chargement de PayPal…",
   "pay.pricePending": "Prix en attente — le paiement n'est pas encore disponible",
-  "pay.payAmount": "Payer {price} USD avec Azul",
+  "pay.payAmount": "Payer {price} USD avec PayPal",
   "pay.azulHint":
-    "Configurez le Merchant ID et AuthKey dans Admin → Pago Azul pour activer les paiements en direct.",
+    "Payez en toute sécurité ci-dessous avec le bouton PayPal.",
   "pay.showApap": "Payer aussi par virement bancaire APAP",
   "pay.hideApap": "Masquer le virement bancaire",
   "pay.apapLead":
@@ -692,13 +724,13 @@ const fr: Dict = {
   "pay.accountHolder": "Titulaire du compte",
   "pay.rnc": "RNC",
   "pay.sendReceipt": "Envoyer le reçu de paiement",
-  "pay.azulError": "Pago Azul n'a pas pu être lancé. Veuillez réessayer.",
+  "pay.azulError": "PayPal n'a pas pu être lancé. Veuillez réessayer.",
   "pay.savings": "Épargne",
 
   "exc.eyebrow": "Excursions à Punta Cana",
   "exc.title": "Réservez tours et expériences insulaires",
   "exc.lead":
-    "Choisissez votre expérience, date et hôtel de prise en charge. Après confirmation, payez en toute sécurité par carte avec Pago Azul.",
+    "Choisissez votre expérience, date et hôtel de prise en charge. Après confirmation, payez en toute sécurité avec PayPal.",
   "exc.emptyTitle": "Réservez tours et expériences insulaires",
   "exc.emptyLead":
     "De nouvelles expériences arrivent bientôt. En attendant, vous pouvez réserver votre transfert.",
@@ -837,7 +869,7 @@ const de: Dict = {
     "Wenn Sie wegen Krankheit nicht reisen können, kontaktieren Sie uns so schnell wie möglich, und wir werden Ihren Transfer nach Bedarf umplanen oder stornieren.",
   "faq.3.q": "Welche Zahlungsoptionen habe ich?",
   "faq.3.a":
-    "Wir akzeptieren Kreditkarten über Pago Azul und Banküberweisungen (APAP) als Alternative.",
+    "Wir akzeptieren PayPal (Karte oder Guthaben) und Banküberweisungen (APAP) als Alternative.",
   "faq.4.q": "Wie finde ich Ersunny Travel am Flughafen?",
   "faq.4.a":
     "Unser Fahrer wartet am Flughafenausgang mit Ihrem vollständigen Namen auf einem Tablet. Suchen Sie unseren freundlichen Fahrer in identifizierter Uniform.",
@@ -898,15 +930,16 @@ const de: Dict = {
   "pay.copy": "Kopieren",
   "pay.copied": "Kopiert",
   "pay.receivedTransfer":
-    "Schließen Sie die Zahlung für Ihren Transfer ab. Zahlen Sie sicher mit Pago Azul oder kontaktieren Sie uns:",
+    "Schließen Sie die Zahlung für Ihren Transfer ab. Zahlen Sie sicher mit PayPal oder kontaktieren Sie uns:",
   "pay.receivedExcursion":
-    "Schließen Sie die Zahlung für Ihren Ausflug ab. Zahlen Sie sicher mit Pago Azul oder kontaktieren Sie uns:",
-  "pay.paySecurely": "Zahlen Sie sicher mit Pago Azul oder kontaktieren Sie uns:",
+    "Schließen Sie die Zahlung für Ihren Ausflug ab. Zahlen Sie sicher mit PayPal oder kontaktieren Sie uns:",
+  "pay.paySecurely": "Zahlen Sie sicher mit PayPal oder kontaktieren Sie uns:",
   "pay.email": "E-Mail",
   "pay.whatsapp": "WhatsApp",
   "pay.pickup": "Abholung",
   "pay.confirmTime": "Zeit bestätigen",
-  "pay.azul": "Pago Azul",
+  "pay.azul": "PayPal",
+  "pay.paypal": "PayPal",
   "pay.card": "Karte",
   "pay.excursion": "AUSFLUG",
   "pay.transfer": "TRANSFER",
@@ -924,14 +957,21 @@ const de: Dict = {
   "pay.privateRound": "Privat · Hin und zurück",
   "pay.privateOne": "Privat · einfache Fahrt",
   "pay.excursionType": "Ausflug",
-  "pay.payAzulTitle": "Mit Azul bezahlen",
+  "pay.payAzulTitle": "Mit PayPal bezahlen",
+  "pay.paypalTitle": "Mit PayPal bezahlen",
   "pay.payAzulLead":
-    "Sie werden zur sicheren Pago-Azul-Seite weitergeleitet, um mit Karte zu bezahlen (Visa, Mastercard und mehr). Umgebung: {env}.",
-  "pay.connecting": "Verbindung mit Azul…",
+    "Zahlen Sie sicher mit PayPal (Karte oder Guthaben).",
+  "pay.paypalLead":
+    "Zahlen Sie {price} USD sicher mit PayPal.",
+  "pay.paypalLeadPending":
+    "Zahlen Sie sicher mit PayPal.",
+  "pay.paypalHint":
+    "Geben Sie bei Bedarf die Reservierung {id} in der PayPal-Notiz an und senden Sie uns den Beleg.",
+  "pay.connecting": "PayPal wird geladen…",
   "pay.pricePending": "Preis ausstehend — Zahlung noch nicht verfügbar",
-  "pay.payAmount": "{price} USD mit Azul bezahlen",
+  "pay.payAmount": "{price} USD mit PayPal bezahlen",
   "pay.azulHint":
-    "Konfigurieren Sie Merchant ID und AuthKey in Admin → Pago Azul, um Live-Zahlungen zu aktivieren.",
+    "Zahlen Sie unten sicher mit dem PayPal-Button.",
   "pay.showApap": "Auch per APAP-Banküberweisung bezahlen",
   "pay.hideApap": "Banküberweisung ausblenden",
   "pay.apapLead":
@@ -942,13 +982,13 @@ const de: Dict = {
   "pay.accountHolder": "Kontoinhaber",
   "pay.rnc": "RNC",
   "pay.sendReceipt": "Zahlungsbeleg senden",
-  "pay.azulError": "Pago Azul konnte nicht gestartet werden. Bitte erneut versuchen.",
+  "pay.azulError": "PayPal konnte nicht gestartet werden. Bitte erneut versuchen.",
   "pay.savings": "Sparkonto",
 
   "exc.eyebrow": "Ausflüge in Punta Cana",
   "exc.title": "Touren und Inselerlebnisse buchen",
   "exc.lead":
-    "Wählen Sie Erlebnis, Datum und Abholhotel. Nach der Bestätigung können Sie sicher per Karte mit Pago Azul bezahlen.",
+    "Wählen Sie Erlebnis, Datum und Abholhotel. Nach der Bestätigung können Sie sicher mit PayPal bezahlen.",
   "exc.emptyTitle": "Touren und Inselerlebnisse buchen",
   "exc.emptyLead":
     "Neue Erlebnisse kommen bald. In der Zwischenzeit können Sie Ihren Transfer buchen.",
@@ -1081,7 +1121,7 @@ const zh: Dict = {
   "faq.2.a":
     "如因疾病无法出行，请尽快联系我们，我们将根据需要重新安排或取消接送。",
   "faq.3.q": "有哪些付款方式？",
-  "faq.3.a": "我们接受 Pago Azul 信用卡支付，也可选择 APAP 银行转账。",
+  "faq.3.a": "我们接受 PayPal（卡或余额）支付，也可选择 APAP 银行转账。",
   "faq.4.q": "如何在机场找到 Ersunny Travel？",
   "faq.4.a":
     "司机将在机场出口处举牌显示您的全名。请寻找穿标识制服的友好司机。",
@@ -1135,15 +1175,16 @@ const zh: Dict = {
   "pay.copy": "复制",
   "pay.copied": "已复制",
   "pay.receivedTransfer":
-    "请完成接送付款。使用 Pago Azul 安全支付或联系我们：",
+    "请完成接送付款。使用 PayPal 安全支付或联系我们：",
   "pay.receivedExcursion":
-    "请完成短途游付款。使用 Pago Azul 安全支付或联系我们：",
-  "pay.paySecurely": "使用 Pago Azul 安全支付或联系我们：",
+    "请完成短途游付款。使用 PayPal 安全支付或联系我们：",
+  "pay.paySecurely": "使用 PayPal 安全支付或联系我们：",
   "pay.email": "邮件",
   "pay.whatsapp": "WhatsApp",
   "pay.pickup": "接机",
   "pay.confirmTime": "确认时间",
-  "pay.azul": "Pago Azul",
+  "pay.azul": "PayPal",
+  "pay.paypal": "PayPal",
   "pay.card": "银行卡",
   "pay.excursion": "短途游",
   "pay.transfer": "接送",
@@ -1161,14 +1202,21 @@ const zh: Dict = {
   "pay.privateRound": "私人 · 往返",
   "pay.privateOne": "私人 · 单程",
   "pay.excursionType": "短途游",
-  "pay.payAzulTitle": "使用 Azul 支付",
+  "pay.payAzulTitle": "使用 PayPal 支付",
+  "pay.paypalTitle": "使用 PayPal 支付",
   "pay.payAzulLead":
-    "您将被重定向至安全的 Pago Azul 页面，使用银行卡支付（Visa、Mastercard 等）。环境：{env}。",
-  "pay.connecting": "正在连接 Azul…",
+    "使用 PayPal 安全支付（卡或余额）。",
+  "pay.paypalLead":
+    "使用 PayPal 安全支付 {price} USD。",
+  "pay.paypalLeadPending":
+    "使用 PayPal 安全支付。",
+  "pay.paypalHint":
+    "如提示请在 PayPal 备注中填写预订号 {id}，并发送收据给我们。",
+  "pay.connecting": "正在加载 PayPal…",
   "pay.pricePending": "价格待定 — 暂不可付款",
-  "pay.payAmount": "使用 Azul 支付 {price} USD",
+  "pay.payAmount": "使用 PayPal 支付 {price} USD",
   "pay.azulHint":
-    "在 Admin → Pago Azul 中配置 Merchant ID 和 AuthKey 以启用实时支付。",
+    "请在下方使用 PayPal 按钮安全支付。",
   "pay.showApap": "也可通过 APAP 银行转账支付",
   "pay.hideApap": "隐藏银行转账",
   "pay.apapLead": "备选：转账至我们的企业账户。请在付款备注中包含 {id}。",
@@ -1178,13 +1226,13 @@ const zh: Dict = {
   "pay.accountHolder": "账户持有人",
   "pay.rnc": "RNC",
   "pay.sendReceipt": "发送付款凭证",
-  "pay.azulError": "无法启动 Pago Azul。请重试。",
+  "pay.azulError": "无法启动 PayPal。请重试。",
   "pay.savings": "储蓄账户",
 
   "exc.eyebrow": "蓬塔卡纳短途游",
   "exc.title": "预订海岛行程与体验",
   "exc.lead":
-    "选择体验、日期和接机酒店。确认后可通过 Pago Azul 安全刷卡支付。",
+    "选择体验、日期和接机酒店。确认后可通过 PayPal 安全支付。",
   "exc.emptyTitle": "预订海岛行程与体验",
   "exc.emptyLead": "新体验即将推出。在此期间，您可以预订接送。",
   "exc.selected": "已选",
@@ -1321,7 +1369,7 @@ const ru: Dict = {
     "Если вы не можете поехать из-за болезни, свяжитесь с нами как можно скорее, и мы перенесём или отменим трансфер по необходимости.",
   "faq.3.q": "Какие у меня есть варианты оплаты?",
   "faq.3.a":
-    "Мы принимаем кредитные карты через Pago Azul и банковские переводы (APAP) в качестве альтернативы.",
+    "Мы принимаем PayPal (карта или баланс) и банковские переводы (APAP) в качестве альтернативы.",
   "faq.4.q": "Как найти Ersunny Travel в аэропорту?",
   "faq.4.a":
     "Наш водитель будет ждать вас у выхода из аэропорта с вашим полным именем на планшете. Ищите нашего дружелюбного водителя в фирменной форме.",
@@ -1382,15 +1430,16 @@ const ru: Dict = {
   "pay.copy": "Копировать",
   "pay.copied": "Скопировано",
   "pay.receivedTransfer":
-    "Завершите оплату трансфера. Оплатите безопасно через Pago Azul или свяжитесь с нами:",
+    "Завершите оплату трансфера. Оплатите безопасно через PayPal или свяжитесь с нами:",
   "pay.receivedExcursion":
-    "Завершите оплату экскурсии. Оплатите безопасно через Pago Azul или свяжитесь с нами:",
-  "pay.paySecurely": "Оплатите безопасно через Pago Azul или свяжитесь с нами:",
+    "Завершите оплату экскурсии. Оплатите безопасно через PayPal или свяжитесь с нами:",
+  "pay.paySecurely": "Оплатите безопасно через PayPal или свяжитесь с нами:",
   "pay.email": "E-mail",
   "pay.whatsapp": "WhatsApp",
   "pay.pickup": "Трансфер",
   "pay.confirmTime": "Подтвердить время",
-  "pay.azul": "Pago Azul",
+  "pay.azul": "PayPal",
+  "pay.paypal": "PayPal",
   "pay.card": "Карта",
   "pay.excursion": "ЭКСКУРСИЯ",
   "pay.transfer": "ТРАНСФЕР",
@@ -1408,14 +1457,21 @@ const ru: Dict = {
   "pay.privateRound": "Частный · туда и обратно",
   "pay.privateOne": "Частный · в одну сторону",
   "pay.excursionType": "Экскурсия",
-  "pay.payAzulTitle": "Оплатить через Azul",
+  "pay.payAzulTitle": "Оплатить через PayPal",
+  "pay.paypalTitle": "Оплатить через PayPal",
   "pay.payAzulLead":
-    "Вы будете перенаправлены на защищённую страницу Pago Azul для оплаты картой (Visa, Mastercard и др.). Среда: {env}.",
-  "pay.connecting": "Подключение к Azul…",
+    "Оплатите безопасно через PayPal (карта или баланс).",
+  "pay.paypalLead":
+    "Оплатите {price} USD безопасно через PayPal.",
+  "pay.paypalLeadPending":
+    "Оплатите безопасно через PayPal.",
+  "pay.paypalHint":
+    "Укажите бронь {id} в примечании PayPal при необходимости и пришлите нам чек.",
+  "pay.connecting": "Загрузка PayPal…",
   "pay.pricePending": "Цена уточняется — оплата пока недоступна",
-  "pay.payAmount": "Оплатить {price} USD через Azul",
+  "pay.payAmount": "Оплатить {price} USD через PayPal",
   "pay.azulHint":
-    "Настройте Merchant ID и AuthKey в Admin → Pago Azul для включения live-платежей.",
+    "Оплатите безопасно ниже кнопкой PayPal.",
   "pay.showApap": "Также оплатить банковским переводом APAP",
   "pay.hideApap": "Скрыть банковский перевод",
   "pay.apapLead":
@@ -1426,13 +1482,13 @@ const ru: Dict = {
   "pay.accountHolder": "Владелец счёта",
   "pay.rnc": "RNC",
   "pay.sendReceipt": "Отправить квитанцию об оплате",
-  "pay.azulError": "Не удалось запустить Pago Azul. Попробуйте снова.",
+  "pay.azulError": "Не удалось запустить PayPal. Попробуйте снова.",
   "pay.savings": "Сберегательный",
 
   "exc.eyebrow": "Экскурсии в Пунта-Кане",
   "exc.title": "Бронирование туров и островных впечатлений",
   "exc.lead":
-    "Выберите впечатление, дату и отель подачи. После подтверждения можно безопасно оплатить картой через Pago Azul.",
+    "Выберите впечатление, дату и отель подачи. После подтверждения можно безопасно оплатить через PayPal.",
   "exc.emptyTitle": "Бронирование туров и островных впечатлений",
   "exc.emptyLead":
     "Скоро появятся новые впечатления. А пока вы можете забронировать трансфер.",

@@ -2562,6 +2562,7 @@ ul {
   color: var(--white);
   background: var(--navy);
   box-shadow: var(--shadow);
+  text-align: center;
 }
 
 .confirm__pay h2,
@@ -2574,14 +2575,143 @@ ul {
 .confirm__pay > p,
 .payment__help ol {
   margin-bottom: 1rem;
+  margin-inline: auto;
+  max-width: 36rem;
   color: rgba(255, 255, 255, 0.72);
   font-size: 0.88rem;
 }
 
 .confirm__pay-hint {
   margin-top: 0.75rem;
+  margin-inline: auto;
+  max-width: 34rem;
   color: rgba(255, 255, 255, 0.65);
   font-size: 0.78rem;
+}
+
+.paypal-hosted {
+  margin: 0.85rem auto 0.35rem;
+  min-height: 52px;
+  width: min(100%, 420px);
+  display: grid;
+  justify-items: center;
+  gap: 0.75rem;
+}
+
+.paypal-ticket {
+  width: 100%;
+  text-align: left;
+  padding: 1rem 1.05rem;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+.paypal-ticket__eyebrow {
+  margin: 0 0 0.35rem !important;
+  color: rgba(255, 224, 138, 0.92) !important;
+  font-size: 0.7rem !important;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.paypal-ticket__id {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: #fff;
+}
+
+.paypal-ticket__service {
+  margin: 0.25rem 0 0.85rem !important;
+  color: rgba(255, 255, 255, 0.82) !important;
+  font-size: 0.92rem !important;
+  font-weight: 650;
+}
+
+.paypal-ticket__meta {
+  display: grid;
+  gap: 0.55rem;
+  margin: 0;
+}
+
+.paypal-ticket__meta div {
+  display: grid;
+  gap: 0.12rem;
+  padding-top: 0.45rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.paypal-ticket__meta dt {
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.paypal-ticket__meta dd {
+  margin: 0;
+  color: #fff;
+  font-size: 0.88rem;
+  font-weight: 650;
+  line-height: 1.35;
+}
+
+.paypal-hosted__status {
+  margin: 0 !important;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 0.88rem;
+  text-align: center;
+}
+
+.paypal-hosted__success {
+  margin: 0 !important;
+  padding: 0.85rem 1rem;
+  border-radius: 12px;
+  background: rgba(16, 185, 129, 0.16);
+  color: #b7f7d4 !important;
+  font-size: 0.9rem !important;
+  font-weight: 650;
+  text-align: center;
+}
+
+.paypal-hosted [data-paypal-amount-locked="1"],
+.paypal-hosted__amount-row {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+  pointer-events: none !important;
+}
+
+.paypal-hosted__button {
+  width: 100%;
+  display: grid;
+  justify-items: center;
+}
+
+.paypal-hosted__button > * {
+  width: 100% !important;
+  max-width: 100%;
+}
+
+.confirm__pay .payment__details,
+.confirm__pay .form-error,
+.confirm__pay .btn {
+  text-align: left;
+}
+
+.confirm__pay .btn {
+  margin-inline: auto;
 }
 
 .confirm__apap-toggle {
@@ -3051,12 +3181,14 @@ ul {
 .site-footer__bottom,
 .footer__bottom {
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
+  align-items: center;
   gap: 1rem;
   padding-top: 1.25rem;
   border-top: 1px solid rgba(255, 255, 255, 0.12);
   color: rgba(255, 255, 255, 0.72);
   font-size: 0.8rem;
+  text-align: center;
 }
 
 .footer__top {
@@ -3446,7 +3578,7 @@ ul {
   .site-footer__bottom,
   .footer__bottom {
     flex-direction: column;
-    align-items: stretch;
+    align-items: center;
   }
 
   .confirm__contacts {
