@@ -2695,13 +2695,23 @@ ul {
 
 .paypal-hosted__button {
   width: 100%;
+  min-height: 48px;
+  max-height: 110px;
+  overflow: hidden;
   display: grid;
   justify-items: center;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.04);
 }
 
 .paypal-hosted__button > * {
   width: 100% !important;
   max-width: 100%;
+}
+
+.paypal-hosted__button iframe {
+  width: 100% !important;
+  max-height: 110px !important;
 }
 
 .confirm__pay .payment__details,

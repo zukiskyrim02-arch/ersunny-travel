@@ -1,30 +1,32 @@
 import { useEffect, useId, useRef, useState } from "react";
 import { useI18n } from "./i18n/I18nProvider";
+import { buildPayPalTicket, loadPayPalSdk } from "./payments/paypal";
 import {
-  buildPayPalTicket,
-  loadPayPalSdk,
-  lockHostedButtonAmount,
-  PAYPAL_HOSTED_BUTTON_ID,
-} from "./payments/paypal";
-import type { Reservation } from "./reservations";
+  updateReservation,
+  type Reservation,
+} from "./reservations";
+import { sendPaidBookingEmails } from "./notifyBooking";
 
 type PayPalHostedButtonProps = {
   reservation: Reservation;
   amount?: number | null;
   className?: string;
+  onPaid?: (reservation: Reservation) => void;
 };
 
 export function PayPalHostedButton({
   reservation,
   amount,
   className,
+  onPaid,
 }: PayPalHostedButtonProps) {
   const { t } = useI18n();
   const reactId = useId().replace(/:/g, "");
-  const containerId = `paypal-container-${PAYPAL_HOSTED_BUTTON_ID}-${reactId}`;
-  const rendered = useRef(false);
+  const containerId = `paypal-buttons-${reactId}`;
+  const buttonsRef = useRef<{ close?: () => void } | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
+  const [paidOk, setPaidOk] = useState(false);
 
   const ticket = buildPayPalTicket(reservation);
   const price =
@@ -36,15 +38,6 @@ export function PayPalHostedButton({
 
   useEffect(() => {
     let cancelled = false;
-    let observer: MutationObserver | null = null;
-    const polls: number[] = [];
-    rendered.current = false;
-
-    function applyAmount() {
-      if (price == null) return;
-      const el = document.getElementById(containerId);
-      if (el) lockHostedButtonAmount(el, price);
-    }
 
     async function mount() {
       if (price == null) {
@@ -54,29 +47,92 @@ export function PayPalHostedButton({
 
       setError("");
       setLoading(true);
+      setPaidOk(false);
 
       try {
         const paypal = await loadPayPalSdk();
-        if (cancelled || rendered.current) return;
+        if (cancelled) return;
 
         const el = document.getElementById(containerId);
         if (!el) return;
         el.innerHTML = "";
 
-        await paypal
-          .HostedButtons({
-            hostedButtonId: PAYPAL_HOSTED_BUTTON_ID,
-          })
-          .render(`#${containerId}`);
-
-        if (cancelled) return;
-        rendered.current = true;
-        applyAmount();
-        observer = new MutationObserver(() => applyAmount());
-        observer.observe(el, { childList: true, subtree: true });
-        [120, 400, 900, 1600].forEach((ms) => {
-          polls.push(window.setTimeout(applyAmount, ms));
+        buttonsRef.current?.close?.();
+        const buttons = paypal.Buttons({
+          style: {
+            layout: "vertical",
+            color: "gold",
+            shape: "rect",
+            label: "paypal",
+            height: 48,
+            tagline: false,
+          },
+          createOrder: (_data, actions) => {
+            const value = price.toFixed(2);
+            return actions.order.create({
+              intent: "CAPTURE",
+              purchase_units: [
+                {
+                  reference_id: reservation.id,
+                  description: ticket.name,
+                  custom_id: reservation.id,
+                  amount: {
+                    currency_code: "USD",
+                    value,
+                    breakdown: {
+                      item_total: {
+                        currency_code: "USD",
+                        value,
+                      },
+                    },
+                  },
+                  items: [
+                    {
+                      name: ticket.name,
+                      description: ticket.description,
+                      sku: reservation.id,
+                      unit_amount: {
+                        currency_code: "USD",
+                        value,
+                      },
+                      quantity: "1",
+                      category: "DIGITAL_GOODS",
+                    },
+                  ],
+                },
+              ],
+            });
+          },
+          onApprove: async (_data, actions) => {
+            await actions.order.capture();
+            const updated =
+              updateReservation(reservation.id, { status: "paid" }) ?? {
+                ...reservation,
+                status: "paid" as const,
+              };
+            try {
+              await sendPaidBookingEmails(updated);
+            } catch {
+              /* email is best-effort */
+            }
+            if (!cancelled) {
+              setPaidOk(true);
+              onPaid?.(updated);
+            }
+          },
+          onError: (err) => {
+            if (!cancelled) {
+              const detail =
+                err instanceof Error && err.message
+                  ? err.message
+                  : t("pay.azulError");
+              setError(detail);
+            }
+          },
         });
+
+        buttonsRef.current = buttons;
+        await buttons.render(`#${containerId}`);
       } catch (err) {
         if (!cancelled) {
           const detail =
@@ -93,10 +149,28 @@ export function PayPalHostedButton({
     void mount();
     return () => {
       cancelled = true;
-      observer?.disconnect();
-      polls.forEach((id) => window.clearTimeout(id));
+      buttonsRef.current?.close?.();
+      buttonsRef.current = null;
     };
-  }, [containerId, price, t]);
+  }, [
+    containerId,
+    onPaid,
+    price,
+    reservation.id,
+    reservation.name,
+    reservation.kind,
+    reservation.origin,
+    reservation.destination,
+    reservation.date,
+    reservation.returnDate,
+    reservation.wantReturn,
+    reservation.passengers,
+    reservation.vehicle,
+    reservation.hotelPickup,
+    t,
+    ticket.description,
+    ticket.name,
+  ]);
 
   if (price == null) {
     return (
@@ -140,15 +214,23 @@ export function PayPalHostedButton({
         </dl>
       </article>
 
-      {loading && !error ? (
-        <p className="paypal-hosted__status">{t("pay.connecting")}</p>
-      ) : null}
-      {error ? (
-        <p className="form-error" role="alert">
-          {error}
+      {paidOk ? (
+        <p className="paypal-hosted__success" role="status">
+          {t("pay.paypalPaid", { id: reservation.id })}
         </p>
-      ) : null}
-      <div id={containerId} className="paypal-hosted__button" />
+      ) : (
+        <>
+          {loading && !error ? (
+            <p className="paypal-hosted__status">{t("pay.connecting")}</p>
+          ) : null}
+          {error ? (
+            <p className="form-error" role="alert">
+              {error}
+            </p>
+          ) : null}
+          <div id={containerId} className="paypal-hosted__button" />
+        </>
+      )}
     </div>
   );
 }
