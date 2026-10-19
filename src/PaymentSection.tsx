@@ -1,13 +1,23 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { CardnetPayButton } from "./CardnetPayButton";
 import { useI18n } from "./i18n/I18nProvider";
-import { useAppConfig } from "./store/hooks";
 import { PayPalHostedButton } from "./PayPalHostedButton";
-import type { Reservation } from "./reservations";
+import {
+  clearCardnetQueryFromUrl,
+  readCardnetReturnFromUrl,
+  verifyCardnetPayment,
+} from "./payments/cardnet";
+import {
+  findReservation,
+  updateReservation,
+  type Reservation,
+} from "./reservations";
 
 type PaymentSectionProps = {
   reservation: Reservation;
-  onOpenTracker?: () => void;
 };
+
+type PayMethod = "cardnet" | "paypal";
 
 function formatDate(iso: string, locale: string) {
   if (!iso) return "—";
@@ -21,14 +31,70 @@ function formatDate(iso: string, locale: string) {
   });
 }
 
-export function PaymentSection({
-  reservation,
-  onOpenTracker,
-}: PaymentSectionProps) {
+export function PaymentSection({ reservation: initial }: PaymentSectionProps) {
   const { t, locale } = useI18n();
-  const { contact } = useAppConfig();
+  const [reservation, setReservation] = useState(initial);
   const [copiedId, setCopiedId] = useState(false);
+  const [method, setMethod] = useState<PayMethod>("cardnet");
+  const [cardnetBanner, setCardnetBanner] = useState<string | null>(null);
+  const [verifying, setVerifying] = useState(false);
   const isExcursion = reservation.kind === "excursion";
+  const alreadyPaid = reservation.status === "paid";
+
+  useEffect(() => {
+    setReservation(initial);
+  }, [initial]);
+
+  useEffect(() => {
+    const ret = readCardnetReturnFromUrl();
+    if (!ret) return;
+
+    if (ret.status === "cancel") {
+      setCardnetBanner(t("pay.cardnetCanceled"));
+      clearCardnetQueryFromUrl(ret.reservationId || reservation.id);
+      return;
+    }
+
+    if (!ret.state) {
+      setCardnetBanner(t("pay.cardnetError"));
+      clearCardnetQueryFromUrl(ret.reservationId || reservation.id);
+      return;
+    }
+
+    let cancelled = false;
+    setVerifying(true);
+    void verifyCardnetPayment(ret.state)
+      .then(async (result) => {
+        if (cancelled) return;
+        if (result.approved) {
+          updateReservation(result.reservationId, { status: "paid" });
+          const found = findReservation(result.reservationId);
+          if (found) setReservation(found);
+          setCardnetBanner(
+            t("pay.cardnetApproved", { id: result.reservationId }),
+          );
+          if (found) {
+            void import("./notifyBooking").then(({ sendPaidBookingEmails }) =>
+              sendPaidBookingEmails(found).catch(() => undefined),
+            );
+          }
+        } else {
+          setCardnetBanner(t("pay.cardnetDeclined"));
+        }
+        clearCardnetQueryFromUrl(result.reservationId);
+      })
+      .catch(() => {
+        if (!cancelled) setCardnetBanner(t("pay.cardnetError"));
+        clearCardnetQueryFromUrl(ret.reservationId || reservation.id);
+      })
+      .finally(() => {
+        if (!cancelled) setVerifying(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [reservation.id, t]);
 
   async function copyId() {
     try {
@@ -38,13 +104,6 @@ export function PaymentSection({
     } catch {
       /* ignore */
     }
-  }
-
-  function scrollToPayPal() {
-    document.getElementById("datos-pago")?.scrollIntoView({
-      behavior: "smooth",
-      block: "start",
-    });
   }
 
   const dateLabel =
@@ -105,88 +164,16 @@ export function PaymentSection({
               {copiedId ? t("pay.copied") : t("pay.copy")}
             </button>
           </div>
-          <p>
-            {isExcursion ? t("pay.receivedExcursion") : t("pay.receivedTransfer")}
+        </div>
+
+        {(cardnetBanner || verifying) && (
+          <p
+            className={`confirm__banner${alreadyPaid ? " confirm__banner--ok" : ""}`}
+            role="status"
+          >
+            {verifying ? t("pay.cardnetVerifying") : cardnetBanner}
           </p>
-        </div>
-
-        <div className="confirm__contacts">
-          <a
-            className="confirm__contact"
-            href={`mailto:${contact.email}?subject=Reservation%20${reservation.id}`}
-          >
-            <span className="confirm__contact-icon" aria-hidden>
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-                <rect
-                  x="3"
-                  y="5"
-                  width="18"
-                  height="14"
-                  rx="2"
-                  stroke="currentColor"
-                  strokeWidth="1.8"
-                />
-                <path
-                  d="m4 7 8 6 8-6"
-                  stroke="currentColor"
-                  strokeWidth="1.8"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </span>
-            <strong>{t("pay.email")}</strong>
-            <small>{contact.email}</small>
-          </a>
-
-          <a
-            className="confirm__contact"
-            href={`https://wa.me/${contact.whatsappDigits}?text=${encodeURIComponent(`Hi, my reservation is ${reservation.id}`)}`}
-            target="_blank"
-            rel="noreferrer"
-          >
-            <span className="confirm__contact-icon confirm__contact-icon--wa" aria-hidden>
-              WA
-            </span>
-            <strong>{t("pay.whatsapp")}</strong>
-            <small>{contact.whatsapp}</small>
-          </a>
-
-          <button type="button" className="confirm__contact" onClick={onOpenTracker}>
-            <span className="confirm__contact-icon" aria-hidden>
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-                <circle cx="12" cy="12" r="8" stroke="currentColor" strokeWidth="1.8" />
-                <path
-                  d="M12 8v4l3 2"
-                  stroke="currentColor"
-                  strokeWidth="1.8"
-                  strokeLinecap="round"
-                />
-              </svg>
-            </span>
-            <strong>{t("pay.pickup")}</strong>
-            <small>{t("pay.confirmTime")}</small>
-          </button>
-
-          <button type="button" className="confirm__contact" onClick={scrollToPayPal}>
-            <span className="confirm__contact-icon" aria-hidden>
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-                <rect
-                  x="3"
-                  y="6"
-                  width="18"
-                  height="12"
-                  rx="2"
-                  stroke="currentColor"
-                  strokeWidth="1.8"
-                />
-                <path d="M3 10h18" stroke="currentColor" strokeWidth="1.8" />
-              </svg>
-            </span>
-            <strong>{t("pay.paypal")}</strong>
-            <small>{t("pay.card")}</small>
-          </button>
-        </div>
+        )}
 
         <article className="confirm__card">
           <div className="confirm__card-head">
@@ -274,18 +261,58 @@ export function PaymentSection({
         </article>
 
         <div className="confirm__pay payment-form" id="datos-pago">
-          <h2>{t("pay.paypalTitle")}</h2>
+          <h2>{t("pay.methodsTitle")}</h2>
           <p>
             {reservation.price == null
-              ? t("pay.paypalLeadPending")
-              : t("pay.paypalLead", { price: reservation.price })}
+              ? t("pay.methodsLeadPending")
+              : t("pay.methodsLead", { price: reservation.price })}
           </p>
 
-          <PayPalHostedButton reservation={reservation} amount={reservation.price} />
+          {alreadyPaid ? (
+            <p className="confirm__banner confirm__banner--ok" role="status">
+              {t("pay.alreadyPaid", { id: reservation.id })}
+            </p>
+          ) : (
+            <>
+              <div className="pay-methods" role="tablist" aria-label={t("pay.methodsTitle")}>
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={method === "cardnet"}
+                  className={`pay-methods__tab${method === "cardnet" ? " is-active" : ""}`}
+                  onClick={() => setMethod("cardnet")}
+                >
+                  {t("pay.methodCard")}
+                </button>
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={method === "paypal"}
+                  className={`pay-methods__tab${method === "paypal" ? " is-active" : ""}`}
+                  onClick={() => setMethod("paypal")}
+                >
+                  {t("pay.methodPaypal")}
+                </button>
+              </div>
 
-          <p className="confirm__pay-hint">
-            {t("pay.paypalHint", { id: reservation.id })}
-          </p>
+              {method === "cardnet" ? (
+                <CardnetPayButton
+                  reservation={reservation}
+                  amount={reservation.price}
+                />
+              ) : (
+                <>
+                  <PayPalHostedButton
+                    reservation={reservation}
+                    amount={reservation.price}
+                  />
+                  <p className="confirm__pay-hint">
+                    {t("pay.paypalHint", { id: reservation.id })}
+                  </p>
+                </>
+              )}
+            </>
+          )}
         </div>
       </div>
     </section>

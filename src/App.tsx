@@ -13,11 +13,11 @@ const HERO_IMG = asset("hero-cover.webp");
 const HERO_IMG_MOBILE = asset("hero-cover-mobile.webp");
 const HERO_IMG_FALLBACK = asset("hero-cover.jpg");
 const HERO_IMG_MOBILE_FALLBACK = asset("hero-cover-mobile.jpg");
-const BEACH_IMG = asset("hero-cover-mobile.webp");
+const BEACH_IMG = asset("hero-cover.webp");
 const TRANSFER_IMG = asset("transfer-van.webp");
 const TRANSFER_IMG_FALLBACK = asset("transfer-van.jpg");
 const EXCURSION_IMG =
-  "https://images.unsplash.com/photo-1559128010-7c1ad6e1b6a5?auto=format&fit=crop&w=480&q=55&fm=webp";
+  "https://images.unsplash.com/photo-1559128010-7c1ad6e1b6a5?auto=format&fit=crop&w=1400&q=75&fm=webp";
 
 const trustItems = [
   { titleKey: "trust.safe", copyKey: "trust.safeCopy", icon: "shield" },
@@ -33,7 +33,7 @@ const testimonials = [
     tripKey: "review.0.trip",
     quoteKey: "review.0.quote",
     avatar:
-      "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=160&q=70&fm=webp",
+      "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=240&q=80&fm=webp",
   },
   {
     name: "Carlos R.",
@@ -41,7 +41,7 @@ const testimonials = [
     tripKey: "review.1.trip",
     quoteKey: "review.1.quote",
     avatar:
-      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=160&q=70&fm=webp",
+      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=240&q=80&fm=webp",
   },
   {
     name: "Emma L.",
@@ -49,7 +49,7 @@ const testimonials = [
     tripKey: "review.2.trip",
     quoteKey: "review.2.quote",
     avatar:
-      "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&w=160&q=70&fm=webp",
+      "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&w=240&q=80&fm=webp",
   },
 ];
 
@@ -306,7 +306,7 @@ export default function App() {
                 height={900}
                 sizes="100vw"
                 fetchPriority="high"
-                decoding="sync"
+                decoding="async"
               />
             </picture>
           </div>
@@ -472,7 +472,7 @@ export default function App() {
 
         <section className="quote-band" id="cotizar">
           <div className="quote-band__media" aria-hidden>
-            <img src={BEACH_IMG} alt="" width={800} height={450} loading="lazy" decoding="async" />
+            <img src={BEACH_IMG} alt="" width={1280} height={720} loading="lazy" decoding="async" />
           </div>
           <div className="quote-band__inner container">
             <div className="quote-band__copy">

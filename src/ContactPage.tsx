@@ -144,10 +144,10 @@ export function ContactPage() {
         <section className="contact-hero" aria-label="Contact">
           <div className="contact-hero__media" aria-hidden>
             <img
-              src={asset("hero-cover-mobile.webp")}
+              src={asset("hero-cover.webp")}
               alt=""
-              width={900}
-              height={506}
+              width={1600}
+              height={900}
               loading="lazy"
             />
           </div>

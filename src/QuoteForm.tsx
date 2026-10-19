@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { airportLabel } from "./data";
 import { useI18n } from "./i18n/I18nProvider";
-import { sendBookingNotification } from "./notifyBooking";
+import { sendTransferBookingEmails } from "./notifyBooking";
 import {
   generateReservationId,
   saveReservation,
@@ -29,6 +29,7 @@ export function QuoteForm({ onBooked }: QuoteFormProps) {
   const [departureDate, setDepartureDate] = useState("");
   const [adults, setAdults] = useState(2);
   const [children, setChildren] = useState(0);
+  const [showChildren, setShowChildren] = useState(false);
   const [hotel, setHotel] = useState("");
   const [airline, setAirline] = useState("");
   const [flight, setFlight] = useState("");
@@ -151,27 +152,16 @@ export function QuoteForm({ onBooked }: QuoteFormProps) {
     }
 
     try {
-      await sendBookingNotification({
-        _subject: `New transfer booking ${reservation.id}`,
-        reservation_id: reservation.id,
-        customer_name: reservation.name,
-        email: email.trim(),
-        whatsapp_app: whatsapp.trim(),
+      await sendTransferBookingEmails(reservation, {
         service,
-        transfer_type: typeLabel,
-        arrival_or_pickup_date: date,
-        departure_date: isRoundTrip ? departureDate : "N/A",
-        passengers: passengerLabel,
+        transferType: typeLabel,
         adults: String(safeAdults),
         children: String(safeChildren),
-        hotel: hotel.trim(),
-        vehicle: reservation.vehicle,
-        price_usd: String(price),
-        arrival_airline: airline.trim(),
-        arrival_flight: flight.trim(),
-        departure_airline: isRoundTrip ? returnAirline.trim() : "N/A",
-        departure_flight: isRoundTrip ? returnFlight.trim() : "N/A",
-        replyto: email.trim(),
+        whatsapp: whatsapp.trim(),
+        arrivalAirline: airline.trim(),
+        arrivalFlight: flight.trim(),
+        departureAirline: isRoundTrip ? returnAirline.trim() : undefined,
+        departureFlight: isRoundTrip ? returnFlight.trim() : undefined,
       });
     } catch {
       // Still continue to payment; email provider may need first-time activation
@@ -251,17 +241,46 @@ export function QuoteForm({ onBooked }: QuoteFormProps) {
             required
           />
         </label>
-        <label className="field">
-          <span>{t("quote.children")}</span>
-          <input
-            type="number"
-            min={0}
-            max={20}
-            value={children}
-            onChange={(e) => setChildren(Number(e.target.value) || 0)}
-            required
-          />
-        </label>
+        {showChildren ? (
+          <label className="field field--children">
+            <span className="field__head">
+              {t("quote.children")}
+              <button
+                type="button"
+                className="field__remove"
+                aria-label={t("quote.removeChildren")}
+                onClick={() => {
+                  setShowChildren(false);
+                  setChildren(0);
+                }}
+              >
+                ×
+              </button>
+            </span>
+            <input
+              type="number"
+              min={1}
+              max={20}
+              value={children}
+              onChange={(e) => setChildren(Number(e.target.value) || 0)}
+              required
+              autoFocus
+            />
+          </label>
+        ) : (
+          <div className="field field--add-children">
+            <button
+              type="button"
+              className="quote-form__add-option"
+              onClick={() => {
+                setShowChildren(true);
+                setChildren(1);
+              }}
+            >
+              + {t("quote.addChildren")}
+            </button>
+          </div>
+        )}
         <div className="field hotel-combo" ref={hotelWrapRef}>
           <label htmlFor="quote-hotel">{t("quote.hotel")}</label>
           <input

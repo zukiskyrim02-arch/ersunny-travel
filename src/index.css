@@ -103,6 +103,8 @@ body {
   color: var(--ink);
   background: var(--bg);
   line-height: 1.6;
+  font-synthesis: none;
+  font-feature-settings: "kern" 1, "liga" 1;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
@@ -110,6 +112,13 @@ body {
 img {
   display: block;
   max-width: 100%;
+}
+
+h1,
+h2,
+h3 {
+  text-wrap: balance;
+  overflow-wrap: break-word;
 }
 
 a {
@@ -538,18 +547,18 @@ ul {
   z-index: -1;
   background:
     linear-gradient(
-      105deg,
-      rgba(6, 24, 51, 0.88) 0%,
-      rgba(6, 24, 51, 0.62) 38%,
-      rgba(6, 24, 51, 0.28) 68%,
-      rgba(6, 24, 51, 0.18) 100%
+      180deg,
+      rgba(6, 24, 51, 0.62) 0%,
+      rgba(6, 24, 51, 0.28) 28%,
+      rgba(6, 24, 51, 0.18) 52%,
+      rgba(6, 24, 51, 0.72) 100%
     ),
     linear-gradient(
-      180deg,
-      rgba(6, 24, 51, 0.45) 0%,
-      transparent 28%,
-      transparent 58%,
-      rgba(6, 24, 51, 0.55) 100%
+      100deg,
+      rgba(6, 24, 51, 0.88) 0%,
+      rgba(6, 24, 51, 0.72) 34%,
+      rgba(6, 24, 51, 0.38) 62%,
+      rgba(6, 24, 51, 0.22) 100%
     );
 }
 
@@ -565,13 +574,14 @@ ul {
 .hero-new__eyebrow {
   display: block;
   margin-bottom: 0.85rem;
-  color: rgba(255, 255, 255, 0.92);
-  font-size: clamp(0.68rem, 1.6vw, 0.78rem);
-  font-weight: 700;
-  letter-spacing: 0.12em;
+  color: rgba(255, 255, 255, 0.94);
+  font-size: clamp(0.72rem, 1.4vw, 0.82rem);
+  font-weight: 600;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   max-width: 40rem;
-  line-height: 1.35;
+  line-height: 1.4;
+  text-shadow: 0 1px 12px rgba(6, 24, 51, 0.55);
 }
 
 .hero-new__title {
@@ -582,7 +592,8 @@ ul {
   line-height: 1.12;
   letter-spacing: -0.035em;
   text-wrap: balance;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
+  text-shadow: 0 2px 18px rgba(6, 24, 51, 0.45);
 }
 
 .hero-new__title em {
@@ -593,10 +604,11 @@ ul {
 .hero-new__sub {
   max-width: min(36rem, 100%);
   margin-top: 1rem;
-  color: rgba(255, 255, 255, 0.86);
-  font-size: clamp(0.92rem, 1.2vw + 0.55rem, 1.12rem);
-  line-height: 1.55;
+  color: rgba(255, 255, 255, 0.94);
+  font-size: clamp(0.98rem, 1vw + 0.7rem, 1.12rem);
+  line-height: 1.6;
   font-weight: 400;
+  text-shadow: 0 1px 12px rgba(6, 24, 51, 0.45);
 }
 
 .hero-new__actions,
@@ -668,7 +680,7 @@ ul {
   line-height: 1.1;
   letter-spacing: -0.04em;
   text-wrap: balance;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
 }
 
 .hero__sub {
@@ -781,7 +793,7 @@ ul {
   color: var(--blue);
   font-size: 0.76rem;
   font-weight: 800;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
@@ -797,7 +809,7 @@ ul {
   line-height: 1.14;
   letter-spacing: -0.04em;
   text-wrap: balance;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
 }
 
 .section__lead {
@@ -837,7 +849,7 @@ ul {
 
 .service-card__img {
   width: 100%;
-  height: 220px;
+  aspect-ratio: 16 / 9;
   overflow: hidden;
   background: var(--soft);
 }
@@ -846,6 +858,11 @@ ul {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  transition: transform 0.55s var(--ease);
+}
+
+.service-card:hover .service-card__img img {
+  transform: scale(1.04);
 }
 
 .service-card__body {
@@ -987,7 +1004,7 @@ ul {
   line-height: 1.1;
   letter-spacing: -0.04em;
   text-wrap: balance;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
 }
 
 .quote-band__copy h2 em {
@@ -1087,7 +1104,6 @@ ul {
   z-index: 3;
 }
 
-.quote-band__form,
 .quote-form,
 .booking-form {
   padding: 1.75rem;
@@ -1098,6 +1114,18 @@ ul {
   box-shadow: var(--shadow);
 }
 
+/* Minimal quote card on the booking band */
+.quote-band__form .quote-form {
+  padding: 1.45rem 1.5rem 1.35rem;
+  border: 0;
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.97);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.65) inset,
+    0 22px 55px rgba(4, 18, 40, 0.22);
+  backdrop-filter: blur(10px);
+}
+
 .quote-form h3 {
   margin-bottom: 1.25rem;
   color: var(--navy);
@@ -1105,11 +1133,23 @@ ul {
   font-weight: 800;
 }
 
+.quote-band__form .quote-form h3 {
+  margin-bottom: 1rem;
+  font-size: 1.18rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.2;
+}
+
 .quote-form__grid,
 .booking-form__grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 1rem;
+}
+
+.quote-band__form .quote-form__grid {
+  gap: 0.8rem 0.9rem;
 }
 
 .quote-form__full,
@@ -1123,6 +1163,10 @@ ul {
   gap: 0.42rem;
 }
 
+.quote-band__form .field {
+  gap: 0.28rem;
+}
+
 .field label,
 .tracker-form label {
   color: var(--navy);
@@ -1130,6 +1174,16 @@ ul {
   font-weight: 800;
   letter-spacing: 0.06em;
   text-transform: uppercase;
+}
+
+.quote-band__form .field > span,
+.quote-band__form .field > label,
+.quote-band__form .hotel-combo > label {
+  color: #64748b;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  text-transform: none;
 }
 
 .field input,
@@ -1144,7 +1198,23 @@ ul {
   outline: none;
   color: var(--ink);
   background: var(--white);
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.quote-band__form .field input,
+.quote-band__form .field select {
+  min-height: 44px;
+  padding: 0.62rem 0.8rem;
+  border: 1px solid #e7eef6;
+  border-radius: 12px;
+  background: #f5f8fb;
+  font-size: 0.92rem;
+  font-weight: 500;
+}
+
+.quote-band__form .field input::placeholder {
+  color: #94a3b8;
+  font-weight: 450;
 }
 
 .field textarea {
@@ -1160,6 +1230,13 @@ ul {
   box-shadow: 0 0 0 3px rgba(26, 109, 255, 0.12);
 }
 
+.quote-band__form .field input:focus,
+.quote-band__form .field select:focus {
+  border-color: #c5d5ea;
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(11, 87, 208, 0.08);
+}
+
 .field select option {
   color: var(--ink);
   background: var(--white);
@@ -1168,6 +1245,82 @@ ul {
 .field-hint {
   color: var(--muted);
   font-size: 0.73rem;
+}
+
+.quote-band__form .quote-form__submit {
+  width: 100%;
+  margin-top: 1.15rem;
+  min-height: 50px;
+  border-radius: 14px;
+  font-size: 0.92rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  box-shadow: 0 10px 24px rgba(11, 87, 208, 0.22);
+}
+
+.field__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.field__remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.35rem;
+  height: 1.35rem;
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: #94a3b8;
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: color 0.15s ease, background 0.15s ease;
+}
+
+.field__remove:hover {
+  color: #64748b;
+  background: #eef2f7;
+}
+
+.field--add-children {
+  display: flex;
+  align-items: flex-end;
+}
+
+.quote-form__add-option {
+  width: 100%;
+  min-height: 44px;
+  margin: 0;
+  padding: 0.55rem 0.85rem;
+  border: 1px dashed #d5e0ec;
+  border-radius: 12px;
+  background: transparent;
+  color: #64748b;
+  font: inherit;
+  font-size: 0.88rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  text-align: left;
+  cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+}
+
+.quote-form__add-option:hover {
+  color: var(--blue);
+  border-color: #b9cce4;
+  background: #f5f8fb;
+}
+
+.quote-band__form .hotel-combo__list {
+  border-radius: 12px;
+  border-color: #e7eef6;
+  box-shadow: 0 14px 30px rgba(8, 28, 52, 0.12);
 }
 
 .form-error,
@@ -1194,7 +1347,7 @@ ul {
   line-height: 1.14;
   letter-spacing: -0.04em;
   text-wrap: balance;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
 }
 
 .booking__aside > p:not(.section__eyebrow) {
@@ -1487,7 +1640,7 @@ ul {
 }
 
 .excursion-card__img {
-  height: 150px;
+  aspect-ratio: 16 / 10;
   overflow: hidden;
   background: var(--soft);
 }
@@ -1497,6 +1650,12 @@ ul {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  transition: transform 0.55s var(--ease);
+}
+
+.excursion-card:hover .excursion-card__img img,
+.excursion-card:hover > img {
+  transform: scale(1.04);
 }
 
 .excursion-card__body {
@@ -2581,6 +2740,79 @@ ul {
   font-size: 0.88rem;
 }
 
+.confirm__banner {
+  margin: 0 0 1.25rem;
+  padding: 0.9rem 1.1rem;
+  border-radius: 12px;
+  background: #eef4ff;
+  color: var(--navy);
+  font-size: 0.92rem;
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+.confirm__banner--ok {
+  background: #e8f7ef;
+  color: #0a6b48;
+}
+
+.pay-methods {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.55rem;
+  margin: 1.25rem 0 1.35rem;
+}
+
+.pay-methods__tab {
+  min-height: 48px;
+  padding: 0.7rem 0.85rem;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--soft);
+  color: var(--muted);
+  font-size: 0.9rem;
+  font-weight: 700;
+  transition: border-color 0.2s ease, background 0.2s ease, color 0.2s ease;
+}
+
+.pay-methods__tab.is-active {
+  border-color: var(--blue);
+  background: #fff;
+  color: var(--navy);
+  box-shadow: 0 0 0 3px rgba(11, 87, 208, 0.12);
+}
+
+.cardnet-pay {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.cardnet-pay__lead {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.cardnet-pay__btn {
+  width: 100%;
+  min-height: 52px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+  border-radius: 12px;
+  font-weight: 700;
+}
+
+.cardnet-pay__hint,
+.cardnet-pay__status {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+
 .confirm__pay-hint {
   margin-top: 0.75rem;
   margin-inline: auto;
@@ -2629,7 +2861,7 @@ ul {
   margin: 0.25rem 0 0.85rem !important;
   color: rgba(255, 255, 255, 0.82) !important;
   font-size: 0.92rem !important;
-  font-weight: 650;
+  font-weight: 600;
 }
 
 .paypal-ticket__meta {
@@ -2657,7 +2889,7 @@ ul {
   margin: 0;
   color: #fff;
   font-size: 0.88rem;
-  font-weight: 650;
+  font-weight: 600;
   line-height: 1.35;
 }
 
@@ -2675,7 +2907,7 @@ ul {
   background: rgba(16, 185, 129, 0.16);
   color: #b7f7d4 !important;
   font-size: 0.9rem !important;
-  font-weight: 650;
+  font-weight: 600;
   text-align: center;
 }
 
@@ -2929,7 +3161,7 @@ ul {
   color: rgba(255, 255, 255, 0.88);
   font-size: 0.78rem;
   font-weight: 700;
-  letter-spacing: 0.16em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
@@ -2940,7 +3172,7 @@ ul {
   line-height: 1.1;
   letter-spacing: -0.04em;
   text-wrap: balance;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
 }
 
 .contact-hero__copy h1 em {
@@ -2977,7 +3209,7 @@ ul {
   color: var(--blue);
   font-size: 0.72rem;
   font-weight: 800;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
@@ -3578,9 +3810,13 @@ ul {
   }
 
   .booking-form,
-  .quote-form,
-  .quote-band__form {
-    padding: 1.1rem;
+  .quote-form {
+    padding: 1.15rem;
+  }
+
+  .quote-band__form .quote-form {
+    padding: 1.15rem 1.1rem 1.1rem;
+    border-radius: 18px;
   }
 
   .booking-form__footer,

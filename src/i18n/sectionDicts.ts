@@ -89,7 +89,7 @@ const en: Dict = {
     "If you cannot travel due to illness, please reach out as soon as possible, and we will work on rescheduling or canceling your transfer as needed.",
   "faq.3.q": "What payment options do I have?",
   "faq.3.a":
-    "We accept PayPal (card or balance), and bank transfers (APAP) as an alternative.",
+    "We accept card payments via Cardnet (Visa/Mastercard with 3-D Secure) and PayPal.",
   "faq.4.q": "How do I find Ersunny Travel at the airport?",
   "faq.4.a":
     "Our driver will be waiting for you at the airport exit area with your full name on a tablet. Look for our friendly driver in his identified uniform.",
@@ -206,11 +206,31 @@ const en: Dict = {
   "pay.sendReceipt": "Send payment receipt",
   "pay.azulError": "PayPal could not be started. Please try again.",
   "pay.savings": "Savings",
+  "pay.methodsTitle": "Choose how to pay",
+  "pay.methodsLead":
+    "Pay {price} USD securely with card (Cardnet) or PayPal.",
+  "pay.methodsLeadPending":
+    "Choose a payment method once the price is confirmed.",
+  "pay.methodCard": "Card (Cardnet)",
+  "pay.methodPaypal": "PayPal",
+  "pay.cardnetLead":
+    "Pay {price} USD with Visa, Mastercard, or other cards via Cardnet secure checkout (3-D Secure).",
+  "pay.cardnetPayAmount": "Pay {price} USD with card",
+  "pay.cardnetConnecting": "Connecting to Cardnet…",
+  "pay.cardnetHint":
+    "You will be redirected to Cardnet to enter your card details safely.",
+  "pay.cardnetError": "Cardnet payment could not be started. Please try again.",
+  "pay.cardnetVerifying": "Confirming your Cardnet payment…",
+  "pay.cardnetApproved":
+    "Card payment approved for {id}. We emailed your confirmation — Ersunny will send the pickup time next.",
+  "pay.cardnetDeclined": "Cardnet payment was declined. You can try again or use PayPal.",
+  "pay.cardnetCanceled": "You canceled the card payment. You can try again.",
+  "pay.alreadyPaid": "Payment already received for {id}.",
 
   "exc.eyebrow": "Punta Cana excursions",
   "exc.title": "Book tours & island experiences",
   "exc.lead":
-    "Choose your experience, date, and pickup hotel. After you confirm, you can pay securely with PayPal.",
+    "Choose your experience, date, and pickup hotel. After you confirm, you can pay securely with card or PayPal.",
   "exc.emptyTitle": "Book tours & island experiences",
   "exc.emptyLead":
     "New experiences are coming soon. In the meantime, you can book your transfer.",
@@ -349,7 +369,7 @@ const es: Dict = {
     "Si no puedes viajar por enfermedad, contáctanos lo antes posible y trabajaremos en reprogramar o cancelar tu traslado según sea necesario.",
   "faq.3.q": "¿Qué opciones de pago tengo?",
   "faq.3.a":
-    "Aceptamos PayPal (tarjeta o saldo) y transferencias bancarias (APAP) como alternativa.",
+    "Aceptamos pagos con tarjeta vía Cardnet (Visa/Mastercard con 3-D Secure) y PayPal.",
   "faq.4.q": "¿Cómo encuentro a Ersunny Travel en el aeropuerto?",
   "faq.4.a":
     "Nuestro conductor te estará esperando en la zona de salida del aeropuerto con tu nombre completo en una tablet. Busca a nuestro amable conductor con uniforme identificado.",
@@ -468,11 +488,32 @@ const es: Dict = {
   "pay.sendReceipt": "Enviar comprobante de pago",
   "pay.azulError": "No se pudo iniciar PayPal. Inténtalo de nuevo.",
   "pay.savings": "Ahorros",
+  "pay.methodsTitle": "Elige cómo pagar",
+  "pay.methodsLead":
+    "Paga {price} USD de forma segura con tarjeta (Cardnet) o PayPal.",
+  "pay.methodsLeadPending":
+    "Elige un método de pago cuando el precio esté confirmado.",
+  "pay.methodCard": "Tarjeta (Cardnet)",
+  "pay.methodPaypal": "PayPal",
+  "pay.cardnetLead":
+    "Paga {price} USD con Visa, Mastercard u otras tarjetas en el checkout seguro de Cardnet (3-D Secure).",
+  "pay.cardnetPayAmount": "Pagar {price} USD con tarjeta",
+  "pay.cardnetConnecting": "Conectando con Cardnet…",
+  "pay.cardnetHint":
+    "Te redirigiremos a Cardnet para ingresar los datos de tu tarjeta de forma segura.",
+  "pay.cardnetError": "No se pudo iniciar el pago con Cardnet. Inténtalo de nuevo.",
+  "pay.cardnetVerifying": "Confirmando tu pago de Cardnet…",
+  "pay.cardnetApproved":
+    "Pago con tarjeta aprobado para {id}. Enviamos tu confirmación — Ersunny te enviará la hora de pickup.",
+  "pay.cardnetDeclined":
+    "Cardnet rechazó el pago. Puedes intentar de nuevo o pagar con PayPal.",
+  "pay.cardnetCanceled": "Cancelaste el pago con tarjeta. Puedes intentar de nuevo.",
+  "pay.alreadyPaid": "El pago de {id} ya fue recibido.",
 
   "exc.eyebrow": "Excursiones en Punta Cana",
   "exc.title": "Reserva tours y experiencias en islas",
   "exc.lead":
-    "Elige tu experiencia, fecha y hotel de recogida. Tras confirmar, puedes pagar de forma segura con PayPal.",
+    "Elige tu experiencia, fecha y hotel de recogida. Tras confirmar, puedes pagar con tarjeta o PayPal.",
   "exc.emptyTitle": "Reserva tours y experiencias en islas",
   "exc.emptyLead":
     "Pronto habrá nuevas experiencias. Mientras tanto, puedes reservar tu traslado.",

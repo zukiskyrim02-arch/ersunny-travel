@@ -59,7 +59,7 @@ export const pageSeo: Record<string, PageSeo> = {
     path: "/payment",
     title: "Payment Form | Ersunny Travel",
     description:
-      "Complete your Ersunny Travel reservation payment securely with PayPal or bank transfer.",
+      "Complete your Ersunny Travel reservation payment securely with Cardnet (card) or PayPal.",
     noindex: true,
   },
   admin: {

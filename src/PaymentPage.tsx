@@ -170,10 +170,7 @@ export function PaymentPage() {
 
       <main id="main-content" className="payment-page">
         {reservation ? (
-          <PaymentSection
-            reservation={reservation}
-            onOpenTracker={() => openMenu("tracker")}
-          />
+          <PaymentSection reservation={reservation} />
         ) : (
           <section className="section section--confirm" id="pago">
             <div className="container confirm">

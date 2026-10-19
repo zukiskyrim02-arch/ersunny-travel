@@ -121,6 +121,13 @@ function mergeHotels(
   };
 }
 
+function sharperRemoteImage(url: string): string {
+  if (!url.includes("images.unsplash.com")) return url;
+  return url
+    .replace(/([?&])w=\d+/, "$1w=1400")
+    .replace(/([?&])q=\d+/, "$1q=75");
+}
+
 export function getConfig(): AppConfig {
   try {
     const raw = localStorage.getItem(CONFIG_KEY);
@@ -151,7 +158,7 @@ export function getConfig(): AppConfig {
             price: e.price ?? def?.price ?? null,
             duration: e.duration || def?.duration || "",
             title: e.title || def?.title || "",
-            image: e.image || def?.image || "",
+            image: sharperRemoteImage(e.image || def?.image || ""),
             blurb: e.blurb || def?.blurb || "",
             highlights: e.highlights?.length
               ? e.highlights
