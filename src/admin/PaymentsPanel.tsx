@@ -32,7 +32,7 @@ export function PaymentsPanel() {
           </div>
           <div>
             <dt>Captcha</dt>
-            <dd>Activo — verificación matemática al pulsar “Pagar con tarjeta”.</dd>
+            <dd>Activo — reCAPTCHA antes de pagar con tarjeta o PayPal.</dd>
           </div>
           <div>
             <dt>PayPal</dt>

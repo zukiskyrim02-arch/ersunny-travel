@@ -79,8 +79,10 @@ function cardnetDevApi(): Plugin {
             const reservationId = String(body.reservationId || "").trim();
             const amountUsd = Number(body.amountUsd);
             const origin = String(body.origin || "").replace(/\/$/, "");
-            const pageLanguage = body.pageLanguage === "SPA" ? "SPA" : "ENG";
+            const pageLanguage = String(body.pageLanguage || "");
             const mobilePhone = String(body.mobilePhone || "");
+            const email = String(body.email || "");
+            const addressLine = String(body.addressLine || "");
             if (!reservationId || !origin || !(amountUsd > 0)) {
               return send(400, { error: "reservationId, origin, amountUsd required" });
             }
@@ -96,6 +98,9 @@ function cardnetDevApi(): Plugin {
               cancelUrl,
               pageLanguage,
               mobilePhone,
+              email,
+              clientIp: remoteIp,
+              addressLine,
             });
 
             const state = await signCardnetState(config.stateSecret, {

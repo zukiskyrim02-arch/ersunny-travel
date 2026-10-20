@@ -1,6 +1,6 @@
 import { useEffect, useId, useRef, useState } from "react";
 import { useI18n } from "./i18n/I18nProvider";
-import { buildPayPalTicket, loadPayPalSdk } from "./payments/paypal";
+import { buildPayPalTicket, loadPayPalSdk, PAYPAL_CLIENT_ID } from "./payments/paypal";
 import {
   updateReservation,
   type Reservation,
@@ -181,6 +181,14 @@ export function PayPalHostedButton({
     ticket.description,
     ticket.name,
   ]);
+
+  if (!PAYPAL_CLIENT_ID) {
+    return (
+      <div className={className ?? "paypal-hosted"}>
+        <p className="paypal-hosted__status">{t("pay.paypalMissing")}</p>
+      </div>
+    );
+  }
 
   if (price == null) {
     return (

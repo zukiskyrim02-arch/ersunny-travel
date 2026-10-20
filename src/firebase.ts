@@ -9,30 +9,15 @@ import {
   type Database,
 } from "firebase/database";
 
-/**
- * Firebase web config (public identifiers, not secrets).
- * Access is controlled by Realtime Database rules — see database.rules.json.
- * Any value can be overridden with VITE_FIREBASE_* env vars.
- */
+/** Firebase web config. Values come from VITE_FIREBASE_* in .env / Vercel. */
 const firebaseConfig = {
-  apiKey:
-    import.meta.env.VITE_FIREBASE_API_KEY ||
-    "AIzaSyAVYRILrXUTwByi1NQrcuowqkTWseJcjJQ",
-  authDomain:
-    import.meta.env.VITE_FIREBASE_AUTH_DOMAIN ||
-    "ersunnytravel.firebaseapp.com",
-  databaseURL:
-    import.meta.env.VITE_FIREBASE_DATABASE_URL ||
-    "https://ersunnytravel-default-rtdb.firebaseio.com",
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "ersunnytravel",
-  storageBucket:
-    import.meta.env.VITE_FIREBASE_STORAGE_BUCKET ||
-    "ersunnytravel.firebasestorage.app",
-  messagingSenderId:
-    import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "119095122145",
-  appId:
-    import.meta.env.VITE_FIREBASE_APP_ID ||
-    "1:119095122145:web:24daf751635bef46c87fa0",
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "",
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "",
+  databaseURL: import.meta.env.VITE_FIREBASE_DATABASE_URL || "",
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "",
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "",
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "",
+  appId: import.meta.env.VITE_FIREBASE_APP_ID || "",
 };
 
 export const FIREBASE_INFO = {

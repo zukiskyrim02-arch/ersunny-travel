@@ -22,6 +22,11 @@ export function CardnetPayButton({
   const { t, locale } = useI18n();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const usdDopRate = Number(import.meta.env.VITE_USD_DOP_RATE || "");
+  const dop =
+    amount != null && Number.isFinite(usdDopRate) && usdDopRate > 0
+      ? Math.round(amount * usdDopRate * 100) / 100
+      : null;
 
   if (amount == null || amount <= 0) {
     return (
@@ -45,7 +50,7 @@ export function CardnetPayButton({
         reservation,
         amountUsd: amount!,
         captchaToken: token,
-        pageLanguage: locale === "es" ? "SPA" : "ENG",
+        pageLanguage: locale === "es" ? "ESP" : "ING",
       });
       redirectToCardnetAuthorize(session);
     } catch (err) {
@@ -93,6 +98,16 @@ export function CardnetPayButton({
           ? t("pay.cardnetConnecting")
           : t("pay.cardnetPayAmount", { price: amount })}
       </button>
+      {dop != null && (
+        <p className="cardnet-pay__status">
+          {t("pay.cardnetDop", {
+            amount: dop.toLocaleString("en-US", {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            }),
+          })}
+        </p>
+      )}
     </div>
   );
 }

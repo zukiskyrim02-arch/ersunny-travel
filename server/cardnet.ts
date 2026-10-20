@@ -1,7 +1,7 @@
 /**
  * Cardnet API Consulta Web + 3DS (server-only).
  * 1. POST /sessions and keep SESSION + session-key.
- * 2. Browser POST /authorize with that SESSION and the same ReturnUrl.
+ * 2. Browser POST /authorize with only the SESSION value.
  * 3. GET /sessions/{SESSION}?sk={session-key} when the shopper comes back.
  */
 
@@ -20,58 +20,93 @@ export type CardnetConfig = {
   avs: string;
   /** HMAC secret used to sign return-state tokens */
   stateSecret: string;
+  /** Dominican pesos per 1 US dollar. Site prices stay in USD. */
+  usdDopRate: number;
 };
 
 export function getCardnetConfig(): CardnetConfig {
   const env = (process.env.CARDNET_ENV || "lab").toLowerCase() === "production"
     ? "production"
     : "lab";
-  return {
+  const config: CardnetConfig = {
     env,
-    acquiringInstitutionCode:
-      process.env.CARDNET_ACQUIRING_INSTITUTION_CODE || "349",
-    merchantType: process.env.CARDNET_MERCHANT_TYPE || "7997",
-    merchantNumber: process.env.CARDNET_MERCHANT_NUMBER || "349000000",
-    merchantTerminal: process.env.CARDNET_MERCHANT_TERMINAL || "58585858",
-    merchantTerminalAmex:
-      process.env.CARDNET_MERCHANT_TERMINAL_AMEX || "00000001",
-    merchantName:
-      process.env.CARDNET_MERCHANT_NAME || "ERSUNNY TRAVEL",
-    // Lab merchant 349000000 approves the sample currency 214 (DOP).
-    // 840 is USD and the lab declines it. Production keeps the configured code.
-    currencyCode:
-      env === "lab" ? "214" : process.env.CARDNET_CURRENCY_CODE || "840",
+    acquiringInstitutionCode: process.env.CARDNET_ACQUIRING_INSTITUTION_CODE || "",
+    merchantType: process.env.CARDNET_MERCHANT_TYPE || "",
+    merchantNumber: process.env.CARDNET_MERCHANT_NUMBER || "",
+    merchantTerminal: process.env.CARDNET_MERCHANT_TERMINAL || "",
+    merchantTerminalAmex: process.env.CARDNET_MERCHANT_TERMINAL_AMEX || "",
+    merchantName: process.env.CARDNET_MERCHANT_NAME || "",
+    currencyCode: "214",
     avs:
       process.env.CARDNET_AVS ||
       "PUNTA CANA DOMINICAN REPUBLIC",
-    stateSecret:
-      process.env.CARDNET_STATE_SECRET ||
-      process.env.CARDNET_MERCHANT_NUMBER ||
-      "ersunny-cardnet-dev-secret",
+    stateSecret: process.env.CARDNET_STATE_SECRET || "",
+    usdDopRate: Number(process.env.CARDNET_USD_DOP_RATE || ""),
   };
+  if (
+    !config.merchantNumber ||
+    !config.merchantTerminal ||
+    !config.stateSecret ||
+    !(config.usdDopRate > 0)
+  ) {
+    throw new Error("Cardnet is not configured.");
+  }
+  return config;
 }
 
 export function cardnetSessionsUrl(env: CardnetEnv) {
   return env === "production"
-    ? "https://servicios.cardnet.com.do/sessions"
+    ? "https://ecommerce.cardnet.com.do/sessions"
     : "https://labservicios.cardnet.com.do/sessions";
 }
 
 export function cardnetAuthorizeUrl(env: CardnetEnv) {
   return env === "production"
-    ? "https://servicios.cardnet.com.do/authorize"
+    ? "https://ecommerce.cardnet.com.do/authorize"
     : "https://labservicios.cardnet.com.do/authorize";
 }
 
 export function cardnetVerifyBaseUrl(env: CardnetEnv) {
   return env === "production"
-    ? "https://servicios.cardnet.com.do/sessions"
+    ? "https://ecommerce.cardnet.com.do/sessions"
     : "https://labservicios.cardnet.com.do/sessions";
 }
 
-/** Cardnet amount: minor units as string (6500 = 65.00). */
-export function toCardnetAmount(usd: number): string {
-  return Math.round(usd * 100).toString();
+/** Cardnet amount field is 12 digits in minor units (000000000100 = 1.00). */
+export function toCardnetAmount(dop: number): string {
+  return String(Math.round(dop * 100)).padStart(12, "0");
+}
+
+/** Site prices are USD. Cardnet charges DOP at CARDNET_USD_DOP_RATE. */
+export function usdToDop(usd: number, pesosPerDollar: number): number {
+  return Math.round(usd * pesosPerDollar * 100) / 100;
+}
+
+function merchantName40(name: string): string {
+  const owner = (name || "ERSUNNY TRAVEL")
+    .toUpperCase()
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 22)
+    .padEnd(22, " ");
+  return `${owner}${"PUNTA CANA".padEnd(13, " ")}${"DN".padEnd(3, " ")}DO`;
+}
+
+function cardnetPageLanguage(language: string | undefined): "ESP" | "ING" {
+  const value = (language || "").toUpperCase();
+  if (value === "ES" || value === "ESP" || value === "SPA") return "ESP";
+  return "ING";
+}
+
+function cardnetIp(ip: string | undefined): string {
+  const first = (ip || "").split(",")[0].trim();
+  if (/^\d{1,3}(\.\d{1,3}){3}$/.test(first)) return first.slice(0, 15);
+  return "127.0.0.1";
+}
+
+function cardnetPhone(phone: string | undefined): string {
+  const digits = (phone || "").replace(/\D/g, "").slice(0, 15);
+  return digits || "8090000000";
 }
 
 export function sanitizeOrderId(reservationId: string): string {
@@ -84,8 +119,11 @@ export type CreateSessionInput = {
   reservationId: string;
   returnUrl: string;
   cancelUrl: string;
-  pageLanguage?: "SPA" | "ENG";
+  pageLanguage?: string;
   mobilePhone?: string;
+  email?: string;
+  clientIp?: string;
+  addressLine?: string;
 };
 
 export type CardnetSessionResult = {
@@ -128,10 +166,14 @@ export async function createCardnetSession(
   }
 
   const orderId = sanitizeOrderId(input.reservationId);
-  const transactionId = `${Date.now()}`.slice(-10);
+  const transactionId = `${Date.now()}`.slice(-6);
+  const phone = cardnetPhone(input.mobilePhone);
+  const email = (input.email || "contact@ersunnytravel.com").slice(0, 254);
+  const line1 = (input.addressLine || "PUNTA CANA").slice(0, 50);
+  const dop = usdToDop(input.amountUsd, config.usdDopRate);
   const body = {
     TransactionType: "200",
-    CurrencyCode: config.currencyCode,
+    CurrencyCode: "214",
     AcquiringInstitutionCode: config.acquiringInstitutionCode,
     MerchantType: config.merchantType,
     MerchantNumber: config.merchantNumber,
@@ -139,14 +181,34 @@ export async function createCardnetSession(
     MerchantTerminal_amex: config.merchantTerminalAmex,
     ReturnUrl: input.returnUrl,
     CancelUrl: input.cancelUrl,
-    PageLanguaje: input.pageLanguage || "ENG",
+    PageLanguaje: cardnetPageLanguage(input.pageLanguage),
     OrdenId: orderId,
     TransactionId: transactionId,
-    Tax: "0",
-    MerchantName: config.merchantName,
+    Tax: "000000000000",
+    MerchantName: merchantName40(config.merchantName),
     AVS: config.avs,
-    Amount: toCardnetAmount(input.amountUsd),
-    MobilePhone: (input.mobilePhone || "").replace(/\D/g, "") || "18090000000",
+    Amount: toCardnetAmount(dop),
+    Ipclient: cardnetIp(input.clientIp),
+    MobilePhone: phone,
+    "3DS_email": email,
+    "3DS_mobilePhone": phone,
+    "3DS_workPhone": phone,
+    "3DS_homePhone": phone,
+    "3DS_billAddr_line1": line1,
+    "3DS_billAddr_line2": " ",
+    "3DS_billAddr_line3": " ",
+    "3DS_billAddr_city": "PuntaCana",
+    "3DS_billAddr_state": "DN",
+    "3DS_billAddr_country": "DOP",
+    "3DS_billAddr_postCode": "23000",
+    "3DS_shipAddr_line1": line1,
+    "3DS_shipAddr_line2": " ",
+    "3DS_shipAddr_line3": " ",
+    "3DS_shipAddr_city": "PuntaCana",
+    "3DS_shipAddr_state": "DN",
+    "3DS_shipAddr_country": "DOP",
+    "3DS_shipAddr_postCode": "23000",
+    "3DS_transType": "01",
   };
 
   const res = await fetch(cardnetSessionsUrl(config.env), {

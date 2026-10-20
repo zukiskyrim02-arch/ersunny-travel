@@ -1,8 +1,7 @@
 import type { Reservation } from "../reservations";
 
-/** PayPal REST app Client ID (Live / production from developer.paypal.com). */
-export const PAYPAL_CLIENT_ID =
-  "BAAvVjcWrCLb8eFr8-7CU5x1yqRwToc8NGThSTJbjhSYj745FCj33kmBcJsTjQy8Se9ZPdSJZ6tUE4tiPw";
+/** PayPal REST app Client ID. Public in the browser, stored in VITE_PAYPAL_CLIENT_ID. */
+export const PAYPAL_CLIENT_ID = import.meta.env.VITE_PAYPAL_CLIENT_ID || "";
 
 export const PAYPAL_SDK_SRC = `https://www.paypal.com/sdk/js?client-id=${encodeURIComponent(
   PAYPAL_CLIENT_ID,
@@ -88,6 +87,9 @@ declare global {
 export function loadPayPalSdk(): Promise<PayPalButtonsApi> {
   if (typeof window === "undefined") {
     return Promise.reject(new Error("PayPal requires a browser."));
+  }
+  if (!PAYPAL_CLIENT_ID) {
+    return Promise.reject(new Error("PayPal is not configured."));
   }
 
   const existing = document.querySelector<HTMLScriptElement>(

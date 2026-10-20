@@ -11,9 +11,6 @@ type ServiceAccount = {
   privateKey: string;
 };
 
-const DEFAULT_DB =
-  "https://ersunnytravel-default-rtdb.firebaseio.com";
-
 let cachedToken: { value: string; exp: number } | null = null;
 let pendingToken: Promise<string> | null = null;
 
@@ -36,7 +33,7 @@ export function databaseUrl() {
   return (
     process.env.FIREBASE_DATABASE_URL ||
     process.env.VITE_FIREBASE_DATABASE_URL ||
-    DEFAULT_DB
+    ""
   ).replace(/\/$/, "");
 }
 

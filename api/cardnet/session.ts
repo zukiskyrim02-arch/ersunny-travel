@@ -58,8 +58,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const reservationId = String(body.reservationId || "").trim();
     const amountUsd = Number(body.amountUsd);
     const origin = String(body.origin || "").replace(/\/$/, "");
-    const pageLanguage = body.pageLanguage === "SPA" ? "SPA" : "ENG";
+    const pageLanguage = String(body.pageLanguage || "");
     const mobilePhone = String(body.mobilePhone || "");
+    const email = String(body.email || "");
+    const addressLine = String(body.addressLine || "");
 
     if (!reservationId || !Number.isFinite(amountUsd) || amountUsd <= 0) {
       return res
@@ -81,6 +83,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       cancelUrl,
       pageLanguage,
       mobilePhone,
+      email,
+      clientIp: remoteIp,
+      addressLine,
     });
 
     const state = await signCardnetState(config.stateSecret, {

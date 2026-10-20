@@ -1,4 +1,4 @@
-import type { Reservation } from "../reservations";
+import { getReservationEmail, type Reservation } from "../reservations";
 
 export type CardnetSessionResponse = {
   session: string;
@@ -75,7 +75,7 @@ export async function startCardnetCheckout(opts: {
   reservation: Reservation;
   amountUsd: number;
   captchaToken: string;
-  pageLanguage?: "SPA" | "ENG";
+  pageLanguage?: string;
 }): Promise<CardnetSessionResponse> {
   const origin = `${window.location.origin}${import.meta.env.BASE_URL.replace(/\/$/, "")}`;
   const res = await fetch("/api/cardnet/session", {
@@ -85,8 +85,10 @@ export async function startCardnetCheckout(opts: {
       reservationId: opts.reservation.id,
       amountUsd: opts.amountUsd,
       origin,
-      pageLanguage: opts.pageLanguage || "ENG",
+      pageLanguage: opts.pageLanguage || "ING",
       mobilePhone: phoneFromReservation(opts.reservation),
+      email: getReservationEmail(opts.reservation) || "",
+      addressLine: opts.reservation.hotelPickup || opts.reservation.origin || "",
       captchaToken: opts.captchaToken,
     }),
   });
@@ -120,8 +122,6 @@ export function redirectToCardnetAuthorize(session: CardnetSessionResponse) {
 
   const fields: Record<string, string> = {
     SESSION: session.session,
-    ReturnUrl: session.returnUrl,
-    CancelUrl: session.cancelUrl,
   };
 
   for (const [name, value] of Object.entries(fields)) {
