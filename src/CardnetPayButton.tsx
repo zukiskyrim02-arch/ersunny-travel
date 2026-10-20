@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react";
+import { useState } from "react";
 import { useI18n } from "./i18n/I18nProvider";
 import {
   redirectToCardnetAuthorize,
@@ -9,23 +9,19 @@ import type { Reservation } from "./reservations";
 type CardnetPayButtonProps = {
   reservation: Reservation;
   amount: number | null;
+  captchaToken: string;
+  onCaptchaUsed: () => void;
 };
 
-function newChallenge() {
-  return {
-    a: Math.floor(Math.random() * 7) + 2,
-    b: Math.floor(Math.random() * 7) + 2,
-  };
-}
-
-export function CardnetPayButton({ reservation, amount }: CardnetPayButtonProps) {
+export function CardnetPayButton({
+  reservation,
+  amount,
+  captchaToken,
+  onCaptchaUsed,
+}: CardnetPayButtonProps) {
   const { t, locale } = useI18n();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [showCaptcha, setShowCaptcha] = useState(false);
-  const [challenge, setChallenge] = useState(newChallenge);
-  const [answer, setAnswer] = useState("");
-  const [captchaError, setCaptchaError] = useState("");
 
   if (amount == null || amount <= 0) {
     return (
@@ -35,40 +31,31 @@ export function CardnetPayButton({ reservation, amount }: CardnetPayButtonProps)
     );
   }
 
-  async function doCheckout() {
+  async function onPayClick() {
+    if (!captchaToken) {
+      setError(t("pay.captchaError"));
+      return;
+    }
     setError("");
     setLoading(true);
+    const token = captchaToken;
+    onCaptchaUsed();
     try {
       const session = await startCardnetCheckout({
         reservation,
         amountUsd: amount!,
+        captchaToken: token,
         pageLanguage: locale === "es" ? "SPA" : "ENG",
       });
       redirectToCardnetAuthorize(session);
-    } catch {
+    } catch (err) {
       setLoading(false);
-      setError(t("pay.cardnetError"));
+      setError(
+        err instanceof Error && err.message === "captcha"
+          ? t("pay.captchaError")
+          : t("pay.cardnetError"),
+      );
     }
-  }
-
-  function onPayClick() {
-    setError("");
-    setCaptchaError("");
-    setAnswer("");
-    setChallenge(newChallenge());
-    setShowCaptcha(true);
-  }
-
-  function onCaptchaSubmit(e: FormEvent) {
-    e.preventDefault();
-    if (Number(answer.trim()) !== challenge.a + challenge.b) {
-      setCaptchaError(t("pay.captchaError"));
-      setAnswer("");
-      setChallenge(newChallenge());
-      return;
-    }
-    setShowCaptcha(false);
-    void doCheckout();
   }
 
   return (
@@ -81,8 +68,8 @@ export function CardnetPayButton({ reservation, amount }: CardnetPayButtonProps)
       <button
         type="button"
         className="btn-blue cardnet-pay__btn"
-        disabled={loading || showCaptcha}
-        onClick={onPayClick}
+        disabled={loading || !captchaToken}
+        onClick={() => void onPayClick()}
       >
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
           <rect
@@ -106,62 +93,6 @@ export function CardnetPayButton({ reservation, amount }: CardnetPayButtonProps)
           ? t("pay.cardnetConnecting")
           : t("pay.cardnetPayAmount", { price: amount })}
       </button>
-
-      {showCaptcha && (
-        <form className="captcha-panel" onSubmit={onCaptchaSubmit}>
-          <p className="captcha-panel__title">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
-              <path
-                d="M12 2.5 4.5 5.5v6.2c0 5.1 3.3 8.6 7.5 10.3 4.2-1.7 7.5-5.2 7.5-10.3V5.5L12 2.5Z"
-                stroke="currentColor"
-                strokeWidth="1.8"
-                strokeLinejoin="round"
-              />
-              <path
-                d="m8.8 12 2.2 2.2 4.2-4.4"
-                stroke="currentColor"
-                strokeWidth="1.8"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-            {t("pay.captchaTitle")}
-          </p>
-          <label className="captcha-panel__field">
-            <span>
-              {t("pay.captchaQuestion", { a: challenge.a, b: challenge.b })}
-            </span>
-            <input
-              type="number"
-              inputMode="numeric"
-              autoComplete="off"
-              value={answer}
-              onChange={(e) => setAnswer(e.target.value)}
-              placeholder={t("pay.captchaPlaceholder")}
-              aria-invalid={Boolean(captchaError)}
-              autoFocus
-              required
-            />
-          </label>
-          {captchaError && (
-            <p className="captcha-panel__error" role="alert">
-              {captchaError}
-            </p>
-          )}
-          <div className="captcha-panel__actions">
-            <button
-              type="button"
-              className="captcha-panel__cancel"
-              onClick={() => setShowCaptcha(false)}
-            >
-              {t("pay.captchaCancel")}
-            </button>
-            <button type="submit" className="btn-blue captcha-panel__confirm">
-              {t("pay.captchaConfirm")}
-            </button>
-          </div>
-        </form>
-      )}
     </div>
   );
 }

@@ -74,6 +74,7 @@ function phoneFromReservation(reservation: Reservation): string {
 export async function startCardnetCheckout(opts: {
   reservation: Reservation;
   amountUsd: number;
+  captchaToken: string;
   pageLanguage?: "SPA" | "ENG";
 }): Promise<CardnetSessionResponse> {
   const origin = `${window.location.origin}${import.meta.env.BASE_URL.replace(/\/$/, "")}`;
@@ -86,6 +87,7 @@ export async function startCardnetCheckout(opts: {
       origin,
       pageLanguage: opts.pageLanguage || "ENG",
       mobilePhone: phoneFromReservation(opts.reservation),
+      captchaToken: opts.captchaToken,
     }),
   });
   const text = await res.text();
@@ -98,6 +100,7 @@ export async function startCardnetCheckout(opts: {
     );
   }
   if (!res.ok || !data.session) {
+    if (data.error === "captcha") throw new Error("captcha");
     throw new Error(data.error || "Could not start card payment.");
   }
   return data;

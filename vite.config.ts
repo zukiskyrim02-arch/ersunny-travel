@@ -16,6 +16,7 @@ import {
   verifyCardnetSession,
   verifyCardnetState,
 } from "./server/cardnet.js";
+import { verifyRecaptcha } from "./server/recaptcha.js";
 import { adminDevApi } from "./server/devApi.js";
 import { applyEnvFile } from "./server/envFile.js";
 
@@ -69,6 +70,12 @@ function cardnetDevApi(): Plugin {
           const body = raw ? (JSON.parse(raw) as Record<string, unknown>) : {};
 
           if (url.startsWith("/api/cardnet/session") && req.method === "POST") {
+            const remoteIp = String(req.socket.remoteAddress || "");
+            if (!(await verifyRecaptcha(String(body.captchaToken || ""), remoteIp))) {
+              return send(400, { error: "captcha" });
+            }
+            if (body.intent === "paypal") return send(200, { ok: true });
+
             const reservationId = String(body.reservationId || "").trim();
             const amountUsd = Number(body.amountUsd);
             const origin = String(body.origin || "").replace(/\/$/, "");

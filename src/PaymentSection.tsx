@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { CardnetPayButton } from "./CardnetPayButton";
+import { RecaptchaBox, type RecaptchaHandle } from "./payments/RecaptchaBox";
 import { useI18n } from "./i18n/I18nProvider";
 import { PayPalHostedButton } from "./PayPalHostedButton";
 import {
@@ -34,6 +35,8 @@ export function PaymentSection({ reservation: initial }: PaymentSectionProps) {
   const [reservation, setReservation] = useState(initial);
   const [copiedId, setCopiedId] = useState(false);
   const [cardnetBanner, setCardnetBanner] = useState<string | null>(null);
+  const [captchaToken, setCaptchaToken] = useState("");
+  const captchaRef = useRef<RecaptchaHandle>(null);
   const [verifying, setVerifying] = useState(false);
   const isExcursion = reservation.kind === "excursion";
   const alreadyPaid = reservation.status === "paid";
@@ -274,9 +277,12 @@ export function PaymentSection({ reservation: initial }: PaymentSectionProps) {
             </p>
           ) : (
             <div className="pay-options">
+              <RecaptchaBox ref={captchaRef} onToken={setCaptchaToken} />
               <CardnetPayButton
                 reservation={reservation}
                 amount={reservation.price}
+                captchaToken={captchaToken}
+                onCaptchaUsed={() => captchaRef.current?.reset()}
               />
               <div className="pay-divider" aria-hidden>
                 <span>{t("pay.or")}</span>
@@ -285,6 +291,8 @@ export function PaymentSection({ reservation: initial }: PaymentSectionProps) {
                 reservation={reservation}
                 amount={reservation.price}
                 hideTicket
+                captchaToken={captchaToken}
+                onCaptchaUsed={() => captchaRef.current?.reset()}
               />
             </div>
           )}

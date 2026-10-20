@@ -2872,6 +2872,26 @@ ul {
   background: rgba(255, 255, 255, 0.18);
 }
 
+.recaptcha-box {
+  display: grid;
+  justify-items: center;
+  gap: 0.55rem;
+}
+
+.recaptcha-box__title,
+.recaptcha-box__missing {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.86);
+  font-size: 0.88rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.recaptcha-box__missing {
+  font-weight: 600;
+  line-height: 1.45;
+}
+
 .cardnet-pay {
   display: grid;
   gap: 0.85rem;

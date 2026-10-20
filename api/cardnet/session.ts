@@ -1,5 +1,6 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { cardnetStateCookie } from "../../server/cookies.js";
+import { verifyRecaptcha } from "../../server/recaptcha.js";
 import {
   cardnetAuthorizeUrl,
   cardnetReturnUrl,
@@ -41,6 +42,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   try {
     const body = await readJson(req);
+    const forwarded = req.headers["x-forwarded-for"];
+    const remoteIp = String(
+      (Array.isArray(forwarded) ? forwarded[0] : forwarded) || "",
+    )
+      .split(",")[0]
+      .trim();
+    if (!(await verifyRecaptcha(String(body.captchaToken || ""), remoteIp))) {
+      return res.status(400).json({ error: "captcha" });
+    }
+    if (body.intent === "paypal") {
+      return res.status(200).json({ ok: true });
+    }
+
     const reservationId = String(body.reservationId || "").trim();
     const amountUsd = Number(body.amountUsd);
     const origin = String(body.origin || "").replace(/\/$/, "");

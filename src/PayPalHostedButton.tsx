@@ -12,6 +12,8 @@ type PayPalHostedButtonProps = {
   amount?: number | null;
   className?: string;
   hideTicket?: boolean;
+  captchaToken?: string;
+  onCaptchaUsed?: () => void;
   onPaid?: (reservation: Reservation) => void;
 };
 
@@ -20,6 +22,8 @@ export function PayPalHostedButton({
   amount,
   className,
   hideTicket = false,
+  captchaToken = "",
+  onCaptchaUsed,
   onPaid,
 }: PayPalHostedButtonProps) {
   const { t } = useI18n();
@@ -30,6 +34,7 @@ export function PayPalHostedButton({
   const [loading, setLoading] = useState(false);
   const [paidOk, setPaidOk] = useState(false);
   const [open, setOpen] = useState(false);
+  const [checkingCaptcha, setCheckingCaptcha] = useState(false);
 
   const ticket = buildPayPalTicket(reservation);
   const price =
@@ -226,16 +231,45 @@ export function PayPalHostedButton({
           {t("pay.paypalPaid", { id: reservation.id })}
         </p>
       ) : !open ? (
+        <>
+        {error ? (
+          <p className="form-error" role="alert">
+            {error}
+          </p>
+        ) : null}
         <button
           type="button"
           className="btn-blue cardnet-pay__btn"
+          disabled={checkingCaptcha || !captchaToken}
           onClick={() => {
+            const token = captchaToken;
+            if (!token) {
+              setError(t("pay.captchaError"));
+              return;
+            }
             setError("");
-            setOpen(true);
+            setCheckingCaptcha(true);
+            onCaptchaUsed?.();
+            void fetch("/api/cardnet/session", {
+              method: "POST",
+              headers: { "Content-Type": "application/json", Accept: "application/json" },
+              body: JSON.stringify({ intent: "paypal", captchaToken: token }),
+            })
+              .then(async (res) => {
+                const body = (await res.json().catch(() => ({}))) as { error?: string };
+                if (!res.ok || body.error === "captcha") {
+                  setError(t("pay.captchaError"));
+                  return;
+                }
+                setOpen(true);
+              })
+              .catch(() => setError(t("pay.captchaError")))
+              .finally(() => setCheckingCaptcha(false));
           }}
         >
-          {t("pay.payAmount", { price })}
+          {checkingCaptcha ? t("pay.connecting") : t("pay.payAmount", { price })}
         </button>
+        </>
       ) : (
         <>
           {loading && !error ? (
