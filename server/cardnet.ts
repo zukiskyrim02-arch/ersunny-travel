@@ -41,13 +41,12 @@ export function getCardnetConfig(): CardnetConfig {
       process.env.CARDNET_AVS ||
       "PUNTA CANA DOMINICAN REPUBLIC",
     stateSecret: process.env.CARDNET_STATE_SECRET || "",
-    usdDopRate: Number(process.env.CARDNET_USD_DOP_RATE || ""),
+    usdDopRate: Number(process.env.CARDNET_USD_DOP_RATE || "") || 61.45,
   };
   if (
     !config.merchantNumber ||
     !config.merchantTerminal ||
-    !config.stateSecret ||
-    !(config.usdDopRate > 0)
+    !config.stateSecret
   ) {
     throw new Error("Cardnet is not configured.");
   }

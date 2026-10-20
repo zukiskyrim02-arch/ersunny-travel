@@ -22,7 +22,7 @@ export function CardnetPayButton({
   const { t, locale } = useI18n();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const usdDopRate = Number(import.meta.env.VITE_USD_DOP_RATE || "");
+  const usdDopRate = Number(import.meta.env.VITE_USD_DOP_RATE || "") || 61.45;
   const dop =
     amount != null && Number.isFinite(usdDopRate) && usdDopRate > 0
       ? Math.round(amount * usdDopRate * 100) / 100
@@ -58,7 +58,9 @@ export function CardnetPayButton({
       setError(
         err instanceof Error && err.message === "captcha"
           ? t("pay.captchaError")
-          : t("pay.cardnetError"),
+          : err instanceof Error && err.message
+            ? err.message
+            : t("pay.cardnetError"),
       );
     }
   }
