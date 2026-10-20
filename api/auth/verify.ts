@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { vercelHandler } from "../../server/vercelHandler";
+import { vercelHandler } from "../../server/vercelHandler.js";
 
 const handle = vercelHandler("/api/auth/verify");
 

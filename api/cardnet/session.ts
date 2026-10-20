@@ -1,11 +1,11 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { cardnetStateCookie } from "../../server/cookies";
+import { cardnetStateCookie } from "../../server/cookies.js";
 import {
   cardnetAuthorizeUrl,
   createCardnetSession,
   getCardnetConfig,
   signCardnetState,
-} from "../../server/cardnet";
+} from "../../server/cardnet.js";
 
 function readJson(req: VercelRequest): Promise<Record<string, unknown>> {
   if (req.body && typeof req.body === "object") {
