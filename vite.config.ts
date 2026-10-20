@@ -2,12 +2,13 @@ import { defineConfig, loadEnv, type Plugin } from "vite";
 import react from "@vitejs/plugin-react";
 import {
   cardnetStateCookie,
-  clearCookie,
-  CARDNET_COOKIE,
+  clearCardnetCookie,
   readCardnetState,
 } from "./server/cookies.js";
 import {
   cardnetAuthorizeUrl,
+  cardnetPaymentUrl,
+  cardnetReturnUrl,
   createCardnetSession,
   getCardnetConfig,
   cardnetOutcome,
@@ -41,6 +42,24 @@ function cardnetDevApi(): Plugin {
           return;
         }
 
+        const requestUrl = new URL(url, "http://localhost");
+        const flag = requestUrl.searchParams.get("cardnet");
+        if (
+          requestUrl.pathname === "/api/cardnet/verify" &&
+          (req.method === "GET" || req.method === "POST") &&
+          (flag === "return" || flag === "cancel")
+        ) {
+          const host = String(req.headers.host || "localhost");
+          res.statusCode = 303;
+          res.setHeader(
+            "Location",
+            cardnetPaymentUrl(`http://${host}`, requestUrl.searchParams.get("id") || "", flag),
+          );
+          res.setHeader("Cache-Control", "no-store");
+          res.end();
+          return;
+        }
+
         try {
           const chunks: Buffer[] = [];
           for await (const chunk of req) {
@@ -60,9 +79,8 @@ function cardnetDevApi(): Plugin {
             }
 
             const config = getCardnetConfig();
-            const payBase = `${origin}/payment?id=${encodeURIComponent(reservationId)}`;
-            const returnUrl = `${payBase}&cardnet=return`;
-            const cancelUrl = `${payBase}&cardnet=cancel`;
+            const returnUrl = cardnetReturnUrl(origin, reservationId, "return");
+            const cancelUrl = cardnetReturnUrl(origin, reservationId, "cancel");
 
             const created = await createCardnetSession(config, {
               amountUsd,
@@ -91,7 +109,7 @@ function cardnetDevApi(): Plugin {
                 state,
                 env: config.env,
               },
-              [cardnetStateCookie(state)],
+              [cardnetStateCookie(state, new URL(origin).host)],
             );
           }
 
@@ -101,7 +119,7 @@ function cardnetDevApi(): Plugin {
               : req.headers.cookie;
             const state = String(body.state || "").trim() || readCardnetState(cookie);
             if (!state) {
-              return send(400, { error: "state required" }, [clearCookie(CARDNET_COOKIE)]);
+              return send(400, { error: "state required" }, [clearCardnetCookie(req.headers.host)]);
             }
             const config = getCardnetConfig();
             const payload = await verifyCardnetState(config.stateSecret, state);
@@ -121,7 +139,7 @@ function cardnetDevApi(): Plugin {
                 amount: payload.amount,
                 session: payload.session,
               },
-              [clearCookie(CARDNET_COOKIE)],
+              [clearCardnetCookie(req.headers.host)],
             );
           }
 

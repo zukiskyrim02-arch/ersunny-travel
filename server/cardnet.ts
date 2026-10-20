@@ -312,3 +312,41 @@ export async function verifyCardnetState(
   if (payload.exp < Date.now()) throw new Error("Cardnet state expired.");
   return payload;
 }
+
+/** The bare domain redirects with 308 and keeps POST, which the payment page rejects. */
+export function cardnetPublicOrigin(origin: string): string {
+  const trimmed = origin.replace(/\/$/, "");
+  try {
+    const url = new URL(trimmed);
+    if (url.hostname === "ersunnytravel.com") {
+      url.protocol = "https:";
+      url.hostname = "www.ersunnytravel.com";
+    }
+    return url.origin;
+  } catch {
+    return trimmed;
+  }
+}
+
+/** Cardnet returns the browser with POST. This API answers and then sends a normal visit. */
+export function cardnetReturnUrl(
+  origin: string,
+  reservationId: string,
+  flag: "return" | "cancel",
+): string {
+  const url = new URL("/api/cardnet/verify", cardnetPublicOrigin(origin));
+  url.searchParams.set("id", reservationId);
+  url.searchParams.set("cardnet", flag);
+  return url.toString();
+}
+
+export function cardnetPaymentUrl(
+  origin: string,
+  reservationId: string,
+  flag: "return" | "cancel",
+): string {
+  const url = new URL("/payment", cardnetPublicOrigin(origin));
+  if (reservationId) url.searchParams.set("id", reservationId);
+  url.searchParams.set("cardnet", flag);
+  return url.toString();
+}

@@ -1,4 +1,30 @@
 {
+  "redirects": [
+    {
+      "source": "/payment",
+      "has": [
+        {
+          "type": "header",
+          "key": "content-type",
+          "value": "application/x-www-form-urlencoded.*"
+        }
+      ],
+      "destination": "https://www.ersunnytravel.com/payment",
+      "statusCode": 302
+    },
+    {
+      "source": "/payment",
+      "has": [
+        {
+          "type": "header",
+          "key": "content-type",
+          "value": "multipart/form-data.*"
+        }
+      ],
+      "destination": "https://www.ersunnytravel.com/payment",
+      "statusCode": 302
+    }
+  ],
   "rewrites": [
     { "source": "/((?!api/).*)", "destination": "/index.html" }
   ]

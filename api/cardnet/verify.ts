@@ -1,7 +1,9 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { CARDNET_COOKIE, clearCookie, readCardnetState } from "../../server/cookies.js";
+import { clearCardnetCookie, readCardnetState } from "../../server/cookies.js";
 import {
   cardnetOutcome,
+  cardnetPaymentUrl,
+  cardnetPublicOrigin,
   getCardnetConfig,
   verifyCardnetSession,
   verifyCardnetState,
@@ -26,7 +28,40 @@ function readJson(req: VercelRequest): Promise<Record<string, unknown>> {
   });
 }
 
+function requestOrigin(req: VercelRequest): string {
+  const forwardedHost = req.headers["x-forwarded-host"];
+  const host = String(
+    (Array.isArray(forwardedHost) ? forwardedHost[0] : forwardedHost) ||
+      req.headers.host ||
+      "www.ersunnytravel.com",
+  )
+    .split(",")[0]
+    .trim();
+  const forwardedProto = req.headers["x-forwarded-proto"];
+  const proto = String(
+    (Array.isArray(forwardedProto) ? forwardedProto[0] : forwardedProto) || "https",
+  )
+    .split(",")[0]
+    .trim();
+  return cardnetPublicOrigin(`${proto}://${host}`);
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+  const flag = String(req.query.cardnet || "");
+  if (
+    (req.method === "GET" || req.method === "POST") &&
+    (flag === "return" || flag === "cancel")
+  ) {
+    const id = String(req.query.id || "");
+    res.statusCode = 303;
+    res.setHeader(
+      "Location",
+      cardnetPaymentUrl(requestOrigin(req), id, flag),
+    );
+    res.setHeader("Cache-Control", "no-store");
+    return res.end();
+  }
+
   if (req.method === "OPTIONS") {
     res.setHeader("Access-Control-Allow-Origin", "*");
     res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
@@ -45,7 +80,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       : req.headers.cookie;
     const state = String(body.state || "").trim() || readCardnetState(header);
     if (!state) {
-      res.setHeader("Set-Cookie", clearCookie(CARDNET_COOKIE));
+      res.setHeader("Set-Cookie", clearCardnetCookie(new URL(requestOrigin(req)).host));
       return res.status(400).json({ error: "state required" });
     }
 
@@ -58,7 +93,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     );
     const outcome = cardnetOutcome(result);
 
-    res.setHeader("Set-Cookie", clearCookie(CARDNET_COOKIE));
+    res.setHeader("Set-Cookie", clearCardnetCookie(new URL(requestOrigin(req)).host));
     return res.status(200).json({
       approved: outcome.approved,
       authorizationCode: outcome.authorizationCode,

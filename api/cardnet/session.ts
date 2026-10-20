@@ -2,6 +2,7 @@ import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { cardnetStateCookie } from "../../server/cookies.js";
 import {
   cardnetAuthorizeUrl,
+  cardnetReturnUrl,
   createCardnetSession,
   getCardnetConfig,
   signCardnetState,
@@ -56,10 +57,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     const config = getCardnetConfig();
-    const payBase = `${origin}/payment?id=${encodeURIComponent(reservationId)}`;
-    // The sample uses the same ReturnUrl in the session body and the authorize form.
-    const returnUrl = `${payBase}&cardnet=return`;
-    const cancelUrl = `${payBase}&cardnet=cancel`;
+    const returnUrl = cardnetReturnUrl(origin, reservationId, "return");
+    const cancelUrl = cardnetReturnUrl(origin, reservationId, "cancel");
 
     const created = await createCardnetSession(config, {
       amountUsd,
@@ -77,7 +76,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       amount: amountUsd,
     });
 
-    res.setHeader("Set-Cookie", cardnetStateCookie(state));
+    const host = (() => {
+      try {
+        return new URL(origin).host;
+      } catch {
+        return "";
+      }
+    })();
+    res.setHeader("Set-Cookie", cardnetStateCookie(state, host));
     return res.status(200).json({
       session: created.session,
       authorizeUrl: cardnetAuthorizeUrl(config.env),

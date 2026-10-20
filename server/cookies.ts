@@ -72,9 +72,21 @@ export function clearCookie(name: string) {
   return cookieHeader(name, "", 0);
 }
 
+function ersunnyDomain(host: string | undefined) {
+  const name = (host || "").split(":")[0].toLowerCase();
+  if (name === "ersunnytravel.com" || name === "www.ersunnytravel.com") {
+    return "; Domain=.ersunnytravel.com";
+  }
+  return "";
+}
+
 /** Survives the Cardnet redirect when the return URL drops the query token. */
-export function cardnetStateCookie(state: string) {
-  return cookieHeader(CARDNET_COOKIE, encodeURIComponent(state), 60 * 60);
+export function cardnetStateCookie(state: string, host?: string) {
+  return `${CARDNET_COOKIE}=${encodeURIComponent(state)}; HttpOnly; Path=/; SameSite=Lax; Max-Age=${60 * 60}${ersunnyDomain(host)}${secureFlag()}`;
+}
+
+export function clearCardnetCookie(host?: string) {
+  return `${CARDNET_COOKIE}=; HttpOnly; Path=/; SameSite=Lax; Max-Age=0${ersunnyDomain(host)}${secureFlag()}`;
 }
 
 export function readCardnetState(header: string | undefined) {
