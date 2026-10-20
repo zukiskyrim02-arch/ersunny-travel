@@ -1,32 +1,7 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { clearCardnetCookie, readCardnetState } from "../../server/cookies.js";
-import {
-  cardnetOutcome,
-  cardnetPaymentUrl,
-  cardnetPublicOrigin,
-  getCardnetConfig,
-  verifyCardnetSession,
-  verifyCardnetState,
-} from "../../server/cardnet.js";
-
-function readJson(req: VercelRequest): Promise<Record<string, unknown>> {
-  if (req.body && typeof req.body === "object") {
-    return Promise.resolve(req.body as Record<string, unknown>);
-  }
-  return new Promise((resolve, reject) => {
-    const chunks: Buffer[] = [];
-    req.on("data", (c) => chunks.push(Buffer.from(c)));
-    req.on("end", () => {
-      try {
-        const raw = Buffer.concat(chunks).toString("utf8");
-        resolve(raw ? (JSON.parse(raw) as Record<string, unknown>) : {});
-      } catch (e) {
-        reject(e);
-      }
-    });
-    req.on("error", reject);
-  });
-}
+import { cardnetPaymentUrl, cardnetPublicOrigin } from "../../server/cardnet.js";
+import { jsonObject } from "../../server/paymentGuards.js";
+import { postCardnetVerify } from "../../server/paymentRoute.js";
 
 function requestOrigin(req: VercelRequest): string {
   const forwardedHost = req.headers["x-forwarded-host"];
@@ -54,54 +29,41 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   ) {
     const id = String(req.query.id || "");
     res.statusCode = 303;
-    res.setHeader(
-      "Location",
-      cardnetPaymentUrl(requestOrigin(req), id, flag),
-    );
+    res.setHeader("Location", cardnetPaymentUrl(requestOrigin(req), id, flag));
     res.setHeader("Cache-Control", "no-store");
     return res.end();
   }
 
   if (req.method === "OPTIONS") {
-    res.setHeader("Access-Control-Allow-Origin", "*");
     res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
     res.setHeader("Access-Control-Allow-Headers", "Content-Type");
     return res.status(204).end();
   }
-
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
+  const parsed = jsonObject(req.body);
+  if (!parsed.ok) return res.status(400).json({ error: "invalid_json" });
+
   try {
-    const body = await readJson(req);
+    const forwarded = req.headers["x-forwarded-for"];
+    const remoteIp = String(
+      (Array.isArray(forwarded) ? forwarded[0] : forwarded) || "",
+    )
+      .split(",")[0]
+      .trim();
     const header = Array.isArray(req.headers.cookie)
       ? req.headers.cookie.join("; ")
       : req.headers.cookie;
-    const state = String(body.state || "").trim() || readCardnetState(header);
-    if (!state) {
-      res.setHeader("Set-Cookie", clearCardnetCookie(new URL(requestOrigin(req)).host));
-      return res.status(400).json({ error: "state required" });
-    }
-
-    const config = getCardnetConfig();
-    const payload = await verifyCardnetState(config.stateSecret, state);
-    const result = await verifyCardnetSession(
-      config,
-      payload.session,
-      payload.sk,
+    const result = await postCardnetVerify(
+      parsed.value,
+      remoteIp,
+      header,
+      new URL(requestOrigin(req)).host,
     );
-    const outcome = cardnetOutcome(result);
-
-    res.setHeader("Set-Cookie", clearCardnetCookie(new URL(requestOrigin(req)).host));
-    return res.status(200).json({
-      approved: outcome.approved,
-      authorizationCode: outcome.authorizationCode,
-      responseCode: outcome.responseCode,
-      reservationId: payload.reservationId,
-      amount: payload.amount,
-      session: payload.session,
-    });
+    if (result.cookies?.length) res.setHeader("Set-Cookie", result.cookies);
+    return res.status(result.status).json(result.json);
   } catch (err) {
     const message = err instanceof Error ? err.message : "Cardnet verify error";
     console.error("[cardnet/verify]", message);

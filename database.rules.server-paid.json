@@ -1,0 +1,26 @@
+{
+  "rules": {
+    "reservations": {
+      "$id": {
+        ".read": true,
+        ".write": "!data.exists() && newData.child('status').val() == 'pending' && newData.child('id').val() == $id || data.exists() && newData.child('status').val() == data.child('status').val()"
+      }
+    },
+    "config": {
+      ".read": true,
+      ".write": true
+    },
+    "authCodes": {
+      ".read": false,
+      ".write": false
+    },
+    "authRate": {
+      ".read": false,
+      ".write": false
+    },
+    "media": {
+      ".read": true,
+      ".write": false
+    }
+  }
+}

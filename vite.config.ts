@@ -1,24 +1,11 @@
 import { defineConfig, loadEnv, type Plugin } from "vite";
 import react from "@vitejs/plugin-react";
-import {
-  cardnetStateCookie,
-  clearCardnetCookie,
-  readCardnetState,
-} from "./server/cookies.js";
-import {
-  cardnetAuthorizeUrl,
-  cardnetPaymentUrl,
-  cardnetReturnUrl,
-  createCardnetSession,
-  getCardnetConfig,
-  cardnetOutcome,
-  signCardnetState,
-  verifyCardnetSession,
-  verifyCardnetState,
-} from "./server/cardnet.js";
-import { verifyRecaptcha } from "./server/recaptcha.js";
+import { cardnetPaymentUrl } from "./server/cardnet.js";
 import { adminDevApi } from "./server/devApi.js";
 import { applyEnvFile } from "./server/envFile.js";
+import { readJsonObject } from "./server/paymentGuards.js";
+import { postCardnetSession, postCardnetVerify } from "./server/paymentRoute.js";
+import { securityHeaderRecord } from "./server/securityHeaders.js";
 
 /** Local `/api/cardnet/*` for Vite so Cardnet works without `vercel dev`. */
 function cardnetDevApi(): Plugin {
@@ -67,92 +54,27 @@ function cardnetDevApi(): Plugin {
             chunks.push(Buffer.from(chunk));
           }
           const raw = Buffer.concat(chunks).toString("utf8");
-          const body = raw ? (JSON.parse(raw) as Record<string, unknown>) : {};
+          const parsed = readJsonObject(raw);
+          if (!parsed.ok) return send(400, { error: "invalid_json" });
+          const body = parsed.value;
+          const remoteIp = String(req.socket.remoteAddress || "");
 
           if (url.startsWith("/api/cardnet/session") && req.method === "POST") {
-            const remoteIp = String(req.socket.remoteAddress || "");
-            if (!(await verifyRecaptcha(String(body.captchaToken || ""), remoteIp))) {
-              return send(400, { error: "captcha" });
-            }
-            if (body.intent === "paypal") return send(200, { ok: true });
-
-            const reservationId = String(body.reservationId || "").trim();
-            const amountUsd = Number(body.amountUsd);
-            const origin = String(body.origin || "").replace(/\/$/, "");
-            const pageLanguage = String(body.pageLanguage || "");
-            const mobilePhone = String(body.mobilePhone || "");
-            const email = String(body.email || "");
-            const addressLine = String(body.addressLine || "");
-            if (!reservationId || !origin || !(amountUsd > 0)) {
-              return send(400, { error: "reservationId, origin, amountUsd required" });
-            }
-
-            const config = getCardnetConfig();
-            const returnUrl = cardnetReturnUrl(origin, reservationId, "return");
-            const cancelUrl = cardnetReturnUrl(origin, reservationId, "cancel");
-
-            const created = await createCardnetSession(config, {
-              amountUsd,
-              reservationId,
-              returnUrl,
-              cancelUrl,
-              pageLanguage,
-              mobilePhone,
-              email,
-              clientIp: remoteIp,
-              addressLine,
-            });
-
-            const state = await signCardnetState(config.stateSecret, {
-              session: created.session,
-              sk: created.sessionKey,
-              reservationId,
-              amount: amountUsd,
-            });
-            const session = created.session;
-
-            return send(
-              200,
-              {
-                session,
-                authorizeUrl: cardnetAuthorizeUrl(config.env),
-                returnUrl,
-                cancelUrl,
-                state,
-                env: config.env,
-              },
-              [cardnetStateCookie(state, new URL(origin).host)],
-            );
+            const result = await postCardnetSession(body, remoteIp);
+            return send(result.status, result.json, result.cookies);
           }
 
           if (url.startsWith("/api/cardnet/verify") && req.method === "POST") {
             const cookie = Array.isArray(req.headers.cookie)
               ? req.headers.cookie.join("; ")
               : req.headers.cookie;
-            const state = String(body.state || "").trim() || readCardnetState(cookie);
-            if (!state) {
-              return send(400, { error: "state required" }, [clearCardnetCookie(req.headers.host)]);
-            }
-            const config = getCardnetConfig();
-            const payload = await verifyCardnetState(config.stateSecret, state);
-            const result = await verifyCardnetSession(
-              config,
-              payload.session,
-              payload.sk,
+            const result = await postCardnetVerify(
+              body,
+              remoteIp,
+              cookie,
+              req.headers.host,
             );
-            const outcome = cardnetOutcome(result);
-            return send(
-              200,
-              {
-                approved: outcome.approved,
-                authorizationCode: outcome.authorizationCode,
-                responseCode: outcome.responseCode,
-                reservationId: payload.reservationId,
-                amount: payload.amount,
-                session: payload.session,
-              },
-              [clearCardnetCookie(req.headers.host)],
-            );
+            return send(result.status, result.json, result.cookies);
           }
 
           return send(404, { error: "Not found" });
@@ -178,5 +100,8 @@ export default defineConfig(({ mode }) => {
     plugins: [react(), cardnetDevApi(), adminDevApi()],
     base: process.env.VITE_BASE || "/",
     appType: "spa",
+    server: {
+      headers: securityHeaderRecord({ upgradeInsecure: false }),
+    },
   };
 });

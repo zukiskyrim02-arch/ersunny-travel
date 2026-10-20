@@ -58,9 +58,14 @@ export function CardnetPayButton({
       setError(
         err instanceof Error && err.message === "captcha"
           ? t("pay.captchaError")
-          : err instanceof Error && err.message
-            ? err.message
-            : t("pay.cardnetError"),
+          : err instanceof Error && err.message === "rate_limited"
+            ? t("pay.rateLimited")
+            : err instanceof Error &&
+                (err.message === "amount" || err.message === "reservation_price")
+              ? t("pay.amountMismatch")
+              : err instanceof Error && err.message
+                ? err.message
+                : t("pay.cardnetError"),
       );
     }
   }

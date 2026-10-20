@@ -280,29 +280,45 @@ export function cardnetOutcome(result: Record<string, unknown>) {
   };
 }
 
-/** Treat common approval codes as paid. */
+function nestedRecord(result: Record<string, unknown>): Record<string, unknown> | null {
+  const tx = result.Transaction;
+  if (tx && typeof tx === "object" && !Array.isArray(tx)) {
+    return tx as Record<string, unknown>;
+  }
+  return null;
+}
+
+/** Cardnet approves a sale only with response code 00. */
 export function isCardnetApproved(result: Record<string, unknown>): boolean {
   const responseCode = String(
-    result.ResponseCode ??
-      result.responseCode ??
-      result.Response ??
-      result.CreditCardTxType_ResponseCode ??
-      "",
+    result.ResponseCode ?? result.responseCode ?? "",
   ).trim();
-  const approved = String(
-    result.Approved ?? result.approved ?? result.Status ?? result.status ?? "",
-  )
-    .trim()
-    .toLowerCase();
-
-  if (["00", "000", "0"].includes(responseCode)) return true;
-  if (["approved", "aprobada", "aprobado", "ok", "success"].includes(approved)) {
-    return true;
+  if (responseCode === "00") return true;
+  const nested = nestedRecord(result);
+  if (!responseCode && nested) {
+    return String(nested.ResponseCode ?? nested.responseCode ?? "").trim() === "00";
   }
-  // Some payloads nest under Transaction
-  const tx = result.Transaction as Record<string, unknown> | undefined;
-  if (tx) return isCardnetApproved(tx);
   return false;
+}
+
+/** The order id Cardnet echoes must be the reservation that was signed into the session. */
+export function cardnetOrderMatches(
+  result: Record<string, unknown>,
+  reservationId: string,
+): boolean {
+  const nested = nestedRecord(result);
+  const raw = String(
+    result.OrdenID ??
+      result.OrdenId ??
+      result.ordenId ??
+      nested?.OrdenID ??
+      nested?.OrdenId ??
+      nested?.ordenId ??
+      "",
+  );
+  const got = sanitizeOrderId(raw);
+  const expected = sanitizeOrderId(reservationId);
+  return Boolean(got && expected && got === expected);
 }
 
 /* ── signed return state (no DB needed) ─────────────────────────── */

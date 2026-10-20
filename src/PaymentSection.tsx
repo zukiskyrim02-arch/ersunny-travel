@@ -81,7 +81,9 @@ export function PaymentSection({ reservation: initial }: PaymentSectionProps) {
         } else {
           const declined = t("pay.cardnetDeclined");
           setCardnetBanner(
-            result.responseCode ? `${declined} (${result.responseCode})` : declined,
+            result.responseCode && result.responseCode !== "order"
+              ? `${declined} (${result.responseCode})`
+              : declined,
           );
         }
         clearCardnetQueryFromUrl(result.reservationId);

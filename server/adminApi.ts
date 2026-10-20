@@ -2,6 +2,7 @@ import { clearCookie, readSessionEmail, SESSION_COOKIE } from "./cookies.js";
 import { requestAdminCode, verifyAdminCode, type ApiResult } from "./authFlow.js";
 import { lookupFlights } from "./flights.js";
 import { flightsEnabled, reviewsEnabled } from "../shared/features.js";
+import { validatePresentFields } from "./paymentGuards.js";
 import {
   adminMediaList,
   assignMedia,
@@ -35,6 +36,10 @@ function unauthorized(): ApiResult {
 export async function dispatchAdminApi(input: DispatchInput): Promise<ApiResult> {
   const method = input.method.toUpperCase();
   const path = input.path.replace(/\/$/, "") || "/";
+  if (method === "POST" || method === "PUT" || method === "PATCH") {
+    const fieldError = validatePresentFields(input.body);
+    if (fieldError) return { status: 400, body: { error: fieldError } };
+  }
 
   if (method === "POST" && path === "/api/auth/request") {
     return requestAdminCode(input.body, input.cookie, input.ip);

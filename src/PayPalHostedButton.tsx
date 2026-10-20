@@ -7,6 +7,16 @@ import {
 } from "./reservations";
 import { sendPaidBookingEmails } from "./notifyBooking";
 
+function paypalNotice(
+  code: string | undefined,
+  t: (key: string, vars?: Record<string, string | number>) => string,
+) {
+  if (code === "rate_limited") return t("pay.rateLimited");
+  if (code === "amount" || code === "reservation_price") return t("pay.amountMismatch");
+  if (code === "PayPal is not configured.") return t("pay.paypalMissing");
+  return t("pay.paypalUnconfirmed");
+}
+
 type PayPalHostedButtonProps = {
   reservation: Reservation;
   amount?: number | null;
@@ -111,8 +121,24 @@ export function PayPalHostedButton({
               ],
             });
           },
-          onApprove: async (_data, actions) => {
-            await actions.order.capture();
+          onApprove: async (data) => {
+            const res = await fetch("/api/cardnet/session", {
+              method: "POST",
+              headers: { "Content-Type": "application/json", Accept: "application/json" },
+              body: JSON.stringify({
+                intent: "paypal-capture",
+                orderId: data.orderID,
+                reservationId: reservation.id,
+              }),
+            });
+            const body = (await res.json().catch(() => ({}))) as {
+              approved?: boolean;
+              error?: string;
+            };
+            if (!res.ok || !body.approved) {
+              if (!cancelled) setError(paypalNotice(body.error, t));
+              return;
+            }
             const updated =
               updateReservation(reservation.id, { status: "paid" }) ?? {
                 ...reservation,
@@ -266,7 +292,11 @@ export function PayPalHostedButton({
               .then(async (res) => {
                 const body = (await res.json().catch(() => ({}))) as { error?: string };
                 if (!res.ok || body.error === "captcha") {
-                  setError(t("pay.captchaError"));
+                  setError(
+                    body.error === "rate_limited"
+                      ? t("pay.rateLimited")
+                      : t("pay.captchaError"),
+                  );
                   return;
                 }
                 setOpen(true);

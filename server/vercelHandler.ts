@@ -1,17 +1,10 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
+import { jsonObject, validatePresentFields } from "./paymentGuards.js";
 import { dispatchAdminApi } from "./adminApi.js";
 
-function asBody(body: unknown): Record<string, unknown> {
-  if (!body) return {};
-  if (typeof body === "string") {
-    try {
-      return JSON.parse(body) as Record<string, unknown>;
-    } catch {
-      return {};
-    }
-  }
-  if (typeof body === "object") return body as Record<string, unknown>;
-  return {};
+function asBody(body: unknown): Record<string, unknown> | null {
+  const parsed = jsonObject(body);
+  return parsed.ok ? parsed.value : null;
 }
 
 export function vercelHandler(path: string) {
@@ -27,10 +20,22 @@ export function vercelHandler(path: string) {
       const origin = Array.isArray(req.headers.origin)
         ? req.headers.origin[0]
         : req.headers.origin;
+      const method = (req.method || "GET").toUpperCase();
+      const parsed = asBody(req.body);
+      if ((method === "POST" || method === "PUT" || method === "PATCH") && !parsed) {
+        res.status(400).json({ error: "invalid_json" });
+        return;
+      }
+      const body = parsed ?? {};
+      const fieldError = validatePresentFields(body);
+      if (fieldError) {
+        res.status(400).json({ error: fieldError });
+        return;
+      }
       const result = await dispatchAdminApi({
-        method: req.method || "GET",
+        method,
         path,
-        body: asBody(req.body),
+        body,
         cookie: req.headers.cookie,
         ip,
         origin,

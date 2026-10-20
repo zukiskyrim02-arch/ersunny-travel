@@ -51,9 +51,13 @@ export function adminDevApi(): Plugin {
           let body: Record<string, unknown> = {};
           if (raw) {
             try {
-              body = JSON.parse(raw) as Record<string, unknown>;
+              const parsed = JSON.parse(raw) as unknown;
+              if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+                return send(400, { error: "invalid_json" });
+              }
+              body = parsed as Record<string, unknown>;
             } catch {
-              return send(400, { error: "generic" });
+              return send(400, { error: "invalid_json" });
             }
           }
           const forwarded = req.headers["x-forwarded-for"];
