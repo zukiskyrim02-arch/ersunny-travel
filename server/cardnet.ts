@@ -37,8 +37,10 @@ export function getCardnetConfig(): CardnetConfig {
       process.env.CARDNET_MERCHANT_TERMINAL_AMEX || "00000001",
     merchantName:
       process.env.CARDNET_MERCHANT_NAME || "ERSUNNY TRAVEL",
-    // 840 = USD, 214 = DOP (Postman sample used 214)
-    currencyCode: process.env.CARDNET_CURRENCY_CODE || "840",
+    // Lab merchant 349000000 approves the sample currency 214 (DOP).
+    // 840 is USD and the lab declines it. Production keeps the configured code.
+    currencyCode:
+      env === "lab" ? "214" : process.env.CARDNET_CURRENCY_CODE || "840",
     avs:
       process.env.CARDNET_AVS ||
       "PUNTA CANA DOMINICAN REPUBLIC",

@@ -76,7 +76,10 @@ export function PaymentSection({ reservation: initial }: PaymentSectionProps) {
             );
           }
         } else {
-          setCardnetBanner(t("pay.cardnetDeclined"));
+          const declined = t("pay.cardnetDeclined");
+          setCardnetBanner(
+            result.responseCode ? `${declined} (${result.responseCode})` : declined,
+          );
         }
         clearCardnetQueryFromUrl(result.reservationId);
       })
