@@ -1,0 +1,8 @@
+import type { VercelRequest, VercelResponse } from "@vercel/node";
+import { vercelHandler } from "../../server/vercelHandler";
+
+const handle = vercelHandler("/api/media/sign");
+
+export default function handler(req: VercelRequest, res: VercelResponse) {
+  return handle(req, res);
+}

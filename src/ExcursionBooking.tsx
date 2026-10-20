@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { hotelsByZone as defaultHotels } from "./data";
+import { zonesOf } from "./transfers";
 import { useI18n } from "./i18n/I18nProvider";
+import { useMedia } from "./media/library";
 import { useAppConfig } from "./store/hooks";
 import {
   generateReservationId,
@@ -18,13 +20,11 @@ function durationKey(duration: string) {
 
 export function ExcursionBooking({ onBooked }: ExcursionBookingProps) {
   const { t, locale } = useI18n();
+  const media = useMedia();
   const config = useAppConfig();
   const hotelsByZone = config.hotelsByZone ?? defaultHotels;
-  const allHotels = [
-    ...hotelsByZone["Punta Cana"],
-    ...hotelsByZone.Bávaro,
-    ...hotelsByZone.Macao,
-  ];
+  const zones = zonesOf({ zones: config.zones, hotelsByZone });
+  const allHotels = zones.flatMap((zone) => hotelsByZone[zone] ?? []);
   const excursions = useMemo(
     () => config.excursions.filter((e) => e.active),
     [config.excursions],
@@ -136,9 +136,9 @@ export function ExcursionBooking({ onBooked }: ExcursionBookingProps) {
           >
             {excursions.map((item) => {
               const active = item.id === selectedId;
-              const title = t(`exc.${item.id}.title`);
+              const title = item.title;
               const duration = t(durationKey(item.duration));
-              const blurb = t(`exc.${item.id}.blurb`);
+              const blurb = item.blurb;
               return (
                 <button
                   key={item.id}
@@ -149,7 +149,8 @@ export function ExcursionBooking({ onBooked }: ExcursionBookingProps) {
                   onClick={() => setSelectedId(item.id)}
                 >
                   <img
-                    src={item.image}
+                    key={item.image}
+                    src={media.excursionImage(item.id, item.image, 800)}
                     alt={title}
                     loading="lazy"
                     width={640}
@@ -177,15 +178,13 @@ export function ExcursionBooking({ onBooked }: ExcursionBookingProps) {
           >
             <div className="excursion-form__selected">
               <small>{t("exc.selected")}</small>
-              <strong>
-                {selected ? t(`exc.${selected.id}.title`) : ""}
-              </strong>
+              <strong>{selected?.title ?? ""}</strong>
               <span>
                 {selected ? t(durationKey(selected.duration)) : ""}
               </span>
               <ul>
-                {(selected?.highlights ?? []).map((_, i) => (
-                  <li key={i}>{t(`exc.${selected!.id}.h${i}`)}</li>
+                {(selected?.highlights ?? []).map((point, i) => (
+                  <li key={`${i}-${point}`}>{point}</li>
                 ))}
               </ul>
             </div>
@@ -199,27 +198,15 @@ export function ExcursionBooking({ onBooked }: ExcursionBookingProps) {
                   onChange={(e) => setHotelPickup(e.target.value)}
                   required
                 >
-                  <optgroup label={t("zone.puntacana")}>
-                    {hotelsByZone["Punta Cana"].map((h) => (
-                      <option key={h} value={h}>
-                        {h}
-                      </option>
-                    ))}
-                  </optgroup>
-                  <optgroup label={t("zone.bavaro")}>
-                    {hotelsByZone.Bávaro.map((h) => (
-                      <option key={h} value={h}>
-                        {h}
-                      </option>
-                    ))}
-                  </optgroup>
-                  <optgroup label={t("zone.macao")}>
-                    {hotelsByZone.Macao.map((h) => (
-                      <option key={h} value={h}>
-                        {h}
-                      </option>
-                    ))}
-                  </optgroup>
+                  {zones.map((zone) => (
+                    <optgroup key={zone} label={zone}>
+                      {(hotelsByZone[zone] ?? []).map((h) => (
+                        <option key={`${zone}-${h}`} value={h}>
+                          {h}
+                        </option>
+                      ))}
+                    </optgroup>
+                  ))}
                 </select>
               </div>
 
@@ -316,7 +303,7 @@ export function ExcursionBooking({ onBooked }: ExcursionBookingProps) {
                 <strong>
                   {selected?.price == null
                     ? t("exc.pending")
-                    : `$${selected.price * passengers} USD`}
+                    : `US$${selected.price * passengers}`}
                 </strong>
               </div>
               <button type="submit" className="btn btn--primary">

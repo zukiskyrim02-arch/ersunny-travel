@@ -1,4 +1,4 @@
-import { logoSrc } from "./assets";
+import { useLogoSrc } from "./media/library";
 import { useI18n } from "./i18n/I18nProvider";
 import { useAppConfig } from "./store/hooks";
 
@@ -12,6 +12,7 @@ export function SiteFooter({
   showPayColumn = false,
 }: SiteFooterProps) {
   const { t } = useI18n();
+  const logo = useLogoSrc();
   const { contact } = useAppConfig();
   const year = new Date().getFullYear();
 
@@ -21,7 +22,7 @@ export function SiteFooter({
         <div>
           <a href="/" className="site-footer__logo" aria-label={t("nav.logoAria")}>
             <img
-              src={logoSrc()}
+              src={logo}
               alt="Ersunny Travel"
               width={160}
               height={160}

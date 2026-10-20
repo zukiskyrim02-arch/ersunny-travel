@@ -1,6 +1,8 @@
 /**
- * Cardnet "API Consulta Web + 3DS" helpers (server-only).
- * Flow: create session → POST authorize → verify session with sk.
+ * Cardnet API Consulta Web + 3DS (server-only).
+ * 1. POST /sessions and keep SESSION + session-key.
+ * 2. Browser POST /authorize with that SESSION and the same ReturnUrl.
+ * 3. GET /sessions/{SESSION}?sk={session-key} when the shopper comes back.
  */
 
 export type CardnetEnv = "lab" | "production";
@@ -62,7 +64,7 @@ export function cardnetAuthorizeUrl(env: CardnetEnv) {
 export function cardnetVerifyBaseUrl(env: CardnetEnv) {
   return env === "production"
     ? "https://servicios.cardnet.com.do/sessions"
-    : "https://lab.cardnet.com.do/sessions";
+    : "https://labservicios.cardnet.com.do/sessions";
 }
 
 /** Cardnet amount: minor units as string (6500 = 65.00). */
@@ -198,6 +200,21 @@ export async function verifyCardnetSession(
     );
   }
   return raw;
+}
+
+/** The consulta GET returns ResponseCode "00" and AuthorizationCode when the charge is approved. */
+export function cardnetOutcome(result: Record<string, unknown>) {
+  const responseCode = String(
+    result.ResponseCode ?? result.responseCode ?? "",
+  ).trim();
+  const authorizationCode = String(
+    result.AuthorizationCode ?? result.authorizationCode ?? "",
+  ).trim();
+  return {
+    approved: isCardnetApproved(result),
+    responseCode,
+    authorizationCode,
+  };
 }
 
 /** Treat common approval codes as paid. */

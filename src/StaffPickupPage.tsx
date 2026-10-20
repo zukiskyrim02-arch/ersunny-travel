@@ -1,5 +1,5 @@
 import { useMemo, useState, type FormEvent } from "react";
-import { logoSrc } from "./assets";
+import { useLogoSrc } from "./media/library";
 import { getSiteContact } from "./store/config";
 import { sendPickupTimesToCustomer } from "./notifyBooking";
 import {
@@ -28,6 +28,7 @@ function loadFromUrl(): Reservation | null {
 }
 
 export function StaffPickupPage() {
+  const logo = useLogoSrc();
   const initial = useMemo(() => loadFromUrl(), []);
   const [reservation, setReservation] = useState<Reservation | null>(initial);
   const [date, setDate] = useState(initial?.date ?? "");
@@ -91,7 +92,7 @@ export function StaffPickupPage() {
     return (
       <main className="staff-pickup">
         <div className="staff-pickup__card">
-          <img src={logoSrc()} alt="Ersunny Travel" width={120} height={120} />
+          <img src={logo} alt="Ersunny Travel" width={120} height={120} />
           <h1>Set pickup times</h1>
           <p>
             Open this page from the button/link in the paid-booking email so the
@@ -108,7 +109,7 @@ export function StaffPickupPage() {
   return (
     <main className="staff-pickup">
       <div className="staff-pickup__card">
-        <img src={logoSrc()} alt="Ersunny Travel" width={120} height={120} />
+        <img src={logo} alt="Ersunny Travel" width={120} height={120} />
         <h1>Set pickup times</h1>
         <p className="staff-pickup__id">{reservation.id}</p>
         <dl className="staff-pickup__meta">

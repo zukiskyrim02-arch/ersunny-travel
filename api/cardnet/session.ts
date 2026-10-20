@@ -1,4 +1,5 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
+import { cardnetStateCookie } from "../../server/cookies";
 import {
   cardnetAuthorizeUrl,
   createCardnetSession,
@@ -56,68 +57,35 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const config = getCardnetConfig();
     const payBase = `${origin}/payment?id=${encodeURIComponent(reservationId)}`;
+    // The sample uses the same ReturnUrl in the session body and the authorize form.
+    const returnUrl = `${payBase}&cardnet=return`;
+    const cancelUrl = `${payBase}&cardnet=cancel`;
 
-    // 1) Provisional session to obtain SESSION + sk for signed state
-    const provisional = await createCardnetSession(config, {
+    const created = await createCardnetSession(config, {
       amountUsd,
       reservationId,
-      returnUrl: `${payBase}&cardnet=return`,
-      cancelUrl: `${payBase}&cardnet=cancel`,
+      returnUrl,
+      cancelUrl,
       pageLanguage,
       mobilePhone,
     });
 
     const state = await signCardnetState(config.stateSecret, {
-      session: provisional.session,
-      sk: provisional.sessionKey,
+      session: created.session,
+      sk: created.sessionKey,
       reservationId,
       amount: amountUsd,
     });
 
-    const returnUrl = `${payBase}&cardnet=return&state=${encodeURIComponent(state)}`;
-    const cancelUrl = `${payBase}&cardnet=cancel&state=${encodeURIComponent(state)}`;
-
-    // 2) Final session with Return/Cancel URLs that include signed state
-    let session = provisional.session;
-    try {
-      const final = await createCardnetSession(config, {
-        amountUsd,
-        reservationId,
-        returnUrl,
-        cancelUrl,
-        pageLanguage,
-        mobilePhone,
-      });
-      session = final.session;
-      // Re-sign with the final SESSION + sk (verification must use matching pair)
-      const finalState = await signCardnetState(config.stateSecret, {
-        session: final.session,
-        sk: final.sessionKey,
-        reservationId,
-        amount: amountUsd,
-      });
-      const finalReturn = `${payBase}&cardnet=return&state=${encodeURIComponent(finalState)}`;
-      const finalCancel = `${payBase}&cardnet=cancel&state=${encodeURIComponent(finalState)}`;
-
-      return res.status(200).json({
-        session: final.session,
-        authorizeUrl: cardnetAuthorizeUrl(config.env),
-        returnUrl: finalReturn,
-        cancelUrl: finalCancel,
-        state: finalState,
-        env: config.env,
-      });
-    } catch {
-      // Fall back to provisional session; authorize form still posts ReturnUrl with state
-      return res.status(200).json({
-        session,
-        authorizeUrl: cardnetAuthorizeUrl(config.env),
-        returnUrl,
-        cancelUrl,
-        state,
-        env: config.env,
-      });
-    }
+    res.setHeader("Set-Cookie", cardnetStateCookie(state));
+    return res.status(200).json({
+      session: created.session,
+      authorizeUrl: cardnetAuthorizeUrl(config.env),
+      returnUrl,
+      cancelUrl,
+      state,
+      env: config.env,
+    });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Cardnet session error";
     console.error("[cardnet/session]", message);

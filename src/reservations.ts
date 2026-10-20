@@ -4,6 +4,7 @@ export type ReservationStatus =
   | "pending"
   | "paid"
   | "confirmed"
+  | "completed"
   | "cancelled";
 
 export type Reservation = {
@@ -31,9 +32,23 @@ export type Reservation = {
   pickupTime?: string;
   /** Customer acknowledged the staff-confirmed pickup time. */
   customerConfirmed?: boolean;
+  /** When the post-service survey email was sent. */
+  surveySentAt?: string;
+  /** Cardnet AuthorizationCode from the consulta GET. The card number is never stored. */
+  authorizationCode?: string;
 };
 
+import { dbGet, dbRemove, dbSet, dbSubscribe } from "./firebase";
+
 const STORAGE_KEY = "ersunny-reservations";
+
+function reservationKey(id: string): string {
+  return id.trim().toUpperCase();
+}
+
+function pushReservation(reservation: Reservation) {
+  dbSet(`reservations/${reservationKey(reservation.id)}`, reservation);
+}
 
 export function getReservationEmail(reservation: Reservation): string | undefined {
   const direct = reservation.email?.trim();
@@ -139,10 +154,12 @@ export function upsertReservation(reservation: Reservation): Reservation {
   if (idx >= 0) {
     all[idx] = { ...all[idx], ...next, id: all[idx].id };
     writeAll(all);
+    pushReservation(all[idx]);
     return all[idx];
   }
   all.unshift(next);
   writeAll(all);
+  pushReservation(next);
   return next;
 }
 
@@ -166,6 +183,7 @@ export function saveReservation(reservation: Reservation) {
   };
   all.unshift(withStatus);
   writeAll(all);
+  pushReservation(withStatus);
 }
 
 export function listReservations(): Reservation[] {
@@ -196,6 +214,7 @@ export function updateReservation(
   if (idx < 0) return undefined;
   all[idx] = { ...all[idx], ...patch, id: all[idx].id };
   writeAll(all);
+  pushReservation(all[idx]);
   return all[idx];
 }
 
@@ -204,4 +223,60 @@ export function deleteReservation(id: string) {
     (r) => r.id.toUpperCase() !== id.trim().toUpperCase(),
   );
   writeAll(all);
+  dbRemove(`reservations/${reservationKey(id)}`);
+}
+
+/* ── Firebase Realtime Database sync ────────────────────────────── */
+
+let reservationsSyncStarted = false;
+
+/** Fetch one reservation from Firebase and cache it locally. */
+export async function fetchReservationFromFirebase(
+  id: string,
+): Promise<Reservation | undefined> {
+  const remote = await dbGet<Reservation>(
+    `reservations/${reservationKey(id)}`,
+  );
+  if (!remote?.id) return undefined;
+  const normalized: Reservation = {
+    ...remote,
+    kind: remote.kind ?? "transfer",
+    status: remote.status ?? "pending",
+  };
+  const all = listReservations();
+  const idx = all.findIndex(
+    (r) => reservationKey(r.id) === reservationKey(normalized.id),
+  );
+  if (idx >= 0) all[idx] = { ...all[idx], ...normalized, id: all[idx].id };
+  else all.unshift(normalized);
+  writeAll(all);
+  return normalized;
+}
+
+/**
+ * Live sync: Firebase → local cache. If Firebase is empty and this
+ * device has local reservations, they are uploaded (first migration).
+ */
+export function startReservationsSync(): () => void {
+  if (reservationsSyncStarted) return () => undefined;
+  reservationsSyncStarted = true;
+  const stop = dbSubscribe("reservations", (value) => {
+    if (!value || typeof value !== "object") {
+      for (const r of listReservations()) pushReservation(r);
+      return;
+    }
+    const remote = Object.values(value as Record<string, Reservation>)
+      .filter((r) => r?.id)
+      .map((r) => ({
+        ...r,
+        kind: r.kind ?? ("transfer" as const),
+        status: r.status ?? ("pending" as const),
+      }))
+      .sort((a, b) => (b.createdAt || "").localeCompare(a.createdAt || ""));
+    if (remote.length) writeAll(remote);
+  });
+  return () => {
+    stop();
+    reservationsSyncStarted = false;
+  };
 }

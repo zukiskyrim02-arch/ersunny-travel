@@ -1,5 +1,7 @@
+import { useState } from "react";
 import type { Zone } from "../data";
 import type { AppConfig } from "../store/config";
+import { zonesOf } from "../transfers";
 
 export function ZonesPanel({
   config,
@@ -8,80 +10,110 @@ export function ZonesPanel({
   config: AppConfig;
   onChange: (patch: Partial<AppConfig>) => void;
 }) {
-  const zones = Object.keys(config.zoneSurcharge) as Zone[];
+  const zones = zonesOf(config);
+  const [name, setName] = useState("");
+  const [zone, setZone] = useState<Zone>(zones[0] ?? "Punta Cana");
+  const activeZone = zones.includes(zone) ? zone : zones[0];
+
+  function addHotel() {
+    const hotel = name.trim();
+    if (!hotel) return;
+    const list = config.hotelsByZone[activeZone] ?? [];
+    if (list.some((item) => item.toLowerCase() === hotel.toLowerCase())) {
+      setName("");
+      return;
+    }
+    onChange({
+      hotelsByZone: {
+        ...config.hotelsByZone,
+        [activeZone]: [...list, hotel],
+      },
+    });
+    setName("");
+  }
+
+  function removeHotel(target: Zone, hotel: string) {
+    onChange({
+      hotelsByZone: {
+        ...config.hotelsByZone,
+        [target]: (config.hotelsByZone[target] ?? []).filter((item) => item !== hotel),
+      },
+    });
+  }
 
   return (
     <section className="admin-panel">
       <header className="admin-panel__head">
         <div>
-          <h1>Zonas y hoteles</h1>
+          <h1>Hoteles</h1>
           <p>
-            Recargos por zona y listados de hoteles del cotizador / excursiones.
+            Los hoteles del formulario de traslados y de excursiones. La zona
+            decide qué precio de la tabla de traslados se cobra.
           </p>
         </div>
       </header>
 
-      <div className="admin-block">
-        <h2>Recargo por zona (USD)</h2>
-        <p className="admin-lead">
-          Se suma al precio base del vehículo. Ida y vuelta ≈ ×2.
-        </p>
-        <div className="admin-table-wrap">
-          <table className="admin-table">
-            <thead>
-              <tr>
-                <th>Zona</th>
-                <th>Recargo USD</th>
-              </tr>
-            </thead>
-            <tbody>
-              {zones.map((zone) => (
-                <tr key={zone}>
-                  <td>{zone}</td>
-                  <td>
-                    <input
-                      type="number"
-                      min={0}
-                      value={config.zoneSurcharge[zone]}
-                      onChange={(e) =>
-                        onChange({
-                          zoneSurcharge: {
-                            ...config.zoneSurcharge,
-                            [zone]: Number(e.target.value) || 0,
-                          },
-                        })
-                      }
-                    />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
+      <form
+        className="admin-hotel-add"
+        onSubmit={(e) => {
+          e.preventDefault();
+          addHotel();
+        }}
+      >
+        <label>
+          Hotel nuevo
+          <input
+            value={name}
+            placeholder="Nombre del hotel"
+            onChange={(e) => setName(e.target.value)}
+          />
+        </label>
+        <label>
+          Zona
+          <select
+            value={activeZone}
+            onChange={(e) => setZone(e.target.value)}
+          >
+            {zones.map((item) => (
+              <option key={item} value={item}>
+                {item}
+              </option>
+            ))}
+          </select>
+        </label>
+        <button type="submit" className="btn btn--primary">
+          Agregar
+        </button>
+      </form>
 
       <div className="admin-cards admin-cards--stack">
-        {zones.map((zone) => (
-          <article key={zone} className="admin-edit-card admin-edit-card--wide">
-            <h3>Hoteles · {zone}</h3>
-            <label>
-              Un hotel por línea
-              <textarea
-                rows={8}
-                value={config.hotelsByZone[zone].join("\n")}
-                onChange={(e) =>
-                  onChange({
-                    hotelsByZone: {
-                      ...config.hotelsByZone,
-                      [zone]: e.target.value
-                        .split("\n")
-                        .map((s) => s.trim())
-                        .filter(Boolean),
-                    },
-                  })
-                }
-              />
-            </label>
+        {zones.map((item) => (
+          <article key={item} className="admin-edit-card admin-edit-card--wide">
+            <h3>
+              {item}
+              <span className="admin-muted">
+                {" "}
+                · {(config.hotelsByZone[item] ?? []).length}
+              </span>
+            </h3>
+            {(config.hotelsByZone[item] ?? []).length === 0 ? (
+              <p className="admin-note">Todavía no hay hoteles en esta zona.</p>
+            ) : (
+              <ul className="admin-hotel-list">
+                {(config.hotelsByZone[item] ?? []).map((hotel) => (
+                  <li key={hotel}>
+                    <span>{hotel}</span>
+                    <button
+                      type="button"
+                      className="admin-danger"
+                      onClick={() => removeHotel(item, hotel)}
+                    >
+                      Quitar
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
           </article>
         ))}
       </div>

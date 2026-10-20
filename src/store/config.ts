@@ -8,6 +8,13 @@ import {
   type Zone,
 } from "../data";
 import { defaultAzulConfig, type AzulConfig } from "../payments/azul";
+import { dbGet, dbRemove, dbSet, dbSubscribe } from "../firebase";
+import {
+  TRANSFER_ZONES,
+  buildTransferRates,
+  zonesOf,
+  type TransferRates,
+} from "../transfers";
 
 export type ManagedVehicle = {
   id: string;
@@ -57,6 +64,10 @@ export type SitePageCopy = {
 
 export type AppConfig = {
   vehicles: ManagedVehicle[];
+  /** Explicit prices per vehicle and zone. The public form uses these numbers. */
+  transferRates: TransferRates;
+  /** Ordered destination zones. Prices and hotels follow this list. */
+  zones: string[];
   zoneSurcharge: Record<Zone, number>;
   hotelsByZone: Record<Zone, string[]>;
   excursions: ManagedExcursion[];
@@ -64,13 +75,11 @@ export type AppConfig = {
   bank: SiteBank;
   page: SitePageCopy;
   azul: AzulConfig;
+  /** Milliseconds. Newer local saves win over a stale Firebase snapshot. */
+  updatedAt?: number;
 };
 
 const CONFIG_KEY = "ersunny-config-v1";
-const AUTH_KEY = "ersunny-admin-auth";
-
-/** Change this password in production / share only with staff. */
-export const ADMIN_PASSWORD = "ErsunnyAdmin2026";
 
 export function defaultPageCopy(): SitePageCopy {
   return {
@@ -85,13 +94,17 @@ export function defaultPageCopy(): SitePageCopy {
 }
 
 export function defaultConfig(): AppConfig {
+  const vehicles = defaultVehicles.map((v) => ({
+    ...v,
+    maxPassengers: v.id === "sedan" ? 3 : v.id === "suv" ? 5 : 10,
+    active: true,
+  }));
+  const zoneSurcharge = { ...defaultZoneSurcharge };
   return {
-    vehicles: defaultVehicles.map((v) => ({
-      ...v,
-      maxPassengers: v.id === "sedan" ? 3 : v.id === "suv" ? 5 : 10,
-      active: true,
-    })),
-    zoneSurcharge: { ...defaultZoneSurcharge },
+    vehicles,
+    zones: [...TRANSFER_ZONES],
+    zoneSurcharge,
+    transferRates: buildTransferRates(vehicles, zoneSurcharge),
     hotelsByZone: {
       "Punta Cana": [...defaultHotels["Punta Cana"]],
       Bávaro: [...defaultHotels.Bávaro],
@@ -112,13 +125,14 @@ export function defaultConfig(): AppConfig {
 function mergeHotels(
   parsed: Partial<Record<Zone, string[]>> | undefined,
   base: Record<Zone, string[]>,
+  zones: string[],
 ): Record<Zone, string[]> {
-  return {
-    "Punta Cana":
-      parsed?.["Punta Cana"]?.length ? parsed["Punta Cana"] : base["Punta Cana"],
-    Bávaro: parsed?.Bávaro?.length ? parsed.Bávaro : base.Bávaro,
-    Macao: parsed?.Macao?.length ? parsed.Macao : base.Macao,
-  };
+  const hotels: Record<Zone, string[]> = {};
+  for (const zone of zones) {
+    const saved = parsed?.[zone];
+    hotels[zone] = Array.isArray(saved) ? saved : [...(base[zone] ?? [])];
+  }
+  return hotels;
 }
 
 function sharperRemoteImage(url: string): string {
@@ -128,28 +142,53 @@ function sharperRemoteImage(url: string): string {
     .replace(/([?&])q=\d+/, "$1q=75");
 }
 
+/** Firebase sometimes returns lists as {"0": item, "1": item}. */
+function asList<T>(value: unknown): T[] | undefined {
+  if (Array.isArray(value)) return value as T[];
+  if (!value || typeof value !== "object") return undefined;
+  const rows = Object.entries(value as Record<string, T>)
+    .filter(([key]) => /^\d+$/.test(key))
+    .sort((a, b) => Number(a[0]) - Number(b[0]))
+    .map(([, row]) => row);
+  return rows.length ? rows : undefined;
+}
+
 export function getConfig(): AppConfig {
   try {
     const raw = localStorage.getItem(CONFIG_KEY);
     if (!raw) return defaultConfig();
     const parsed = JSON.parse(raw) as Partial<AppConfig>;
     const base = defaultConfig();
+    const vehicleList = asList<ManagedVehicle>(parsed.vehicles);
+    const vehicles = (vehicleList?.length ? vehicleList : base.vehicles).map(
+      (v) => ({
+        ...v,
+        active: v.active ?? true,
+      }),
+    );
+    const zones = zonesOf({
+      zones: asList<string>(parsed.zones),
+      hotelsByZone: parsed.hotelsByZone,
+    });
+    const zoneSurcharge = {
+      ...base.zoneSurcharge,
+      ...parsed.zoneSurcharge,
+    };
+    for (const zone of zones) zoneSurcharge[zone] ??= 0;
     return {
-      vehicles: (parsed.vehicles?.length ? parsed.vehicles : base.vehicles).map(
-        (v) => ({
-          ...v,
-          active: v.active ?? true,
-        }),
+      vehicles,
+      zones,
+      zoneSurcharge,
+      transferRates: buildTransferRates(
+        vehicles,
+        zoneSurcharge,
+        parsed.transferRates,
+        zones,
       ),
-      zoneSurcharge: {
-        ...base.zoneSurcharge,
-        ...parsed.zoneSurcharge,
-      },
-      hotelsByZone: mergeHotels(parsed.hotelsByZone, base.hotelsByZone),
+      hotelsByZone: mergeHotels(parsed.hotelsByZone, base.hotelsByZone, zones),
       excursions: (() => {
-        const list = parsed.excursions?.length
-          ? parsed.excursions
-          : base.excursions;
+        const stored = asList<ManagedExcursion>(parsed.excursions);
+        const list = stored?.length ? stored : base.excursions;
         return list.map((e) => {
           const def = base.excursions.find((d) => d.id === e.id);
           return {
@@ -171,33 +210,90 @@ export function getConfig(): AppConfig {
       bank: { ...base.bank, ...parsed.bank },
       page: { ...base.page, ...parsed.page },
       azul: { ...base.azul, ...parsed.azul },
+      updatedAt: typeof parsed.updatedAt === "number" ? parsed.updatedAt : undefined,
     };
   } catch {
     return defaultConfig();
   }
 }
 
-export function saveConfig(config: AppConfig) {
-  localStorage.setItem(CONFIG_KEY, JSON.stringify(config));
+function writeLocalConfig(config: AppConfig) {
+  const next = JSON.stringify(config);
+  if (localStorage.getItem(CONFIG_KEY) === next) return;
+  localStorage.setItem(CONFIG_KEY, next);
   window.dispatchEvent(new Event("ersunny-config"));
+}
+
+export function saveConfig(config: AppConfig) {
+  const next = { ...config, updatedAt: Date.now() };
+  writeLocalConfig(next);
+  // Never sync Azul auth key to the public database node.
+  dbSet("config", { ...next, azul: { ...next.azul, authKey: "" } });
 }
 
 export function resetConfig() {
   localStorage.removeItem(CONFIG_KEY);
   window.dispatchEvent(new Event("ersunny-config"));
+  dbRemove("config");
 }
 
-export function isAdminAuthed() {
-  try {
-    return sessionStorage.getItem(AUTH_KEY) === "1";
-  } catch {
-    return false;
+/* ── Firebase Realtime Database sync ────────────────────────────── */
+
+let configSyncStarted = false;
+
+function publishConfig(config: AppConfig) {
+  dbSet("config", { ...config, azul: { ...config.azul, authKey: "" } });
+}
+
+function applyRemoteConfig(value: unknown) {
+  if (!value || typeof value !== "object") {
+    publishConfig(getConfig());
+    return;
   }
+  const remote = value as Partial<AppConfig>;
+  if (!remote.vehicles && !remote.excursions && !remote.contact) return;
+  const local = getConfig();
+  const remoteAt = typeof remote.updatedAt === "number" ? remote.updatedAt : 0;
+  const localAt = typeof local.updatedAt === "number" ? local.updatedAt : 0;
+  if (localAt > remoteAt) {
+    publishConfig(local);
+    return;
+  }
+  const remoteVehicles = asList<ManagedVehicle>(remote.vehicles);
+  const remoteExcursions = asList<ManagedExcursion>(remote.excursions);
+  writeLocalConfig({
+    ...local,
+    ...remote,
+    vehicles: remoteVehicles ?? local.vehicles,
+    excursions: remoteExcursions ?? local.excursions,
+    updatedAt: remoteAt || localAt || undefined,
+    azul: { ...local.azul, ...(remote.azul ?? {}), authKey: local.azul.authKey },
+  });
 }
 
-export function setAdminAuthed(ok: boolean) {
-  if (ok) sessionStorage.setItem(AUTH_KEY, "1");
-  else sessionStorage.removeItem(AUTH_KEY);
+/**
+ * Live sync: Firebase `config` → local cache. If Firebase has no
+ * config yet, the current local/default config is uploaded once.
+ * The listener is restarted after React strict-mode remounts.
+ */
+export function startConfigSync(): () => void {
+  if (configSyncStarted) return () => undefined;
+  configSyncStarted = true;
+  const stop = dbSubscribe("config", applyRemoteConfig);
+  const refresh = () => {
+    if (document.visibilityState === "hidden") return;
+    void dbGet("config").then((value) => {
+      if (value) applyRemoteConfig(value);
+    });
+  };
+  window.addEventListener("focus", refresh);
+  document.addEventListener("visibilitychange", refresh);
+  return () => {
+    stop();
+    window.removeEventListener("focus", refresh);
+    document.removeEventListener("visibilitychange", refresh);
+    configSyncStarted = false;
+  };
 }
 
 export function useConfigSubscribe(onChange: () => void) {

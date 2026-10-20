@@ -4,13 +4,19 @@ import { AboutPage } from "./AboutPage";
 import { ContactPage } from "./ContactPage";
 import { ExcursionsPage } from "./ExcursionsPage";
 import { PaymentPage } from "./PaymentPage";
+import { ReviewPage } from "./ReviewPage";
 import { StaffPickupPage } from "./StaffPickupPage";
 import { ConfirmPickupPage } from "./ConfirmPickupPage";
 import {
   clearAzulQueryFromUrl,
   readAzulReturnFromUrl,
 } from "./payments/azul";
-import { findReservation, updateReservation } from "./reservations";
+import {
+  findReservation,
+  startReservationsSync,
+  updateReservation,
+} from "./reservations";
+import { startConfigSync } from "./store/config";
 import { currentPath, migrateLegacyHashRoute } from "./routing";
 import {
   applyPageSeo,
@@ -21,17 +27,46 @@ import {
   websiteJsonLd,
 } from "./seo";
 import { faqs } from "./data";
+import { useMedia } from "./media/library";
 
 const AdminApp = lazy(() =>
   import("./admin/AdminApp").then((m) => ({ default: m.AdminApp })),
 );
 
+function scrollToHash(hash: string) {
+  const id = decodeURIComponent(hash.replace(/^#/, ""));
+  if (!id) return;
+  let tries = 0;
+  const tick = () => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth" });
+      return;
+    }
+    if (tries < 24) {
+      tries += 1;
+      window.setTimeout(tick, 50);
+    }
+  };
+  window.setTimeout(tick, 0);
+}
+
 export function Root() {
+  const media = useMedia();
   const [path, setPath] = useState(() => {
     migrateLegacyHashRoute();
     return currentPath();
   });
   const [azulBanner, setAzulBanner] = useState<string | null>(null);
+
+  useEffect(() => {
+    const stopReservations = startReservationsSync();
+    const stopConfig = startConfigSync();
+    return () => {
+      stopReservations();
+      stopConfig();
+    };
+  }, []);
 
   useEffect(() => {
     migrateLegacyHashRoute();
@@ -42,12 +77,7 @@ export function Root() {
     window.addEventListener("hashchange", sync);
 
     // Scroll to in-page anchor on first load (e.g. /#cotizar)
-    if (window.location.hash) {
-      const id = decodeURIComponent(window.location.hash.slice(1));
-      window.setTimeout(() => {
-        document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
-      }, 80);
-    }
+    if (window.location.hash) scrollToHash(window.location.hash);
 
     return () => {
       window.removeEventListener("popstate", sync);
@@ -57,16 +87,23 @@ export function Root() {
 
   useEffect(() => {
     const seo = seoForPath(path);
+    const ogImage = media.absolute("hero", 1600);
+    const org = organizationJsonLd({
+      logo: media.absolute("logo", 480),
+      image: ogImage,
+    });
     if (path === "/" || path === "") {
       applyPageSeo({
         ...seo,
-        jsonLd: [organizationJsonLd(), websiteJsonLd(), serviceJsonLd()],
+        ogImage,
+        jsonLd: [org, websiteJsonLd(), serviceJsonLd()],
       });
     } else if (path.includes("faq") || path === "/about") {
       applyPageSeo({
         ...seo,
+        ogImage,
         jsonLd: [
-          organizationJsonLd(),
+          org,
           websiteJsonLd(),
           ...(path.includes("faq") ? [faqJsonLd(faqs)] : []),
         ],
@@ -74,10 +111,11 @@ export function Root() {
     } else {
       applyPageSeo({
         ...seo,
-        jsonLd: [organizationJsonLd(), websiteJsonLd()],
+        ogImage,
+        jsonLd: [org, websiteJsonLd()],
       });
     }
-  }, [path]);
+  }, [path, media]);
 
   useEffect(() => {
     // SPA clicks: same-origin path links without full reload
@@ -108,14 +146,8 @@ export function Root() {
       e.preventDefault();
       window.history.pushState(null, "", `${url.pathname}${url.search}${url.hash}`);
       setPath(currentPath());
-      if (url.hash) {
-        const id = decodeURIComponent(url.hash.slice(1));
-        window.setTimeout(() => {
-          document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
-        }, 50);
-      } else {
-        window.scrollTo(0, 0);
-      }
+      if (url.hash) scrollToHash(url.hash);
+      else window.scrollTo(0, 0);
     }
     document.addEventListener("click", onClick);
     return () => document.removeEventListener("click", onClick);
@@ -156,6 +188,10 @@ export function Root() {
 
     clearAzulQueryFromUrl();
   }, []);
+
+  if (path === "/review") {
+    return <ReviewPage />;
+  }
 
   if (path === "/admin/pickup") {
     return <StaffPickupPage />;

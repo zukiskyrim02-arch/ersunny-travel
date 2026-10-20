@@ -32,6 +32,7 @@ export async function sendBookingNotification(
         _captcha: "false",
         ...payload,
       }),
+      signal: AbortSignal.timeout(8000),
     },
   );
 

@@ -1,4 +1,4 @@
-export type Zone = "Punta Cana" | "Bávaro" | "Macao";
+export type Zone = string;
 
 export type VehicleId = "sedan" | "suv" | "van";
 
@@ -62,7 +62,7 @@ export const faqs = [
   },
   {
     q: "What payment options do I have?",
-    a: "We accept card payments via Cardnet (Visa/Mastercard with 3-D Secure) and PayPal.",
+    a: "We accept card payments (Visa/Mastercard with 3-D Secure) and PayPal.",
   },
   {
     q: "How do I find Ersunny Travel at the airport?",

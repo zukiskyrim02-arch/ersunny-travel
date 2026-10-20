@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { logoSrc } from "./assets";
+import { useLogoSrc } from "./media/library";
 import { useI18n } from "./i18n/I18nProvider";
 import { getSiteContact } from "./store/config";
 import { sendCustomerConfirmedPickup } from "./notifyBooking";
@@ -54,6 +54,7 @@ function loadFromUrl(): Reservation | null {
 
 export function ConfirmPickupPage() {
   const { t } = useI18n();
+  const logo = useLogoSrc();
   const initial = useMemo(() => loadFromUrl(), []);
   const [reservation, setReservation] = useState<Reservation | null>(initial);
   const [confirming, setConfirming] = useState(false);
@@ -89,7 +90,7 @@ export function ConfirmPickupPage() {
   return (
     <main className="staff-pickup">
       <div className="staff-pickup__card">
-        <img src={logoSrc()} alt="Ersunny Travel" width={120} height={120} />
+        <img src={logo} alt="Ersunny Travel" width={120} height={120} />
         <h1>{t("confirm.title")}</h1>
 
         {!reservation ? (

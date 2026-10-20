@@ -3,14 +3,14 @@ import "../admin.css";
 import {
   defaultConfig,
   getConfig,
-  isAdminAuthed,
   saveConfig,
-  setAdminAuthed,
   type AppConfig,
 } from "../store/config";
 import { useAppConfig, useReservations } from "../store/hooks";
-import { logoSrc } from "../assets";
+import { useI18n } from "../i18n/I18nProvider";
+import { useLogoSrc } from "../media/library";
 import { AdminLogin } from "./AdminLogin";
+import { adminCopy } from "./copy";
 import {
   ADMIN_GROUP_LABELS,
   ADMIN_TABS,
@@ -22,7 +22,9 @@ import { VehiclesPanel } from "./VehiclesPanel";
 import { ZonesPanel } from "./ZonesPanel";
 import { ExcursionsPanel } from "./ExcursionsPanel";
 import { SitePanel } from "./SitePanel";
-import { AzulPanel } from "./AzulPanel";
+import { PaymentsPanel } from "./PaymentsPanel";
+import { FlightsPanel } from "./FlightsPanel";
+import { MediaPanel } from "./MediaPanel";
 import {
   ExternalIcon,
   LogoutIcon,
@@ -31,9 +33,13 @@ import {
 } from "./navIcons";
 
 export function AdminApp() {
-  const [authed, setAuthed] = useState(() => isAdminAuthed());
+  const { locale } = useI18n();
+  const copy = adminCopy(locale);
+  const logo = useLogoSrc();
+  const [auth, setAuth] = useState<"loading" | "in" | "out">("loading");
   const [tab, setTab] = useState<AdminTab>("overview");
   const [navOpen, setNavOpen] = useState(false);
+  const [finder, setFinder] = useState("");
   const liveConfig = useAppConfig();
   const reservations = useReservations();
   const [draft, setDraft] = useState<AppConfig>(() => getConfig());
@@ -43,6 +49,21 @@ export function AdminApp() {
     setDraft(liveConfig);
   }, [liveConfig]);
 
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/auth/session", { credentials: "include" })
+      .then(async (res) => {
+        const data = (await res.json()) as { ok?: boolean };
+        if (!cancelled) setAuth(data.ok ? "in" : "out");
+      })
+      .catch(() => {
+        if (!cancelled) setAuth("out");
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const groupedTabs = useMemo(() => {
     const groups = ["ops", "catalog", "settings"] as const;
     return groups.map((group) => ({
@@ -51,8 +72,6 @@ export function AdminApp() {
       items: ADMIN_TABS.filter((item) => item.group === group),
     }));
   }, []);
-
-  const activeTab = ADMIN_TABS.find((t) => t.id === tab);
 
   function persist(next: AppConfig) {
     setDraft(next);
@@ -65,17 +84,21 @@ export function AdminApp() {
     persist({ ...draft, ...partial });
   }
 
-  if (!authed) {
-    return <AdminLogin onOk={() => setAuthed(true)} />;
+  if (auth === "loading") {
+    return <div className="admin-loading">{copy.loading}</div>;
+  }
+
+  if (auth === "out") {
+    return <AdminLogin onOk={() => setAuth("in")} />;
   }
 
   return (
     <div className={`admin${navOpen ? " is-nav-open" : ""}`}>
       <aside className="admin__sidebar">
         <div className="admin__brand-row">
-          <img src={logoSrc()} alt="" width={44} height={44} />
+          <img src={logo} alt="" width={44} height={44} />
           <div>
-            <p className="admin__brand">Ersunny Admin</p>
+            <p className="admin__brand">Ersunny</p>
             <small>Panel de control</small>
           </div>
         </div>
@@ -89,6 +112,7 @@ export function AdminApp() {
                   key={item.id}
                   type="button"
                   className={tab === item.id ? "is-active" : ""}
+                  title={item.hint}
                   onClick={() => {
                     setTab(item.id);
                     setNavOpen(false);
@@ -97,9 +121,8 @@ export function AdminApp() {
                   <span className="admin__nav-icon" aria-hidden>
                     <TabIcon id={item.id} />
                   </span>
-                  <span className="admin__nav-copy">
-                    <span className="admin__nav-title">{item.label}</span>
-                    <small>{item.hint}</small>
+                  <span className="admin__nav-title">
+                    {item.id === "media" && locale !== "es" ? "Gallery" : item.label}
                   </span>
                 </button>
               ))}
@@ -119,8 +142,10 @@ export function AdminApp() {
             type="button"
             className="admin__foot-link admin__foot-link--danger"
             onClick={() => {
-              setAdminAuthed(false);
-              setAuthed(false);
+              void fetch("/api/auth/logout", {
+                method: "POST",
+                credentials: "include",
+              }).finally(() => setAuth("out"));
             }}
           >
             <LogoutIcon />
@@ -148,16 +173,36 @@ export function AdminApp() {
           >
             <MenuIcon />
           </button>
-          <div className="admin__chrome-copy">
-            <p className="admin__chrome-kicker">Administración</p>
-            <strong>{activeTab?.label ?? "Admin"}</strong>
-          </div>
-          <div className="admin__chrome-meta">
-            {savedMsg ? (
-              <span className="admin-ok">{savedMsg}</span>
-            ) : (
-              <span className="admin__chrome-hint">Cambios locales</span>
-            )}
+          <form
+            className="admin__search"
+            onSubmit={(event) => {
+              event.preventDefault();
+              setTab("reservations");
+            }}
+          >
+            <svg viewBox="0 0 24 24" aria-hidden>
+              <circle cx="11" cy="11" r="6.5" />
+              <path d="m16 16 4 4" />
+            </svg>
+            <input
+              type="search"
+              value={finder}
+              onChange={(event) => setFinder(event.target.value)}
+              placeholder="Buscar reservas, clientes, destinos…"
+              aria-label="Buscar reservas"
+            />
+          </form>
+          <div className="admin__chrome-side">
+            {savedMsg && <span className="admin-ok">{savedMsg}</span>}
+            <div className="admin__user">
+              <span className="admin__user-badge" aria-hidden>
+                AD
+              </span>
+              <span>
+                <strong>Administrador</strong>
+                <small>Ersunny Travel</small>
+              </span>
+            </div>
           </div>
         </header>
 
@@ -167,14 +212,15 @@ export function AdminApp() {
               config={draft}
               reservations={reservations}
               onReset={() => setDraft(defaultConfig())}
+              onOpen={setTab}
             />
           )}
-          {tab === "reservations" && <ReservationsPanel />}
+          {tab === "reservations" && (
+            <ReservationsPanel query={finder} onQuery={setFinder} />
+          )}
+          {tab === "flights" && <FlightsPanel />}
           {tab === "vehicles" && (
-            <VehiclesPanel
-              vehicles={draft.vehicles}
-              onChange={(vehicles) => patch({ vehicles })}
-            />
+            <VehiclesPanel config={draft} onChange={patch} />
           )}
           {tab === "zones" && (
             <ZonesPanel config={draft} onChange={patch} />
@@ -185,13 +231,9 @@ export function AdminApp() {
               onChange={(excursions) => patch({ excursions })}
             />
           )}
+          {tab === "media" && <MediaPanel />}
           {tab === "site" && <SitePanel config={draft} onChange={patch} />}
-          {tab === "azul" && (
-            <AzulPanel
-              value={draft.azul}
-              onChange={(azul) => patch({ azul })}
-            />
-          )}
+          {tab === "payments" && <PaymentsPanel />}
         </main>
       </div>
     </div>

@@ -8,11 +8,11 @@ https://zukiskyrim02-arch.github.io/ersunny-travel/
 
 ## Panel admin
 
-https://zukiskyrim02-arch.github.io/ersunny-travel/#/admin
+http://localhost:5173/admin
 
-Contraseña por defecto: `ErsunnyAdmin2026`
+El acceso es con un código de un solo uso por correo (Resend), solo a las direcciones de `ADMIN_EMAILS`. Las variables están en `.env.example` (Resend, `SESSION_SECRET` y Cloudinary).
 
-Desde el admin puedes gestionar precios por zona, tipos de vehículo, excursiones y reservas. Los datos se guardan en el navegador (localStorage).
+En **Medios** subes fotos y videos y los asignas a cada apartado (portada, traslados, excursiones, etc.). El catálogo se guarda en Cloudinary. Si un apartado no tiene archivo, el sitio sigue mostrando la imagen local de respaldo.
 
 ## Desarrollo
 
@@ -21,7 +21,7 @@ npm install
 npm run dev
 ```
 
-Admin local: http://localhost:5173/#/admin
+Admin local: http://localhost:5173/admin
 
 ## Build
 

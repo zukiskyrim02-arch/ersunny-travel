@@ -15,7 +15,7 @@ function esc(value: string): string {
 
 function money(price: number | null | undefined): string {
   if (price == null) return "To be confirmed";
-  return `$${price} USD`;
+  return `US$${price}`;
 }
 
 function detailRow(label: string, value: string): string {

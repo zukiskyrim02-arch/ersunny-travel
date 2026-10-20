@@ -89,7 +89,7 @@ const en: Dict = {
     "If you cannot travel due to illness, please reach out as soon as possible, and we will work on rescheduling or canceling your transfer as needed.",
   "faq.3.q": "What payment options do I have?",
   "faq.3.a":
-    "We accept card payments via Cardnet (Visa/Mastercard with 3-D Secure) and PayPal.",
+    "We accept card payments (Visa/Mastercard with 3-D Secure) and PayPal.",
   "faq.4.q": "How do I find Ersunny Travel at the airport?",
   "faq.4.a":
     "Our driver will be waiting for you at the airport exit area with your full name on a tablet. Look for our friendly driver in his identified uniform.",
@@ -180,7 +180,7 @@ const en: Dict = {
     "Pay securely with PayPal (card or PayPal balance).",
   "pay.paypalTitle": "Pay with PayPal",
   "pay.paypalLead":
-    "Pay {price} USD securely with PayPal. You can use your PayPal balance or a card.",
+    "Pay US${price} securely with PayPal. You can use your PayPal balance or a card.",
   "pay.paypalLeadPending":
     "Pay securely with PayPal. You can use your PayPal balance or a card.",
   "pay.paypalHint":
@@ -191,7 +191,7 @@ const en: Dict = {
     "Payment received for {id}. We emailed your confirmation — Ersunny will send the pickup time next.",
   "pay.connecting": "Loading PayPal…",
   "pay.pricePending": "Price pending — payment is not available yet",
-  "pay.payAmount": "Pay {price} USD with PayPal",
+  "pay.payAmount": "Pay US${price} with PayPal",
   "pay.azulHint":
     "Pay securely below with the PayPal button.",
   "pay.showApap": "Also pay by APAP bank transfer",
@@ -208,22 +208,31 @@ const en: Dict = {
   "pay.savings": "Savings",
   "pay.methodsTitle": "Choose how to pay",
   "pay.methodsLead":
-    "Pay {price} USD securely with card (Cardnet) or PayPal.",
+    "Pay US${price} securely by card or PayPal.",
   "pay.methodsLeadPending":
     "Choose a payment method once the price is confirmed.",
-  "pay.methodCard": "Card (Cardnet)",
+  "pay.methodCard": "Card",
   "pay.methodPaypal": "PayPal",
+  "pay.or": "or",
+  "pay.captchaTitle": "Verify you're human",
+  "pay.captchaQuestion": "What is {a} + {b}?",
+  "pay.captchaPlaceholder": "Answer",
+  "pay.captchaConfirm": "Verify and pay",
+  "pay.captchaCancel": "Cancel",
+  "pay.captchaError": "Incorrect answer. Try again.",
   "pay.cardnetLead":
-    "Pay {price} USD with Visa, Mastercard, or other cards via Cardnet secure checkout (3-D Secure).",
-  "pay.cardnetPayAmount": "Pay {price} USD with card",
-  "pay.cardnetConnecting": "Connecting to Cardnet…",
+    "Pay US${price} with Visa, Mastercard, or other cards via secure checkout (3-D Secure).",
+  "pay.cardnetPayAmount": "Pay US${price} with card",
+  "pay.cardnetConnecting": "Connecting…",
   "pay.cardnetHint":
-    "You will be redirected to Cardnet to enter your card details safely.",
-  "pay.cardnetError": "Cardnet payment could not be started. Please try again.",
-  "pay.cardnetVerifying": "Confirming your Cardnet payment…",
+    "You will be redirected to a secure page to enter your card details safely.",
+  "pay.cardnetError": "Card payment could not be started. Please try again.",
+  "pay.cardnetConfirmError":
+    "We could not confirm the card payment. If your card was charged, do not pay again — send us the reservation number.",
+  "pay.cardnetVerifying": "Confirming your card payment…",
   "pay.cardnetApproved":
     "Card payment approved for {id}. We emailed your confirmation — Ersunny will send the pickup time next.",
-  "pay.cardnetDeclined": "Cardnet payment was declined. You can try again or use PayPal.",
+  "pay.cardnetDeclined": "Card payment was declined. You can try again or use PayPal.",
   "pay.cardnetCanceled": "You canceled the card payment. You can try again.",
   "pay.alreadyPaid": "Payment already received for {id}.",
 
@@ -252,7 +261,7 @@ const en: Dict = {
   "exc.errorContact": "Enter your name and WhatsApp number or email.",
   "exc.removeGuest": "Remove guest",
   "exc.addGuest": "Add guest",
-  "exc.pricePerson": "From {price} USD / person",
+  "exc.pricePerson": "From US${price} / person",
   "exc.priceTbc": "Price to be confirmed",
   "zone.puntacana": "Punta Cana",
   "zone.bavaro": "Bávaro",
@@ -369,7 +378,7 @@ const es: Dict = {
     "Si no puedes viajar por enfermedad, contáctanos lo antes posible y trabajaremos en reprogramar o cancelar tu traslado según sea necesario.",
   "faq.3.q": "¿Qué opciones de pago tengo?",
   "faq.3.a":
-    "Aceptamos pagos con tarjeta vía Cardnet (Visa/Mastercard con 3-D Secure) y PayPal.",
+    "Aceptamos pagos con tarjeta (Visa/Mastercard con 3-D Secure) y PayPal.",
   "faq.4.q": "¿Cómo encuentro a Ersunny Travel en el aeropuerto?",
   "faq.4.a":
     "Nuestro conductor te estará esperando en la zona de salida del aeropuerto con tu nombre completo en una tablet. Busca a nuestro amable conductor con uniforme identificado.",
@@ -462,7 +471,7 @@ const es: Dict = {
   "pay.payAzulLead":
     "Paga de forma segura con PayPal (tarjeta o saldo).",
   "pay.paypalLead":
-    "Paga {price} USD de forma segura con PayPal. Puedes usar tu saldo PayPal o una tarjeta.",
+    "Paga US${price} de forma segura con PayPal. Puedes usar tu saldo PayPal o una tarjeta.",
   "pay.paypalLeadPending":
     "Paga de forma segura con PayPal. Puedes usar tu saldo PayPal o una tarjeta.",
   "pay.paypalHint":
@@ -473,7 +482,7 @@ const es: Dict = {
     "Pago recibido para {id}. Enviamos tu confirmación — Ersunny te enviará la hora de pickup.",
   "pay.connecting": "Cargando PayPal…",
   "pay.pricePending": "Precio pendiente — el pago aún no está disponible",
-  "pay.payAmount": "Pagar {price} USD con PayPal",
+  "pay.payAmount": "Pagar US${price} con PayPal",
   "pay.azulHint":
     "Paga de forma segura abajo con el botón de PayPal.",
   "pay.showApap": "También pagar por transferencia bancaria APAP",
@@ -490,23 +499,32 @@ const es: Dict = {
   "pay.savings": "Ahorros",
   "pay.methodsTitle": "Elige cómo pagar",
   "pay.methodsLead":
-    "Paga {price} USD de forma segura con tarjeta (Cardnet) o PayPal.",
+    "Paga US${price} de forma segura con tarjeta o PayPal.",
   "pay.methodsLeadPending":
     "Elige un método de pago cuando el precio esté confirmado.",
-  "pay.methodCard": "Tarjeta (Cardnet)",
+  "pay.methodCard": "Tarjeta",
   "pay.methodPaypal": "PayPal",
+  "pay.or": "o",
+  "pay.captchaTitle": "Verifica que no eres un robot",
+  "pay.captchaQuestion": "¿Cuánto es {a} + {b}?",
+  "pay.captchaPlaceholder": "Respuesta",
+  "pay.captchaConfirm": "Verificar y pagar",
+  "pay.captchaCancel": "Cancelar",
+  "pay.captchaError": "Respuesta incorrecta. Inténtalo de nuevo.",
   "pay.cardnetLead":
-    "Paga {price} USD con Visa, Mastercard u otras tarjetas en el checkout seguro de Cardnet (3-D Secure).",
-  "pay.cardnetPayAmount": "Pagar {price} USD con tarjeta",
-  "pay.cardnetConnecting": "Conectando con Cardnet…",
+    "Paga US${price} con Visa, Mastercard u otras tarjetas en el checkout seguro (3-D Secure).",
+  "pay.cardnetPayAmount": "Pagar US${price} con tarjeta",
+  "pay.cardnetConnecting": "Conectando…",
   "pay.cardnetHint":
-    "Te redirigiremos a Cardnet para ingresar los datos de tu tarjeta de forma segura.",
-  "pay.cardnetError": "No se pudo iniciar el pago con Cardnet. Inténtalo de nuevo.",
-  "pay.cardnetVerifying": "Confirmando tu pago de Cardnet…",
+    "Te redirigiremos a una página segura para ingresar los datos de tu tarjeta.",
+  "pay.cardnetError": "No se pudo iniciar el pago con tarjeta. Inténtalo de nuevo.",
+  "pay.cardnetConfirmError":
+    "No se pudo confirmar el pago con tarjeta. Si el cargo se hizo, no pagues de nuevo y envíanos el número de reserva.",
+  "pay.cardnetVerifying": "Confirmando tu pago con tarjeta…",
   "pay.cardnetApproved":
     "Pago con tarjeta aprobado para {id}. Enviamos tu confirmación — Ersunny te enviará la hora de pickup.",
   "pay.cardnetDeclined":
-    "Cardnet rechazó el pago. Puedes intentar de nuevo o pagar con PayPal.",
+    "El pago con tarjeta fue rechazado. Puedes intentar de nuevo o pagar con PayPal.",
   "pay.cardnetCanceled": "Cancelaste el pago con tarjeta. Puedes intentar de nuevo.",
   "pay.alreadyPaid": "El pago de {id} ya fue recibido.",
 
@@ -535,7 +553,7 @@ const es: Dict = {
   "exc.errorContact": "Ingresa tu nombre y número de WhatsApp o correo.",
   "exc.removeGuest": "Quitar huésped",
   "exc.addGuest": "Agregar huésped",
-  "exc.pricePerson": "Desde {price} USD / persona",
+  "exc.pricePerson": "Desde US${price} / persona",
   "exc.priceTbc": "Precio por confirmar",
   "zone.puntacana": "Punta Cana",
   "zone.bavaro": "Bávaro",
@@ -745,14 +763,14 @@ const fr: Dict = {
   "pay.payAzulLead":
     "Payez en toute sécurité avec PayPal (carte ou solde).",
   "pay.paypalLead":
-    "Payez {price} USD en toute sécurité avec PayPal.",
+    "Payez US${price} en toute sécurité avec PayPal.",
   "pay.paypalLeadPending":
     "Payez en toute sécurité avec PayPal.",
   "pay.paypalHint":
     "Indiquez la réservation {id} dans la note PayPal si demandé, puis envoyez-nous le reçu.",
   "pay.connecting": "Chargement de PayPal…",
   "pay.pricePending": "Prix en attente — le paiement n'est pas encore disponible",
-  "pay.payAmount": "Payer {price} USD avec PayPal",
+  "pay.payAmount": "Payer US${price} avec PayPal",
   "pay.azulHint":
     "Payez en toute sécurité ci-dessous avec le bouton PayPal.",
   "pay.showApap": "Payer aussi par virement bancaire APAP",
@@ -793,7 +811,7 @@ const fr: Dict = {
   "exc.errorContact": "Saisissez votre nom et numéro WhatsApp ou e-mail.",
   "exc.removeGuest": "Retirer un voyageur",
   "exc.addGuest": "Ajouter un voyageur",
-  "exc.pricePerson": "À partir de {price} USD / personne",
+  "exc.pricePerson": "À partir de US${price} / personne",
   "exc.priceTbc": "Prix à confirmer",
   "zone.puntacana": "Punta Cana",
   "zone.bavaro": "Bávaro",
@@ -1003,14 +1021,14 @@ const de: Dict = {
   "pay.payAzulLead":
     "Zahlen Sie sicher mit PayPal (Karte oder Guthaben).",
   "pay.paypalLead":
-    "Zahlen Sie {price} USD sicher mit PayPal.",
+    "Zahlen Sie US${price} sicher mit PayPal.",
   "pay.paypalLeadPending":
     "Zahlen Sie sicher mit PayPal.",
   "pay.paypalHint":
     "Geben Sie bei Bedarf die Reservierung {id} in der PayPal-Notiz an und senden Sie uns den Beleg.",
   "pay.connecting": "PayPal wird geladen…",
   "pay.pricePending": "Preis ausstehend — Zahlung noch nicht verfügbar",
-  "pay.payAmount": "{price} USD mit PayPal bezahlen",
+  "pay.payAmount": "US${price} mit PayPal bezahlen",
   "pay.azulHint":
     "Zahlen Sie unten sicher mit dem PayPal-Button.",
   "pay.showApap": "Auch per APAP-Banküberweisung bezahlen",
@@ -1051,7 +1069,7 @@ const de: Dict = {
   "exc.errorContact": "Geben Sie Ihren Namen und WhatsApp-Nummer oder E-Mail ein.",
   "exc.removeGuest": "Gast entfernen",
   "exc.addGuest": "Gast hinzufügen",
-  "exc.pricePerson": "Ab {price} USD / Person",
+  "exc.pricePerson": "Ab US${price} / Person",
   "exc.priceTbc": "Preis noch zu bestätigen",
   "zone.puntacana": "Punta Cana",
   "zone.bavaro": "Bávaro",
@@ -1248,14 +1266,14 @@ const zh: Dict = {
   "pay.payAzulLead":
     "使用 PayPal 安全支付（卡或余额）。",
   "pay.paypalLead":
-    "使用 PayPal 安全支付 {price} USD。",
+    "使用 PayPal 安全支付 US${price}。",
   "pay.paypalLeadPending":
     "使用 PayPal 安全支付。",
   "pay.paypalHint":
     "如提示请在 PayPal 备注中填写预订号 {id}，并发送收据给我们。",
   "pay.connecting": "正在加载 PayPal…",
   "pay.pricePending": "价格待定 — 暂不可付款",
-  "pay.payAmount": "使用 PayPal 支付 {price} USD",
+  "pay.payAmount": "使用 PayPal 支付 US${price}",
   "pay.azulHint":
     "请在下方使用 PayPal 按钮安全支付。",
   "pay.showApap": "也可通过 APAP 银行转账支付",
@@ -1294,7 +1312,7 @@ const zh: Dict = {
   "exc.errorContact": "请输入姓名和 WhatsApp 号码或邮箱。",
   "exc.removeGuest": "减少一位客人",
   "exc.addGuest": "增加一位客人",
-  "exc.pricePerson": "{price} USD / 人起",
+  "exc.pricePerson": "US${price} / 人起",
   "exc.priceTbc": "价格待确认",
   "zone.puntacana": "蓬塔卡纳",
   "zone.bavaro": "巴瓦罗",
@@ -1503,14 +1521,14 @@ const ru: Dict = {
   "pay.payAzulLead":
     "Оплатите безопасно через PayPal (карта или баланс).",
   "pay.paypalLead":
-    "Оплатите {price} USD безопасно через PayPal.",
+    "Оплатите US${price} безопасно через PayPal.",
   "pay.paypalLeadPending":
     "Оплатите безопасно через PayPal.",
   "pay.paypalHint":
     "Укажите бронь {id} в примечании PayPal при необходимости и пришлите нам чек.",
   "pay.connecting": "Загрузка PayPal…",
   "pay.pricePending": "Цена уточняется — оплата пока недоступна",
-  "pay.payAmount": "Оплатить {price} USD через PayPal",
+  "pay.payAmount": "Оплатить US${price} через PayPal",
   "pay.azulHint":
     "Оплатите безопасно ниже кнопкой PayPal.",
   "pay.showApap": "Также оплатить банковским переводом APAP",
@@ -1551,7 +1569,7 @@ const ru: Dict = {
   "exc.errorContact": "Введите имя и номер WhatsApp или e-mail.",
   "exc.removeGuest": "Убрать гостя",
   "exc.addGuest": "Добавить гостя",
-  "exc.pricePerson": "От {price} USD / человек",
+  "exc.pricePerson": "От US${price} / человек",
   "exc.priceTbc": "Цена уточняется",
   "zone.puntacana": "Пунта-Кана",
   "zone.bavaro": "Баваро",

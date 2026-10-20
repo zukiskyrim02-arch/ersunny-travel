@@ -1,11 +1,13 @@
 export type AdminTab =
   | "overview"
   | "reservations"
+  | "flights"
   | "vehicles"
   | "zones"
   | "excursions"
+  | "media"
   | "site"
-  | "azul";
+  | "payments";
 
 export const ADMIN_TABS: {
   id: AdminTab;
@@ -21,15 +23,21 @@ export const ADMIN_TABS: {
     group: "ops",
   },
   {
+    id: "flights",
+    label: "Vuelos",
+    hint: "Horario real y hora de recogida",
+    group: "ops",
+  },
+  {
     id: "vehicles",
     label: "Traslados",
-    hint: "Vehículos y precios",
+    hint: "Vehículos y precios fijos",
     group: "catalog",
   },
   {
     id: "zones",
-    label: "Zonas y hoteles",
-    hint: "Recargos y listados",
+    label: "Hoteles",
+    hint: "Agregar o quitar hoteles",
     group: "catalog",
   },
   {
@@ -39,15 +47,21 @@ export const ADMIN_TABS: {
     group: "catalog",
   },
   {
+    id: "media",
+    label: "Galería",
+    hint: "Fotos y videos",
+    group: "catalog",
+  },
+  {
     id: "site",
     label: "Sitio web",
     hint: "Contacto y textos",
     group: "settings",
   },
   {
-    id: "azul",
-    label: "Pagos Azul",
-    hint: "Cobros con tarjeta",
+    id: "payments",
+    label: "Pagos",
+    hint: "Tarjeta, PayPal y conexiones",
     group: "settings",
   },
 ];

@@ -1,9 +1,10 @@
 import { useState, type FormEvent } from "react";
-import { logoSrc } from "./assets";
+import { useLogoSrc } from "./media/library";
 import { useI18n } from "./i18n/I18nProvider";
 import { useAppConfig } from "./store/hooks";
 import { sendCustomerConfirmedPickup } from "./notifyBooking";
 import {
+  fetchReservationFromFirebase,
   findReservation,
   upsertReservation,
   type Reservation,
@@ -23,6 +24,7 @@ function formatTimeLabel(value?: string) {
 
 export function SideMenu({ open, onClose, panel, onPanelChange }: SideMenuProps) {
   const { t } = useI18n();
+  const logo = useLogoSrc();
   const { contact } = useAppConfig();
   const [code, setCode] = useState("");
   const [result, setResult] = useState<Reservation | null>(null);
@@ -30,10 +32,11 @@ export function SideMenu({ open, onClose, panel, onPanelChange }: SideMenuProps)
   const [confirming, setConfirming] = useState(false);
   const [statusMsg, setStatusMsg] = useState("");
 
-  function handleLookup(e: FormEvent) {
+  async function handleLookup(e: FormEvent) {
     e.preventDefault();
     setStatusMsg("");
-    const found = findReservation(code);
+    const found =
+      findReservation(code) ?? (await fetchReservationFromFirebase(code));
     if (!found) {
       setResult(null);
       setError(t("side.notFound"));
@@ -82,7 +85,7 @@ export function SideMenu({ open, onClose, panel, onPanelChange }: SideMenuProps)
         aria-label="Ersunny menu"
       >
         <div className="drawer__head">
-          <img src={logoSrc()} alt="Ersunny Travel" width={160} height={160} />
+          <img src={logo} alt="Ersunny Travel" width={160} height={160} />
           <button type="button" className="drawer__close" onClick={onClose} aria-label={t("side.close")}>
             ✕
           </button>

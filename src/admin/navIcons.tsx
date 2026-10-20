@@ -43,6 +43,12 @@ export function TabIcon({ id, className }: { id: AdminTab } & IconProps) {
           <rect x="4" y="3" width="16" height="18" rx="2" />
         </IconBase>
       );
+    case "flights":
+      return (
+        <IconBase className={className}>
+          <path d="M2 16 22 9l-4.2 1.2L10 7 7.5 4.5 6 6l2.2 3.2L4 11.5 2 10.2V13l2.2.8L2 16Z" />
+        </IconBase>
+      );
     case "vehicles":
       return (
         <IconBase className={className}>
@@ -71,7 +77,15 @@ export function TabIcon({ id, className }: { id: AdminTab } & IconProps) {
           <path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18" />
         </IconBase>
       );
-    case "azul":
+    case "media":
+      return (
+        <IconBase className={className}>
+          <rect x="3" y="5" width="18" height="14" rx="2" />
+          <circle cx="9" cy="10" r="1.4" />
+          <path d="m3 15 4.2-3.2 3 2.4 3.2-2.8L21 16" />
+        </IconBase>
+      );
+    case "payments":
       return (
         <IconBase className={className}>
           <rect x="3" y="6" width="18" height="12" rx="2" />

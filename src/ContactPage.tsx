@@ -1,13 +1,16 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { LanguageSwitch } from "./LanguageSwitch";
 import { SideMenu } from "./SideMenu";
-import { asset, logoSrc } from "./assets";
+import { asset } from "./assets";
+import { useLogoSrc, useMedia } from "./media/library";
 import { useI18n } from "./i18n/I18nProvider";
 import { useAppConfig } from "./store/hooks";
 import { SiteFooter } from "./SiteFooter";
 
 export function ContactPage() {
   const { t, locale } = useI18n();
+  const logo = useLogoSrc();
+  const media = useMedia();
   const { contact } = useAppConfig();
   const waBookHref = `https://wa.me/${contact.whatsappDigits}?text=${encodeURIComponent(
     t("common.waPrefill"),
@@ -55,7 +58,7 @@ export function ContactPage() {
             aria-label={t("nav.logoAria")}
           >
             <img
-              src={logoSrc()}
+              src={logo}
               alt="Ersunny Travel"
               width={160}
               height={160}
@@ -69,7 +72,7 @@ export function ContactPage() {
             <a href="/" onClick={() => setNavOpen(false)}>
               {t("nav.home")}
             </a>
-            <a href="/#servicios" onClick={() => setNavOpen(false)}>
+            <a href="/#cotizar" onClick={() => setNavOpen(false)}>
               {t("nav.transfers")}
             </a>
             <a href="/excursions" onClick={() => setNavOpen(false)}>
@@ -144,7 +147,7 @@ export function ContactPage() {
         <section className="contact-hero" aria-label="Contact">
           <div className="contact-hero__media" aria-hidden>
             <img
-              src={asset("hero-cover.webp")}
+              src={media.image("contactHero", asset("hero-cover.webp"), 1600)}
               alt=""
               width={1600}
               height={900}

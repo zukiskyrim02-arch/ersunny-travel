@@ -1,7 +1,8 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
+import { CARDNET_COOKIE, clearCookie, readCardnetState } from "../../server/cookies";
 import {
+  cardnetOutcome,
   getCardnetConfig,
-  isCardnetApproved,
   verifyCardnetSession,
   verifyCardnetState,
 } from "../../server/cardnet";
@@ -39,8 +40,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   try {
     const body = await readJson(req);
-    const state = String(body.state || "").trim();
+    const header = Array.isArray(req.headers.cookie)
+      ? req.headers.cookie.join("; ")
+      : req.headers.cookie;
+    const state = String(body.state || "").trim() || readCardnetState(header);
     if (!state) {
+      res.setHeader("Set-Cookie", clearCookie(CARDNET_COOKIE));
       return res.status(400).json({ error: "state required" });
     }
 
@@ -51,14 +56,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       payload.session,
       payload.sk,
     );
-    const approved = isCardnetApproved(result);
+    const outcome = cardnetOutcome(result);
 
+    res.setHeader("Set-Cookie", clearCookie(CARDNET_COOKIE));
     return res.status(200).json({
-      approved,
+      approved: outcome.approved,
+      authorizationCode: outcome.authorizationCode,
+      responseCode: outcome.responseCode,
       reservationId: payload.reservationId,
       amount: payload.amount,
       session: payload.session,
-      result,
     });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Cardnet verify error";

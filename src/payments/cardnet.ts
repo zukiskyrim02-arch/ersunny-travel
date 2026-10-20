@@ -14,9 +14,22 @@ export type CardnetVerifyResponse = {
   reservationId: string;
   amount: number;
   session: string;
-  result: Record<string, unknown>;
+  authorizationCode?: string;
+  responseCode?: string;
   error?: string;
 };
+
+function cardnetStateKey(reservationId: string) {
+  return `ersunny-cardnet:${reservationId.trim().toUpperCase()}`;
+}
+
+export function rememberCardnetState(reservationId: string, state: string) {
+  try {
+    sessionStorage.setItem(cardnetStateKey(reservationId), state);
+  } catch {
+    /* The return cookie is the backup. */
+  }
+}
 
 export function readCardnetReturnFromUrl(): {
   status: "return" | "cancel";
@@ -26,11 +39,16 @@ export function readCardnetReturnFromUrl(): {
   const params = new URLSearchParams(window.location.search);
   const flag = params.get("cardnet");
   if (flag !== "return" && flag !== "cancel") return null;
-  return {
-    status: flag,
-    state: params.get("state") || "",
-    reservationId: params.get("id") || "",
-  };
+  const reservationId = params.get("id") || "";
+  let state = params.get("state") || "";
+  if (!state && reservationId) {
+    try {
+      state = sessionStorage.getItem(cardnetStateKey(reservationId)) || "";
+    } catch {
+      state = "";
+    }
+  }
+  return { status: flag, state, reservationId };
 }
 
 export function clearCardnetQueryFromUrl(reservationId?: string) {
@@ -39,6 +57,11 @@ export function clearCardnetQueryFromUrl(reservationId?: string) {
   url.searchParams.delete("state");
   if (reservationId) {
     url.searchParams.set("id", reservationId);
+    try {
+      sessionStorage.removeItem(cardnetStateKey(reservationId));
+    } catch {
+      /* ignore */
+    }
   }
   window.history.replaceState(null, "", `${url.pathname}${url.search}${url.hash}`);
 }
@@ -65,15 +88,28 @@ export async function startCardnetCheckout(opts: {
       mobilePhone: phoneFromReservation(opts.reservation),
     }),
   });
-  const data = (await res.json()) as CardnetSessionResponse & { error?: string };
-  if (!res.ok) {
-    throw new Error(data.error || "Could not start Cardnet payment.");
+  const text = await res.text();
+  let data: (CardnetSessionResponse & { error?: string }) | null = null;
+  try {
+    data = JSON.parse(text) as CardnetSessionResponse & { error?: string };
+  } catch {
+    throw new Error(
+      "Card payment service is unavailable. Please try again.",
+    );
+  }
+  if (!res.ok || !data.session) {
+    throw new Error(data.error || "Could not start card payment.");
   }
   return data;
 }
 
 /** Redirect browser to Cardnet hosted payment page (3DS). */
 export function redirectToCardnetAuthorize(session: CardnetSessionResponse) {
+  const reservationId = new URL(session.returnUrl, window.location.origin).searchParams.get(
+    "id",
+  );
+  if (reservationId) rememberCardnetState(reservationId, session.state);
+
   const form = document.createElement("form");
   form.method = "POST";
   form.action = session.authorizeUrl;
@@ -102,12 +138,19 @@ export async function verifyCardnetPayment(
 ): Promise<CardnetVerifyResponse> {
   const res = await fetch("/api/cardnet/verify", {
     method: "POST",
+    credentials: "include",
     headers: { "Content-Type": "application/json", Accept: "application/json" },
     body: JSON.stringify({ state }),
   });
-  const data = (await res.json()) as CardnetVerifyResponse;
+  const text = await res.text();
+  let data: CardnetVerifyResponse | null = null;
+  try {
+    data = JSON.parse(text) as CardnetVerifyResponse;
+  } catch {
+    throw new Error("Could not verify card payment.");
+  }
   if (!res.ok) {
-    throw new Error(data.error || "Could not verify Cardnet payment.");
+    throw new Error(data.error || "Could not verify card payment.");
   }
   return data;
 }

@@ -8,14 +8,25 @@ import {
   type Reservation,
   type ReservationStatus,
 } from "../reservations";
+import { sendServiceSurvey } from "../reviews";
 import { useReservations } from "../store/hooks";
 
 const statusLabel: Record<ReservationStatus, string> = {
   pending: "Pendiente",
   paid: "Pagada",
   confirmed: "Confirmada",
+  completed: "Completada",
   cancelled: "Cancelada",
 };
+
+function surveyMessage(error: string | undefined, already: boolean) {
+  if (already) return "La encuesta ya se había enviado.";
+  if (!error) return "Encuesta enviada al correo del cliente.";
+  if (error === "no_email") return "No hay correo del cliente para enviar la encuesta.";
+  if (error === "not_found") return "La reserva aún no está en la base. Espera un momento y márcala otra vez.";
+  if (error === "not_configured") return "Falta Resend o la clave de sesión para enviar la encuesta.";
+  return "No se pudo enviar la encuesta. Revisa el correo e inténtalo de nuevo.";
+}
 
 const emptyForm = (): Reservation => ({
   id: "",
@@ -35,13 +46,22 @@ const emptyForm = (): Reservation => ({
   status: "pending",
 });
 
-export function ReservationsPanel() {
+export function ReservationsPanel({
+  query,
+  onQuery,
+}: {
+  query?: string;
+  onQuery?: (value: string) => void;
+} = {}) {
   const items = useReservations();
   const [filter, setFilter] = useState<"all" | ReservationStatus>("all");
   const [kind, setKind] = useState<"all" | "transfer" | "excursion">("all");
-  const [q, setQ] = useState("");
+  const [localQuery, setLocalQuery] = useState("");
+  const q = query ?? localQuery;
+  const setQ = onQuery ?? setLocalQuery;
   const [editing, setEditing] = useState<Reservation | null>(null);
   const [creating, setCreating] = useState(false);
+  const [surveyNote, setSurveyNote] = useState("");
 
   const filtered = useMemo(() => {
     return items.filter((r) => {
@@ -62,18 +82,34 @@ export function ReservationsPanel() {
     });
   }
 
-  function saveEdit(res: Reservation) {
-    if (creating) {
-      saveReservation({
-        ...res,
-        id: res.id || generateReservationId(res.kind),
-        createdAt: res.createdAt || new Date().toISOString(),
-      });
-    } else {
-      upsertReservation(res);
+  async function requestSurvey(id: string) {
+    const result = await sendServiceSurvey(id);
+    if (result.ok) {
+      updateReservation(id, { surveySentAt: new Date().toISOString() });
     }
+    setSurveyNote(surveyMessage(result.ok ? undefined : result.error, result.ok && result.already));
+  }
+
+  function saveEdit(res: Reservation) {
+    const saved = {
+      ...res,
+      id: res.id || generateReservationId(res.kind),
+      createdAt: res.createdAt || new Date().toISOString(),
+    };
+    if (creating) saveReservation(saved);
+    else upsertReservation(saved);
     setEditing(null);
     setCreating(false);
+    if (saved.status === "completed" && !saved.surveySentAt) {
+      void requestSurvey(saved.id);
+    }
+  }
+
+  function changeStatus(reservation: Reservation, status: ReservationStatus) {
+    updateReservation(reservation.id, { status });
+    if (status === "completed" && !reservation.surveySentAt) {
+      void requestSurvey(reservation.id);
+    }
   }
 
   return (
@@ -81,7 +117,11 @@ export function ReservationsPanel() {
       <header className="admin-panel__head">
         <div>
           <h1>Reservas</h1>
-          <p>Consulta, edita y crea traslados y excursiones.</p>
+          <p>
+            Consulta, edita y crea traslados y excursiones. Al marcar una reserva
+            como completada se envía la encuesta al correo del cliente.
+          </p>
+          {surveyNote && <p className="admin-ok">{surveyNote}</p>}
         </div>
         <button type="button" className="btn btn--primary" onClick={openCreate}>
           + Nueva reserva
@@ -103,6 +143,7 @@ export function ReservationsPanel() {
           <option value="pending">Pendientes</option>
           <option value="paid">Pagadas</option>
           <option value="confirmed">Confirmadas</option>
+          <option value="completed">Completadas</option>
           <option value="cancelled">Canceladas</option>
         </select>
         <select
@@ -164,7 +205,7 @@ export function ReservationsPanel() {
                 {r.wantReturn && r.returnDate ? ` – ${r.returnDate}` : ""} ·{" "}
                 {r.passengers} pax · {r.vehicle}
                 {r.price != null
-                  ? ` · $${r.price} USD`
+                  ? ` · US$${r.price}`
                   : " · precio a confirmar"}
               </p>
               {(r.pickupTime || r.time) && (
@@ -182,14 +223,13 @@ export function ReservationsPanel() {
                   <select
                     value={r.status ?? "pending"}
                     onChange={(e) =>
-                      updateReservation(r.id, {
-                        status: e.target.value as ReservationStatus,
-                      })
+                      changeStatus(r, e.target.value as ReservationStatus)
                     }
                   >
                     <option value="pending">Pendiente</option>
                     <option value="paid">Pagada</option>
                     <option value="confirmed">Confirmada</option>
+                    <option value="completed">Completada</option>
                     <option value="cancelled">Cancelada</option>
                   </select>
                 </label>
@@ -308,6 +348,7 @@ function ReservationEditor({
             <option value="pending">Pendiente</option>
             <option value="paid">Pagada</option>
             <option value="confirmed">Confirmada</option>
+            <option value="completed">Completada</option>
             <option value="cancelled">Cancelada</option>
           </select>
         </label>
@@ -399,7 +440,7 @@ function ReservationEditor({
           />
         </label>
         <label>
-          Precio USD
+          Precio US$
           <input
             type="number"
             min={0}

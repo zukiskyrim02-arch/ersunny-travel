@@ -17,8 +17,6 @@ type PaymentSectionProps = {
   reservation: Reservation;
 };
 
-type PayMethod = "cardnet" | "paypal";
-
 function formatDate(iso: string, locale: string) {
   if (!iso) return "—";
   const d = new Date(`${iso}T12:00:00`);
@@ -35,7 +33,6 @@ export function PaymentSection({ reservation: initial }: PaymentSectionProps) {
   const { t, locale } = useI18n();
   const [reservation, setReservation] = useState(initial);
   const [copiedId, setCopiedId] = useState(false);
-  const [method, setMethod] = useState<PayMethod>("cardnet");
   const [cardnetBanner, setCardnetBanner] = useState<string | null>(null);
   const [verifying, setVerifying] = useState(false);
   const isExcursion = reservation.kind === "excursion";
@@ -55,23 +52,23 @@ export function PaymentSection({ reservation: initial }: PaymentSectionProps) {
       return;
     }
 
-    if (!ret.state) {
-      setCardnetBanner(t("pay.cardnetError"));
-      clearCardnetQueryFromUrl(ret.reservationId || reservation.id);
-      return;
-    }
-
     let cancelled = false;
     setVerifying(true);
     void verifyCardnetPayment(ret.state)
       .then(async (result) => {
         if (cancelled) return;
         if (result.approved) {
-          updateReservation(result.reservationId, { status: "paid" });
+          updateReservation(result.reservationId, {
+            status: "paid",
+            authorizationCode: result.authorizationCode || undefined,
+          });
           const found = findReservation(result.reservationId);
           if (found) setReservation(found);
+          const approved = t("pay.cardnetApproved", { id: result.reservationId });
           setCardnetBanner(
-            t("pay.cardnetApproved", { id: result.reservationId }),
+            result.authorizationCode
+              ? `${approved} ${result.authorizationCode}`
+              : approved,
           );
           if (found) {
             void import("./notifyBooking").then(({ sendPaidBookingEmails }) =>
@@ -84,7 +81,7 @@ export function PaymentSection({ reservation: initial }: PaymentSectionProps) {
         clearCardnetQueryFromUrl(result.reservationId);
       })
       .catch(() => {
-        if (!cancelled) setCardnetBanner(t("pay.cardnetError"));
+        if (!cancelled) setCardnetBanner(t("pay.cardnetConfirmError"));
         clearCardnetQueryFromUrl(ret.reservationId || reservation.id);
       })
       .finally(() => {
@@ -254,7 +251,7 @@ export function PaymentSection({ reservation: initial }: PaymentSectionProps) {
               <strong>
                 {reservation.price == null
                   ? t("pay.toConfirm")
-                  : `$${reservation.price} USD`}
+                  : `US$${reservation.price}`}
               </strong>
             </div>
           </div>
@@ -273,45 +270,20 @@ export function PaymentSection({ reservation: initial }: PaymentSectionProps) {
               {t("pay.alreadyPaid", { id: reservation.id })}
             </p>
           ) : (
-            <>
-              <div className="pay-methods" role="tablist" aria-label={t("pay.methodsTitle")}>
-                <button
-                  type="button"
-                  role="tab"
-                  aria-selected={method === "cardnet"}
-                  className={`pay-methods__tab${method === "cardnet" ? " is-active" : ""}`}
-                  onClick={() => setMethod("cardnet")}
-                >
-                  {t("pay.methodCard")}
-                </button>
-                <button
-                  type="button"
-                  role="tab"
-                  aria-selected={method === "paypal"}
-                  className={`pay-methods__tab${method === "paypal" ? " is-active" : ""}`}
-                  onClick={() => setMethod("paypal")}
-                >
-                  {t("pay.methodPaypal")}
-                </button>
+            <div className="pay-options">
+              <CardnetPayButton
+                reservation={reservation}
+                amount={reservation.price}
+              />
+              <div className="pay-divider" aria-hidden>
+                <span>{t("pay.or")}</span>
               </div>
-
-              {method === "cardnet" ? (
-                <CardnetPayButton
-                  reservation={reservation}
-                  amount={reservation.price}
-                />
-              ) : (
-                <>
-                  <PayPalHostedButton
-                    reservation={reservation}
-                    amount={reservation.price}
-                  />
-                  <p className="confirm__pay-hint">
-                    {t("pay.paypalHint", { id: reservation.id })}
-                  </p>
-                </>
-              )}
-            </>
+              <PayPalHostedButton
+                reservation={reservation}
+                amount={reservation.price}
+                hideTicket
+              />
+            </div>
           )}
         </div>
       </div>

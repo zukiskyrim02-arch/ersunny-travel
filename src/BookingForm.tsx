@@ -455,7 +455,7 @@ export function BookingForm({ onBooked }: BookingFormProps) {
             Price
             {wantReturn ? " · round trip" : " · one way"}
           </small>
-          <strong>${price} USD</strong>
+          <strong>US${price}</strong>
         </div>
         <button type="submit" className="btn btn--primary">
           Book and pay

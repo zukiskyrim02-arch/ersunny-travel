@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { logoSrc } from "./assets";
+import { useLogoSrc } from "./media/library";
 import { useI18n } from "./i18n/I18nProvider";
 import { useAppConfig } from "./store/hooks";
 import { SiteFooter } from "./SiteFooter";
@@ -11,6 +11,7 @@ const FAQ_INDICES = [0, 1, 2, 3, 4, 5, 6, 7, 8] as const;
 
 export function AboutPage() {
   const { t, locale } = useI18n();
+  const logo = useLogoSrc();
   const { contact, page } = useAppConfig();
   const waBookHref = `https://wa.me/${contact.whatsappDigits}?text=${encodeURIComponent(
     t("common.waPrefill"),
@@ -73,7 +74,7 @@ export function AboutPage() {
             aria-label={t("nav.logoAria")}
           >
             <img
-              src={logoSrc()}
+              src={logo}
               alt="Ersunny Travel"
               width={160}
               height={160}
@@ -87,7 +88,7 @@ export function AboutPage() {
             <a href="/" onClick={() => setNavOpen(false)}>
               {t("nav.home")}
             </a>
-            <a href="/#servicios" onClick={() => setNavOpen(false)}>
+            <a href="/#cotizar" onClick={() => setNavOpen(false)}>
               {t("nav.transfers")}
             </a>
             <a href="/excursions" onClick={() => setNavOpen(false)}>
@@ -220,7 +221,7 @@ export function AboutPage() {
                       onClick={() => setOpenFaq(isOpen ? null : index)}
                     >
                       <span>{t(`faq.${index}.q`)}</span>
-                      <span aria-hidden>{isOpen ? "−" : "+"}</span>
+                      <span aria-hidden>{isOpen ? "?" : "+"}</span>
                     </button>
                     {isOpen && (
                       <p className="faq-item__a">{t(`faq.${index}.a`)}</p>

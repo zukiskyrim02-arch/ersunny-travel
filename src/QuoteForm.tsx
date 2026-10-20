@@ -8,6 +8,7 @@ import {
   type Reservation,
 } from "./reservations";
 import { useAppConfig } from "./store/hooks";
+import { fareFor, zoneForHotel, zonesOf } from "./transfers";
 
 type QuoteFormProps = {
   onBooked: (reservation: Reservation) => void;
@@ -15,13 +16,11 @@ type QuoteFormProps = {
 
 export function QuoteForm({ onBooked }: QuoteFormProps) {
   const { t } = useI18n();
-  const { vehicles: allVehicles, hotelsByZone } = useAppConfig();
+  const config = useAppConfig();
+  const { vehicles: allVehicles, hotelsByZone } = config;
   const vehicles = allVehicles.filter((v) => v.active !== false);
-  const hotels = [
-    ...hotelsByZone["Punta Cana"],
-    ...hotelsByZone.Bávaro,
-    ...hotelsByZone.Macao,
-  ];
+  const zones = zonesOf(config);
+  const hotels = zones.flatMap((zone) => hotelsByZone[zone] ?? []);
   const [service, setService] = useState("Private Transfer");
   const [transferType, setTransferType] = useState("Airport → Hotel");
   const [rideClass, setRideClass] = useState("Private");
@@ -52,7 +51,37 @@ export function QuoteForm({ onBooked }: QuoteFormProps) {
     const q = hotel.trim().toLowerCase();
     if (!q) return hotels.slice(0, 8);
     return hotels.filter((h) => h.toLowerCase().includes(q)).slice(0, 8);
-  }, [hotel]);
+  }, [hotel, hotels]);
+
+  const quoted = useMemo(() => {
+    const pax = Math.max(0, adults) + Math.max(0, children);
+    const vehicle =
+      [...vehicles]
+        .sort((a, b) => a.maxPassengers - b.maxPassengers)
+        .find((item) => pax <= item.maxPassengers) ??
+      vehicles[vehicles.length - 1];
+    if (!vehicle) return null;
+    const zone = zoneForHotel(hotelsByZone, hotel) ?? zones[0] ?? "Punta Cana";
+    const fare = fareFor(config, vehicle.id, zone);
+    const price = isRoundTrip
+      ? isShared
+        ? fare.sharedRoundTrip
+        : fare.roundTrip
+      : isShared
+        ? fare.sharedOneWay
+        : fare.oneWay;
+    return { vehicle, zone, price };
+  }, [
+    adults,
+    children,
+    vehicles,
+    hotelsByZone,
+    zones,
+    hotel,
+    config,
+    isRoundTrip,
+    isShared,
+  ]);
 
   useEffect(() => {
     function onPointerDown(e: MouseEvent) {
@@ -71,7 +100,6 @@ export function QuoteForm({ onBooked }: QuoteFormProps) {
 
     const safeAdults = Math.max(0, adults);
     const safeChildren = Math.max(0, children);
-    const pax = safeAdults + safeChildren;
 
     if (safeAdults < 1) {
       setError(t("quote.errorAdults"));
@@ -79,21 +107,14 @@ export function QuoteForm({ onBooked }: QuoteFormProps) {
       return;
     }
 
-    const vehicle =
-      [...vehicles]
-        .sort((a, b) => a.maxPassengers - b.maxPassengers)
-        .find((v) => pax <= v.maxPassengers) ??
-      vehicles[vehicles.length - 1];
-
-    if (!vehicle) {
+    if (!quoted) {
       setError(t("quote.errorVehicles"));
       setSubmitting(false);
       return;
     }
 
-    const base = vehicle.basePrice;
-    const sharedFactor = isShared ? 0.75 : 1;
-    const price = Math.round(base * (isRoundTrip ? 1.9 : 1) * sharedFactor);
+    const vehicle = quoted.vehicle;
+    const price = quoted.price;
 
     const origin = isRoundTrip
       ? airportLabel
@@ -134,7 +155,7 @@ export function QuoteForm({ onBooked }: QuoteFormProps) {
       time: "To be confirmed",
       returnDate: isRoundTrip ? departureDate : undefined,
       returnTime: isRoundTrip ? "To be confirmed" : undefined,
-      passengers: pax,
+      passengers: safeAdults + safeChildren,
       vehicle: isShared ? "Shared transfer" : vehicle.name,
       wantReturn: isRoundTrip,
       price,
@@ -151,21 +172,19 @@ export function QuoteForm({ onBooked }: QuoteFormProps) {
       /* ignore storage errors */
     }
 
-    try {
-      await sendTransferBookingEmails(reservation, {
-        service,
-        transferType: typeLabel,
-        adults: String(safeAdults),
-        children: String(safeChildren),
-        whatsapp: whatsapp.trim(),
-        arrivalAirline: airline.trim(),
-        arrivalFlight: flight.trim(),
-        departureAirline: isRoundTrip ? returnAirline.trim() : undefined,
-        departureFlight: isRoundTrip ? returnFlight.trim() : undefined,
-      });
-    } catch {
-      // Still continue to payment; email provider may need first-time activation
-    }
+    void sendTransferBookingEmails(reservation, {
+      service,
+      transferType: typeLabel,
+      adults: String(safeAdults),
+      children: String(safeChildren),
+      whatsapp: whatsapp.trim(),
+      arrivalAirline: airline.trim(),
+      arrivalFlight: flight.trim(),
+      departureAirline: isRoundTrip ? returnAirline.trim() : undefined,
+      departureFlight: isRoundTrip ? returnFlight.trim() : undefined,
+    }).catch(() => {
+      /* Email is best-effort. The booking is already saved. */
+    });
 
     setSubmitting(false);
     onBooked(reservation);
@@ -417,6 +436,13 @@ export function QuoteForm({ onBooked }: QuoteFormProps) {
           />
         </label>
       </div>
+      {quoted && hotel.trim() && (
+        <p className="quote-form__price">
+          <span>{t("quote.priceLabel")}</span>
+          <strong>US${quoted.price}</strong>
+          <small>{quoted.vehicle.name}</small>
+        </p>
+      )}
       {error && (
         <p className="form-error" role="alert">
           {error}

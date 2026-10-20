@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { ExcursionBooking } from "./ExcursionBooking";
 import { LanguageSwitch } from "./LanguageSwitch";
 import { SideMenu } from "./SideMenu";
-import { logoSrc } from "./assets";
+import { useLogoSrc } from "./media/library";
 import { useI18n } from "./i18n/I18nProvider";
 import { useAppConfig } from "./store/hooks";
 import type { Reservation } from "./reservations";
@@ -11,6 +11,7 @@ import { SiteFooter } from "./SiteFooter";
 
 export function ExcursionsPage() {
   const { t, locale } = useI18n();
+  const logo = useLogoSrc();
   const { contact } = useAppConfig();
   const waBookHref = `https://wa.me/${contact.whatsappDigits}?text=${encodeURIComponent(
     t("common.waPrefill"),
@@ -50,7 +51,7 @@ export function ExcursionsPage() {
             aria-label={t("nav.logoAria")}
           >
             <img
-              src={logoSrc()}
+              src={logo}
               alt="Ersunny Travel"
               width={160}
               height={160}
@@ -64,7 +65,7 @@ export function ExcursionsPage() {
             <a href="/" onClick={() => setNavOpen(false)}>
               {t("nav.home")}
             </a>
-            <a href="/#servicios" onClick={() => setNavOpen(false)}>
+            <a href="/#cotizar" onClick={() => setNavOpen(false)}>
               {t("nav.transfers")}
             </a>
             <a

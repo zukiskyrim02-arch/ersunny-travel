@@ -2,11 +2,13 @@ import { useEffect, useState } from "react";
 import { QuoteForm } from "./QuoteForm";
 import { SideMenu } from "./SideMenu";
 import { LanguageSwitch } from "./LanguageSwitch";
-import { asset, logoSrc } from "./assets";
+import { asset } from "./assets";
+import { useLogoSrc, useMedia } from "./media/library";
 import type { Reservation } from "./reservations";
 import { navigate } from "./routing";
 import { SiteFooter } from "./SiteFooter";
 import { useI18n } from "./i18n/I18nProvider";
+import { useReviews } from "./reviews";
 import { useAppConfig } from "./store/hooks";
 
 const HERO_IMG = asset("hero-cover.webp");
@@ -26,39 +28,19 @@ const trustItems = [
   { titleKey: "trust.email", copyKey: "trust.emailCopy", icon: "mail" },
 ];
 
-const testimonials = [
-  {
-    name: "Maria G.",
-    placeKey: "review.0.place",
-    tripKey: "review.0.trip",
-    quoteKey: "review.0.quote",
-    avatar:
-      "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=240&q=80&fm=webp",
-  },
-  {
-    name: "Carlos R.",
-    placeKey: "review.1.place",
-    tripKey: "review.1.trip",
-    quoteKey: "review.1.quote",
-    avatar:
-      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=240&q=80&fm=webp",
-  },
-  {
-    name: "Emma L.",
-    placeKey: "review.2.place",
-    tripKey: "review.2.trip",
-    quoteKey: "review.2.quote",
-    avatar:
-      "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&w=240&q=80&fm=webp",
-  },
-];
-
-function Stars() {
+function Stars({ rating }: { rating: number }) {
   const { t } = useI18n();
   return (
-    <div className="review-stars" aria-label={t("stars.aria")}>
+    <div className="review-stars" aria-label={t("stars.aria", { rating })}>
       {Array.from({ length: 5 }, (_, i) => (
-        <svg key={i} viewBox="0 0 20 20" width="16" height="16" aria-hidden>
+        <svg
+          key={i}
+          className={i < rating ? "is-on" : "is-off"}
+          viewBox="0 0 20 20"
+          width="16"
+          height="16"
+          aria-hidden
+        >
           <path
             fill="currentColor"
             d="M10 1.6 12.7 7l5.9.5-4.5 3.9 1.4 5.7L10 14.8 4.5 17.1l1.4-5.7L1.4 7.5 7.3 7 10 1.6Z"
@@ -67,6 +49,11 @@ function Stars() {
       ))}
     </div>
   );
+}
+
+function reviewInitials(name: string) {
+  const parts = name.split(/\s+/).filter(Boolean);
+  return `${parts[0]?.[0] || "E"}${parts[1]?.[0] || ""}`.toUpperCase();
 }
 
 function TrustIcon({ name }: { name: string }) {
@@ -146,6 +133,9 @@ function TrustIcon({ name }: { name: string }) {
 
 export default function App() {
   const { t, locale } = useI18n();
+  const media = useMedia();
+  const { reviews, ready: reviewsReady } = useReviews();
+  const logo = useLogoSrc();
   const config = useAppConfig();
   const contact = config.contact;
   const [menuOpen, setMenuOpen] = useState(false);
@@ -154,6 +144,7 @@ export default function App() {
   const popularExcursions = config.excursions
     .filter((e) => e.active)
     .slice(0, 5);
+  const featuredExcursion = popularExcursions[0];
 
   useEffect(() => {
     document.body.style.overflow = menuOpen || navOpen ? "hidden" : "";
@@ -203,7 +194,7 @@ export default function App() {
         <div className="site-header__inner">
           <a className="site-header__logo" href="/" aria-label={t("nav.logoAria")}>
             <img
-              src={logoSrc()}
+              src={logo}
               alt="Ersunny Travel"
               width={160}
               height={160}
@@ -217,7 +208,7 @@ export default function App() {
             <a href="/" className="is-active" onClick={() => setNavOpen(false)}>
               {t("nav.home")}
             </a>
-            <a href="/#servicios" onClick={() => setNavOpen(false)}>
+            <a href="/#cotizar" onClick={() => setNavOpen(false)}>
               {t("nav.transfers")}
             </a>
             <a href="/excursions" onClick={() => setNavOpen(false)}>
@@ -287,28 +278,59 @@ export default function App() {
       <main id="main-content">
         <section className="hero-new" aria-label="Punta Cana airport transfers">
           <div className="hero-new__media">
-            <picture>
-              <source
-                media="(max-width: 768px)"
-                srcSet={HERO_IMG_MOBILE}
-                type="image/webp"
+            {media.video("hero") ? (
+              <video
+                src={media.video("hero") ?? undefined}
+                poster={media.image("hero", HERO_IMG_FALLBACK, 1600)}
+                autoPlay
+                muted
+                loop
+                playsInline
               />
-              <source
-                media="(max-width: 768px)"
-                srcSet={HERO_IMG_MOBILE_FALLBACK}
-                type="image/jpeg"
-              />
-              <source srcSet={HERO_IMG} type="image/webp" />
-              <img
-                src={HERO_IMG_FALLBACK}
-                alt="Ersunny Travel private van and driver welcoming guests at a Punta Cana resort"
-                width={1600}
-                height={900}
-                sizes="100vw"
-                fetchPriority="high"
-                decoding="async"
-              />
-            </picture>
+            ) : media.has("hero") || media.has("heroMobile") ? (
+              <picture>
+                <source
+                  media="(max-width: 768px)"
+                  srcSet={media.image(
+                    "heroMobile",
+                    media.image("hero", HERO_IMG_MOBILE, 1080),
+                    1080,
+                  )}
+                />
+                <img
+                  src={media.image("hero", HERO_IMG_FALLBACK, 1920)}
+                  alt="Ersunny Travel private van and driver welcoming guests at a Punta Cana resort"
+                  width={1600}
+                  height={900}
+                  sizes="100vw"
+                  fetchPriority="high"
+                  decoding="async"
+                />
+              </picture>
+            ) : (
+              <picture>
+                <source
+                  media="(max-width: 768px)"
+                  srcSet={HERO_IMG_MOBILE}
+                  type="image/webp"
+                />
+                <source
+                  media="(max-width: 768px)"
+                  srcSet={HERO_IMG_MOBILE_FALLBACK}
+                  type="image/jpeg"
+                />
+                <source srcSet={HERO_IMG} type="image/webp" />
+                <img
+                  src={HERO_IMG_FALLBACK}
+                  alt="Ersunny Travel private van and driver welcoming guests at a Punta Cana resort"
+                  width={1600}
+                  height={900}
+                  sizes="100vw"
+                  fetchPriority="high"
+                  decoding="async"
+                />
+              </picture>
+            )}
           </div>
           <div className="hero-new__overlay" aria-hidden />
           <div className="hero-new__content">
@@ -380,16 +402,26 @@ export default function App() {
             <div className="services-grid">
               <article className="service-card">
                 <div className="service-card__img">
-                  <picture>
-                    <source srcSet={TRANSFER_IMG} type="image/webp" />
+                  {media.has("serviceTransfer") ? (
                     <img
-                      src={TRANSFER_IMG_FALLBACK}
+                      src={media.image("serviceTransfer", TRANSFER_IMG_FALLBACK, 1200)}
                       alt="Private van for Punta Cana airport transfers to Bávaro and Macao hotels"
                       loading="lazy"
                       width={800}
                       height={480}
                     />
-                  </picture>
+                  ) : (
+                    <picture>
+                      <source srcSet={TRANSFER_IMG} type="image/webp" />
+                      <img
+                        src={TRANSFER_IMG_FALLBACK}
+                        alt="Private van for Punta Cana airport transfers to Bávaro and Macao hotels"
+                        loading="lazy"
+                        width={800}
+                        height={480}
+                      />
+                    </picture>
+                  )}
                 </div>
                 <div className="service-card__body">
                   <div className="service-card__top">
@@ -417,7 +449,11 @@ export default function App() {
               <article className="service-card">
                 <div className="service-card__img">
                   <img
-                    src={EXCURSION_IMG}
+                    src={
+                      media.has("serviceExcursions")
+                        ? media.image("serviceExcursions", EXCURSION_IMG, 1200)
+                        : featuredExcursion?.image || EXCURSION_IMG
+                    }
                     alt="Isla Saona excursion in Punta Cana"
                     loading="lazy"
                     width={800}
@@ -456,10 +492,18 @@ export default function App() {
                     </div>
                   </div>
                   <ul className="service-card__list">
-                    <li>{t("services.excursions1")}</li>
-                    <li>{t("services.excursions2")}</li>
-                    <li>{t("services.excursions3")}</li>
-                    <li>{t("services.excursions4")}</li>
+                    {popularExcursions.length > 0 ? (
+                      popularExcursions.slice(0, 4).map((item) => (
+                        <li key={item.id}>{item.title}</li>
+                      ))
+                    ) : (
+                      <>
+                        <li>{t("services.excursions1")}</li>
+                        <li>{t("services.excursions2")}</li>
+                        <li>{t("services.excursions3")}</li>
+                        <li>{t("services.excursions4")}</li>
+                      </>
+                    )}
                   </ul>
                   <a className="service-card__link" href="/excursions">
                     {t("services.viewExcursions")}
@@ -472,7 +516,7 @@ export default function App() {
 
         <section className="quote-band" id="cotizar">
           <div className="quote-band__media" aria-hidden>
-            <img src={BEACH_IMG} alt="" width={1280} height={720} loading="lazy" decoding="async" />
+            <img src={media.image("quoteBand", BEACH_IMG, 1600)} alt="" width={1280} height={720} loading="lazy" decoding="async" />
           </div>
           <div className="quote-band__inner container">
             <div className="quote-band__copy">
@@ -511,7 +555,7 @@ export default function App() {
 
             <div className="excursion-cards">
               {popularExcursions.map((item) => {
-                const title = t(`exc.${item.id}.title`);
+                const title = item.title;
                 const duration = t(
                   item.duration === "Half day"
                     ? "exc.duration.half"
@@ -521,7 +565,8 @@ export default function App() {
                 <article className="excursion-card" key={item.id}>
                   <div className="excursion-card__img">
                     <img
-                      src={item.image}
+                      key={item.image}
+                      src={media.excursionImage(item.id, item.image, 800)}
                       alt={title}
                       loading="lazy"
                       width={480}
@@ -588,54 +633,51 @@ export default function App() {
               <p className="section__lead">{t("section.reviewsLead")}</p>
             </div>
 
-            <div className="reviews-board">
-              <article className="review review--featured">
-                <span className="review__mark" aria-hidden>
-                  “
-                </span>
-                <Stars />
-                <blockquote>{t(testimonials[0].quoteKey)}</blockquote>
-                <footer className="review__author">
-                  <img
-                    src={testimonials[0].avatar}
-                    alt=""
-                    width={72}
-                    height={72}
-                    loading="lazy"
-                  />
-                  <div>
-                    <strong>{testimonials[0].name}</strong>
-                    <span>
-                      {t(testimonials[0].placeKey)} · {t(testimonials[0].tripKey)}
+            {reviewsReady && reviews.length === 0 ? (
+              <p className="reviews-empty">{t("section.reviewsEmpty")}</p>
+            ) : (
+              <div
+                className={`reviews-board${reviews.length < 2 ? " reviews-board--single" : ""}`}
+              >
+                {reviews.slice(0, 1).map((item) => (
+                  <article className="review review--featured" key={item.id}>
+                    <span className="review__mark" aria-hidden>
+                      “
                     </span>
-                  </div>
-                </footer>
-              </article>
-
-              <div className="reviews-board__side">
-                {testimonials.slice(1).map((item) => (
-                  <article className="review" key={item.name}>
-                    <Stars />
-                    <blockquote>{t(item.quoteKey)}</blockquote>
+                    <Stars rating={item.rating} />
+                    <blockquote>{item.comment}</blockquote>
                     <footer className="review__author">
-                      <img
-                        src={item.avatar}
-                        alt=""
-                        width={56}
-                        height={56}
-                        loading="lazy"
-                      />
+                      <span className="review__avatar" aria-hidden>
+                        {reviewInitials(item.name)}
+                      </span>
                       <div>
                         <strong>{item.name}</strong>
-                        <span>
-                          {t(item.placeKey)} · {t(item.tripKey)}
-                        </span>
+                        <span>{item.service}</span>
                       </div>
                     </footer>
                   </article>
                 ))}
+                {reviews.length > 1 && (
+                  <div className="reviews-board__side">
+                    {reviews.slice(1, 3).map((item) => (
+                      <article className="review" key={item.id}>
+                        <Stars rating={item.rating} />
+                        <blockquote>{item.comment}</blockquote>
+                        <footer className="review__author">
+                          <span className="review__avatar" aria-hidden>
+                            {reviewInitials(item.name)}
+                          </span>
+                          <div>
+                            <strong>{item.name}</strong>
+                            <span>{item.service}</span>
+                          </div>
+                        </footer>
+                      </article>
+                    ))}
+                  </div>
+                )}
               </div>
-            </div>
+            )}
           </div>
         </section>
       </main>

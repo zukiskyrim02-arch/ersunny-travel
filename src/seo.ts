@@ -59,7 +59,7 @@ export const pageSeo: Record<string, PageSeo> = {
     path: "/payment",
     title: "Payment Form | Ersunny Travel",
     description:
-      "Complete your Ersunny Travel reservation payment securely with Cardnet (card) or PayPal.",
+      "Complete your Ersunny Travel reservation payment securely by card or PayPal.",
     noindex: true,
   },
   admin: {
@@ -109,15 +109,15 @@ function upsertJsonLd(data: Record<string, unknown> | Record<string, unknown>[])
   el.textContent = JSON.stringify(data);
 }
 
-export function organizationJsonLd() {
+export function organizationJsonLd(media?: { logo?: string; image?: string }) {
   return {
     "@context": "https://schema.org",
     "@type": "TravelAgency",
     "@id": `${SITE_URL}/#organization`,
     name: "Ersunny Travel",
     url: SITE_URL,
-    logo: `${SITE_URL}/ersunny-logo.webp`,
-    image: defaultOgImage,
+    logo: media?.logo || `${SITE_URL}/ersunny-logo.webp`,
+    image: media?.image || defaultOgImage,
     description:
       "Private airport transfers and excursions in Punta Cana, Bávaro, and Macao — affordable and luxury options with WhatsApp support.",
     email: "contact@ersunnytravel.com",

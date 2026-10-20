@@ -2,10 +2,14 @@ import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { LanguageSwitch } from "./LanguageSwitch";
 import { PaymentSection } from "./PaymentSection";
 import { SideMenu } from "./SideMenu";
-import { logoSrc } from "./assets";
+import { useLogoSrc } from "./media/library";
 import { useI18n } from "./i18n/I18nProvider";
 import { useAppConfig } from "./store/hooks";
-import { findReservation } from "./reservations";
+import {
+  fetchReservationFromFirebase,
+  findReservation,
+  type Reservation,
+} from "./reservations";
 import { navigate } from "./routing";
 import { SiteFooter } from "./SiteFooter";
 
@@ -16,6 +20,7 @@ function reservationIdFromUrl(): string {
 
 export function PaymentPage() {
   const { t, locale } = useI18n();
+  const logo = useLogoSrc();
   const { contact } = useAppConfig();
   const waBookHref = `https://wa.me/${contact.whatsappDigits}?text=${encodeURIComponent(
     t("common.waPrefill"),
@@ -31,10 +36,33 @@ export function PaymentPage() {
     return findReservation(id) ? "" : "pay.notFound";
   });
 
-  const reservation = useMemo(
-    () => (queryId ? findReservation(queryId) : undefined),
-    [queryId],
-  );
+  const [fetched, setFetched] = useState<Reservation | undefined>(undefined);
+
+  const reservation = useMemo(() => {
+    if (!queryId) return undefined;
+    const local = findReservation(queryId);
+    if (local) return local;
+    return fetched && fetched.id.toUpperCase() === queryId.toUpperCase()
+      ? fetched
+      : undefined;
+  }, [queryId, fetched]);
+
+  useEffect(() => {
+    if (!queryId || findReservation(queryId)) return;
+    let cancelled = false;
+    void fetchReservationFromFirebase(queryId).then((found) => {
+      if (cancelled) return;
+      if (found) {
+        setFetched(found);
+        setErrorKey("");
+      } else {
+        setErrorKey("pay.notFound");
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [queryId]);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -53,7 +81,7 @@ export function PaymentPage() {
     setMenuOpen(true);
   }
 
-  function onLookup(e: FormEvent) {
+  async function onLookup(e: FormEvent) {
     e.preventDefault();
     setErrorKey("");
     const id = lookupId.trim();
@@ -61,11 +89,13 @@ export function PaymentPage() {
       setErrorKey("pay.enterNumber");
       return;
     }
-    const found = findReservation(id);
+    const found =
+      findReservation(id) ?? (await fetchReservationFromFirebase(id));
     if (!found) {
       setErrorKey("pay.notFound");
       return;
     }
+    setFetched(found);
     setQueryId(found.id);
     navigate(`/payment?id=${encodeURIComponent(found.id)}`);
   }
@@ -80,7 +110,7 @@ export function PaymentPage() {
             aria-label={t("nav.logoAria")}
           >
             <img
-              src={logoSrc()}
+              src={logo}
               alt="Ersunny Travel"
               width={160}
               height={160}
@@ -94,7 +124,7 @@ export function PaymentPage() {
             <a href="/" onClick={() => setNavOpen(false)}>
               {t("nav.home")}
             </a>
-            <a href="/#servicios" onClick={() => setNavOpen(false)}>
+            <a href="/#cotizar" onClick={() => setNavOpen(false)}>
               {t("nav.transfers")}
             </a>
             <a href="/excursions" onClick={() => setNavOpen(false)}>

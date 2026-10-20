@@ -11,6 +11,7 @@ type PayPalHostedButtonProps = {
   reservation: Reservation;
   amount?: number | null;
   className?: string;
+  hideTicket?: boolean;
   onPaid?: (reservation: Reservation) => void;
 };
 
@@ -18,6 +19,7 @@ export function PayPalHostedButton({
   reservation,
   amount,
   className,
+  hideTicket = false,
   onPaid,
 }: PayPalHostedButtonProps) {
   const { t } = useI18n();
@@ -25,8 +27,9 @@ export function PayPalHostedButton({
   const containerId = `paypal-buttons-${reactId}`;
   const buttonsRef = useRef<{ close?: () => void } | null>(null);
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [paidOk, setPaidOk] = useState(false);
+  const [open, setOpen] = useState(false);
 
   const ticket = buildPayPalTicket(reservation);
   const price =
@@ -37,9 +40,10 @@ export function PayPalHostedButton({
         : null;
 
   useEffect(() => {
+    if (!open || price == null) return undefined;
     let cancelled = false;
 
-    async function mount() {
+    async function mount(attempt = 0) {
       if (price == null) {
         setLoading(false);
         return;
@@ -55,9 +59,8 @@ export function PayPalHostedButton({
 
         const el = document.getElementById(containerId);
         if (!el) return;
-        el.innerHTML = "";
+        el.replaceChildren();
 
-        buttonsRef.current?.close?.();
         const buttons = paypal.Buttons({
           style: {
             layout: "vertical",
@@ -121,26 +124,23 @@ export function PayPalHostedButton({
             }
           },
           onError: (err) => {
-            if (!cancelled) {
-              const detail =
-                err instanceof Error && err.message
-                  ? err.message
-                  : t("pay.azulError");
-              setError(detail);
-            }
+            const message = err instanceof Error ? err.message : String(err || "");
+            if (/allowpaymentrequest|allowTransparency/i.test(message)) return;
+            if (!cancelled) setError(t("pay.azulError"));
           },
         });
 
         buttonsRef.current = buttons;
         await buttons.render(`#${containerId}`);
       } catch (err) {
-        if (!cancelled) {
-          const detail =
-            err instanceof Error && err.message
-              ? err.message
-              : t("pay.azulError");
-          setError(detail);
+        const message = err instanceof Error ? err.message : "";
+        if (/allowpaymentrequest|allowTransparency/i.test(message)) return;
+        if (!cancelled && /zoid/i.test(message) && attempt < 1) {
+          await new Promise((resolve) => window.setTimeout(resolve, 40));
+          if (!cancelled) await mount(attempt + 1);
+          return;
         }
+        if (!cancelled) setError(t("pay.azulError"));
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -149,10 +149,15 @@ export function PayPalHostedButton({
     void mount();
     return () => {
       cancelled = true;
-      buttonsRef.current?.close?.();
+      const pending = buttonsRef.current;
       buttonsRef.current = null;
+      window.setTimeout(() => {
+        if (buttonsRef.current) return;
+        pending?.close?.();
+      }, 0);
     };
   }, [
+    open,
     containerId,
     onPaid,
     price,
@@ -182,6 +187,7 @@ export function PayPalHostedButton({
 
   return (
     <div className={className ?? "paypal-hosted"}>
+      {!hideTicket && (
       <article className="paypal-ticket" aria-label={t("pay.ticketLabel")}>
         <p className="paypal-ticket__eyebrow">{t("pay.ticketEyebrow")}</p>
         <h3 className="paypal-ticket__id">{reservation.id}</h3>
@@ -209,15 +215,27 @@ export function PayPalHostedButton({
           </div>
           <div>
             <dt>{t("pay.amount")}</dt>
-            <dd>${price} USD</dd>
+            <dd>US${price}</dd>
           </div>
         </dl>
       </article>
+      )}
 
       {paidOk ? (
         <p className="paypal-hosted__success" role="status">
           {t("pay.paypalPaid", { id: reservation.id })}
         </p>
+      ) : !open ? (
+        <button
+          type="button"
+          className="btn-blue cardnet-pay__btn"
+          onClick={() => {
+            setError("");
+            setOpen(true);
+          }}
+        >
+          {t("pay.payAmount", { price })}
+        </button>
       ) : (
         <>
           {loading && !error ? (
