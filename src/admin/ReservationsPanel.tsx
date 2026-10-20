@@ -9,6 +9,7 @@ import {
   type ReservationStatus,
 } from "../reservations";
 import { sendServiceSurvey } from "../reviews";
+import { reviewsEnabled } from "../../shared/features";
 import { useReservations } from "../store/hooks";
 
 const statusLabel: Record<ReservationStatus, string> = {
@@ -100,14 +101,14 @@ export function ReservationsPanel({
     else upsertReservation(saved);
     setEditing(null);
     setCreating(false);
-    if (saved.status === "completed" && !saved.surveySentAt) {
+    if (reviewsEnabled && saved.status === "completed" && !saved.surveySentAt) {
       void requestSurvey(saved.id);
     }
   }
 
   function changeStatus(reservation: Reservation, status: ReservationStatus) {
     updateReservation(reservation.id, { status });
-    if (status === "completed" && !reservation.surveySentAt) {
+    if (reviewsEnabled && status === "completed" && !reservation.surveySentAt) {
       void requestSurvey(reservation.id);
     }
   }
@@ -118,8 +119,9 @@ export function ReservationsPanel({
         <div>
           <h1>Reservas</h1>
           <p>
-            Consulta, edita y crea traslados y excursiones. Al marcar una reserva
-            como completada se envía la encuesta al correo del cliente.
+            {reviewsEnabled
+              ? "Consulta, edita y crea traslados y excursiones. Al marcar una reserva como completada se envía la encuesta al correo del cliente."
+              : "Consulta, edita y crea traslados y excursiones."}
           </p>
           {surveyNote && <p className="admin-ok">{surveyNote}</p>}
         </div>

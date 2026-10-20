@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { reviewsEnabled } from "../shared/features";
 
 export type PublicReview = {
   id: string;
@@ -15,6 +16,11 @@ export function useReviews() {
 
   useEffect(() => {
     let cancelled = false;
+
+    if (!reviewsEnabled) {
+      setReady(true);
+      return;
+    }
 
     async function load() {
       try {

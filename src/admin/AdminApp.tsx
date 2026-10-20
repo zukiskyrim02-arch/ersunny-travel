@@ -24,6 +24,7 @@ import { ExcursionsPanel } from "./ExcursionsPanel";
 import { SitePanel } from "./SitePanel";
 import { PaymentsPanel } from "./PaymentsPanel";
 import { FlightsPanel } from "./FlightsPanel";
+import { flightsEnabled } from "../../shared/features";
 import { MediaPanel } from "./MediaPanel";
 import {
   ExternalIcon,
@@ -218,7 +219,7 @@ export function AdminApp() {
           {tab === "reservations" && (
             <ReservationsPanel query={finder} onQuery={setFinder} />
           )}
-          {tab === "flights" && <FlightsPanel />}
+          {flightsEnabled && tab === "flights" && <FlightsPanel />}
           {tab === "vehicles" && (
             <VehiclesPanel config={draft} onChange={patch} />
           )}

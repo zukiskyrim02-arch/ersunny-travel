@@ -9,6 +9,7 @@ import { navigate } from "./routing";
 import { SiteFooter } from "./SiteFooter";
 import { useI18n } from "./i18n/I18nProvider";
 import { useReviews } from "./reviews";
+import { reviewsEnabled } from "../shared/features";
 import { useAppConfig } from "./store/hooks";
 
 const HERO_IMG = asset("hero-cover.webp");
@@ -621,6 +622,7 @@ export default function App() {
           </div>
         </section>
 
+        {reviewsEnabled && (
         <section
           className="section reviews"
           id="testimonios"
@@ -680,6 +682,7 @@ export default function App() {
             )}
           </div>
         </section>
+        )}
       </main>
 
       <SiteFooter key={locale} onOpenTracker={() => openMenu("tracker")} />

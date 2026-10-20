@@ -1,6 +1,7 @@
 import { clearCookie, readSessionEmail, SESSION_COOKIE } from "./cookies.js";
 import { requestAdminCode, verifyAdminCode, type ApiResult } from "./authFlow.js";
 import { lookupFlights } from "./flights.js";
+import { flightsEnabled, reviewsEnabled } from "../shared/features.js";
 import {
   adminMediaList,
   assignMedia,
@@ -57,13 +58,13 @@ export async function dispatchAdminApi(input: DispatchInput): Promise<ApiResult>
   if (method === "GET" && path === "/api/media/public") {
     return publicMedia();
   }
-  if (method === "GET" && path === "/api/reviews/public") {
+  if (reviewsEnabled && method === "GET" && path === "/api/reviews/public") {
     return publicReviews();
   }
-  if (method === "POST" && path === "/api/reviews/open") {
+  if (reviewsEnabled && method === "POST" && path === "/api/reviews/open") {
     return openReview(input.body);
   }
-  if (method === "POST" && path === "/api/reviews") {
+  if (reviewsEnabled && method === "POST" && path === "/api/reviews") {
     return submitReview(input.body);
   }
 
@@ -88,11 +89,11 @@ export async function dispatchAdminApi(input: DispatchInput): Promise<ApiResult>
     if (!session) return unauthorized();
     return deleteMedia(input.body);
   }
-  if (method === "POST" && path === "/api/flights") {
+  if (flightsEnabled && method === "POST" && path === "/api/flights") {
     if (!session) return unauthorized();
     return lookupFlights(input.body);
   }
-  if (method === "POST" && path === "/api/reviews/invite") {
+  if (reviewsEnabled && method === "POST" && path === "/api/reviews/invite") {
     if (!session) return unauthorized();
     return inviteReview(input.body, input.origin);
   }

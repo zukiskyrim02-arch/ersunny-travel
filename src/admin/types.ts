@@ -1,3 +1,5 @@
+import { flightsEnabled } from "../../shared/features";
+
 export type AdminTab =
   | "overview"
   | "reservations"
@@ -22,12 +24,16 @@ export const ADMIN_TABS: {
     hint: "Pedidos y clientes",
     group: "ops",
   },
-  {
-    id: "flights",
-    label: "Vuelos",
-    hint: "Horario real y hora de recogida",
-    group: "ops",
-  },
+  ...(flightsEnabled
+    ? [
+        {
+          id: "flights" as const,
+          label: "Vuelos",
+          hint: "Horario real y hora de recogida",
+          group: "ops" as const,
+        },
+      ]
+    : []),
   {
     id: "vehicles",
     label: "Traslados",

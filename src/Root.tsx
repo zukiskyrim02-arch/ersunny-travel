@@ -5,6 +5,7 @@ import { ContactPage } from "./ContactPage";
 import { ExcursionsPage } from "./ExcursionsPage";
 import { PaymentPage } from "./PaymentPage";
 import { ReviewPage } from "./ReviewPage";
+import { reviewsEnabled } from "../shared/features";
 import { StaffPickupPage } from "./StaffPickupPage";
 import { ConfirmPickupPage } from "./ConfirmPickupPage";
 import {
@@ -189,7 +190,7 @@ export function Root() {
     clearAzulQueryFromUrl();
   }, []);
 
-  if (path === "/review") {
+  if (reviewsEnabled && path === "/review") {
     return <ReviewPage />;
   }
 
