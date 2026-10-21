@@ -1,5 +1,6 @@
 import { initializeApp, type FirebaseApp } from "firebase/app";
 import {
+  forceWebSockets,
   get,
   getDatabase,
   onValue,
@@ -33,6 +34,8 @@ export function getDb(): Database | null {
   if (typeof window === "undefined") return null;
   if (!firebaseConfig.databaseURL) return null;
   if (!db) {
+    // Long-polling injects scripts from the database host, which the site policy blocks.
+    forceWebSockets();
     app = initializeApp(firebaseConfig);
     db = getDatabase(app);
   }
