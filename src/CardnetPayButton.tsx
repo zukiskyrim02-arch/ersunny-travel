@@ -20,7 +20,7 @@ export function CardnetPayButton({
   reservation,
   amount,
   captchaToken = "",
-  onCaptchaUsed,
+  onCaptchaUsed = () => {},
   onChoose,
   busy = false,
 }: CardnetPayButtonProps) {
@@ -54,7 +54,7 @@ export function CardnetPayButton({
     setError("");
     setLoading(true);
     const token = captchaToken;
-    onCaptchaUsed?.();
+    onCaptchaUsed();
     try {
       const session = await startCardnetCheckout({
         reservation,
