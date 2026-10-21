@@ -24,6 +24,10 @@ type PayPalHostedButtonProps = {
   hideTicket?: boolean;
   captchaToken?: string;
   onCaptchaUsed?: () => void;
+  /** Show the captcha for this button instead of opening PayPal immediately. */
+  onChoose?: () => void;
+  /** Captcha already passed; open the PayPal button. */
+  unlocked?: boolean;
   onPaid?: (reservation: Reservation) => void;
 };
 
@@ -34,6 +38,8 @@ export function PayPalHostedButton({
   hideTicket = false,
   captchaToken = "",
   onCaptchaUsed,
+  onChoose,
+  unlocked = false,
   onPaid,
 }: PayPalHostedButtonProps) {
   const { t } = useI18n();
@@ -43,7 +49,7 @@ export function PayPalHostedButton({
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [paidOk, setPaidOk] = useState(false);
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(unlocked);
   const [checkingCaptcha, setCheckingCaptcha] = useState(false);
 
   const ticket = buildPayPalTicket(reservation);
@@ -53,6 +59,10 @@ export function PayPalHostedButton({
       : reservation.price != null && reservation.price > 0
         ? reservation.price
         : null;
+
+  useEffect(() => {
+    if (unlocked) setOpen(true);
+  }, [unlocked]);
 
   useEffect(() => {
     if (!open || price == null) return undefined;
@@ -274,8 +284,13 @@ export function PayPalHostedButton({
         <button
           type="button"
           className="btn-blue cardnet-pay__btn"
-          disabled={checkingCaptcha || !captchaToken}
+          disabled={checkingCaptcha || (!onChoose && !captchaToken)}
           onClick={() => {
+            if (onChoose) {
+              setError("");
+              onChoose();
+              return;
+            }
             const token = captchaToken;
             if (!token) {
               setError(t("pay.captchaError"));

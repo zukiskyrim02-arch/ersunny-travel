@@ -4,6 +4,10 @@ import { RecaptchaBox, type RecaptchaHandle } from "./payments/RecaptchaBox";
 import { useI18n } from "./i18n/I18nProvider";
 import { PayPalHostedButton } from "./PayPalHostedButton";
 import {
+  redirectToCardnetAuthorize,
+  startCardnetCheckout,
+} from "./payments/cardnet";
+import {
   clearCardnetQueryFromUrl,
   readCardnetReturnFromUrl,
   verifyCardnetPayment,
@@ -35,8 +39,13 @@ export function PaymentSection({ reservation: initial }: PaymentSectionProps) {
   const [reservation, setReservation] = useState(initial);
   const [copiedId, setCopiedId] = useState(false);
   const [cardnetBanner, setCardnetBanner] = useState<string | null>(null);
-  const [captchaToken, setCaptchaToken] = useState("");
   const captchaRef = useRef<RecaptchaHandle>(null);
+  const [method, setMethod] = useState<"card" | "paypal" | null>(null);
+  const [paypalUnlocked, setPaypalUnlocked] = useState(false);
+  const [paying, setPaying] = useState(false);
+  const [payError, setPayError] = useState("");
+  const methodRef = useRef<"card" | "paypal" | null>(null);
+  const payingRef = useRef(false);
   const [verifying, setVerifying] = useState(false);
   const isExcursion = reservation.kind === "excursion";
   const alreadyPaid = reservation.status === "paid";
@@ -126,178 +135,214 @@ export function PaymentSection({ reservation: initial }: PaymentSectionProps) {
     reservation.pickupTime && reservation.pickupTime !== "To be confirmed"
       ? reservation.pickupTime
       : t("pay.toConfirm");
+  const priceLabel =
+    reservation.price == null ? t("pay.toConfirm") : `US$${reservation.price}`;
+  const usdDopRate = Number(import.meta.env.VITE_USD_DOP_RATE || "") || 61.45;
+  const dop =
+    reservation.price != null && reservation.price > 0
+      ? Math.round(reservation.price * usdDopRate * 100) / 100
+      : null;
+  const originLabel = isExcursion
+    ? reservation.hotelPickup || reservation.origin
+    : reservation.origin;
+
+  function chooseMethod(next: "card" | "paypal") {
+    if (payingRef.current) return;
+    setPayError("");
+    if (methodRef.current === next) return;
+    methodRef.current = next;
+    setMethod(next);
+  }
+
+  async function onCaptchaToken(token: string) {
+    const chosen = methodRef.current;
+    if (!token || !chosen || payingRef.current) return;
+    if (chosen === "card" && (reservation.price == null || reservation.price <= 0)) return;
+    payingRef.current = true;
+    setPaying(true);
+    setPayError("");
+    try {
+      if (chosen === "card") {
+        const session = await startCardnetCheckout({
+          reservation,
+          amountUsd: reservation.price!,
+          captchaToken: token,
+          pageLanguage: locale === "es" ? "ESP" : "ING",
+        });
+        redirectToCardnetAuthorize(session);
+        return;
+      }
+      const res = await fetch("/api/cardnet/session", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify({ intent: "paypal", captchaToken: token }),
+      });
+      const body = (await res.json().catch(() => ({}))) as { error?: string };
+      if (!res.ok || body.error) {
+        setPayError(
+          body.error === "rate_limited" ? t("pay.rateLimited") : t("pay.captchaError"),
+        );
+        methodRef.current = null;
+        setMethod(null);
+        return;
+      }
+      setPaypalUnlocked(true);
+      methodRef.current = null;
+      setMethod(null);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "";
+      setPayError(
+        message === "captcha"
+          ? t("pay.captchaError")
+          : message === "rate_limited"
+            ? t("pay.rateLimited")
+            : message === "amount" || message === "reservation_price"
+              ? t("pay.amountMismatch")
+              : message || t("pay.cardnetError"),
+      );
+      methodRef.current = null;
+      setMethod(null);
+    } finally {
+      payingRef.current = false;
+      setPaying(false);
+      captchaRef.current?.reset();
+    }
+  }
 
   return (
-    <section className="section section--confirm" id="pago">
-      <div className="container confirm">
-        <div className="confirm__hero">
-          <div className="confirm__badge" aria-hidden>
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
-              <rect
-                x="4"
-                y="5"
-                width="16"
-                height="15"
-                rx="2"
-                stroke="currentColor"
-                strokeWidth="1.8"
-              />
-              <path
-                d="M8 3.5v3M16 3.5v3M4 9.5h16"
-                stroke="currentColor"
-                strokeWidth="1.8"
-                strokeLinecap="round"
-              />
-              <path
-                d="M8.5 14.5 10.8 16.8 15.5 12"
-                stroke="currentColor"
-                strokeWidth="1.8"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </div>
-          <h1>{t("pay.title")}</h1>
-          <div className="confirm__ref">
-            <span>{t("pay.reservationNumber")}</span>
-            <strong>{reservation.id}</strong>
-            <button
-              type="button"
-              className="copy-btn"
-              onClick={() => void copyId()}
-            >
+    <section className="section pay-screen" id="pago">
+      <div className="container pay-screen__wrap">
+        <header className="pay-screen__head">
+          <p className="pay-screen__eyebrow">{t("pay.title")}</p>
+          <h1>{serviceSubtitle}</h1>
+          <div className="pay-screen__id">
+            <span>{reservation.id}</span>
+            <button type="button" className="copy-btn" onClick={() => void copyId()}>
               {copiedId ? t("pay.copied") : t("pay.copy")}
             </button>
           </div>
-        </div>
+        </header>
 
         {(cardnetBanner || verifying) && (
           <p
-            className={`confirm__banner${alreadyPaid ? " confirm__banner--ok" : ""}`}
+            className={`pay-alert${alreadyPaid ? " pay-alert--ok" : " pay-alert--warn"}`}
             role="status"
           >
             {verifying ? t("pay.cardnetVerifying") : cardnetBanner}
           </p>
         )}
 
-        <article className="confirm__card">
-          <div className="confirm__card-head">
-            <div className="confirm__service-thumb" aria-hidden>
-              {isExcursion ? "☀" : "🚐"}
-            </div>
-            <div>
-              <p className="confirm__service-label">
-                {isExcursion ? t("pay.excursion") : t("pay.transfer")}
-              </p>
-              <h3>{serviceSubtitle}</h3>
-              <p className="confirm__service-id">{reservation.id}</p>
-            </div>
-          </div>
-
-          <div className="confirm__meta">
-            <div>
-              <span>{t("pay.date")}</span>
-              <strong>{dateLabel}</strong>
-            </div>
-            <div>
-              <span>{t("pay.pickupTime")}</span>
-              <strong>{pickupTimeLabel}</strong>
-            </div>
-          </div>
-
-          <div className="confirm__route">
-            <p className="confirm__route-title">
-              {isExcursion ? t("pay.details") : t("pay.route")}
+        <div className="pay-screen__grid">
+          <article className="pay-summary">
+            <p className="pay-summary__kind">
+              {isExcursion ? t("pay.excursion") : t("pay.transfer")}
             </p>
-            <ol className="confirm__timeline">
-              <li>
-                <span className="confirm__dot confirm__dot--start" />
+            <dl className="pay-summary__facts">
+              <div>
+                <dt>{t("pay.date")}</dt>
+                <dd>{dateLabel}</dd>
+              </div>
+              <div>
+                <dt>{t("pay.pickupTime")}</dt>
+                <dd>{pickupTimeLabel}</dd>
+              </div>
+              <div>
+                <dt>{t("pay.passengers")}</dt>
+                <dd>{reservation.passengers}</dd>
+              </div>
+              <div>
+                <dt>{t("pay.serviceType")}</dt>
+                <dd>
+                  {isExcursion
+                    ? t("pay.excursionType")
+                    : reservation.wantReturn
+                      ? t("pay.privateRound")
+                      : t("pay.privateOne")}
+                </dd>
+              </div>
+              {!isExcursion && (
                 <div>
-                  <small>{t("pay.origin")}</small>
-                  <strong>
-                    {isExcursion
-                      ? reservation.hotelPickup || reservation.origin
-                      : reservation.origin}
-                  </strong>
+                  <dt>{t("pay.vehicle")}</dt>
+                  <dd>{reservation.vehicle}</dd>
                 </div>
+              )}
+            </dl>
+            <ol className="pay-summary__route">
+              <li>
+                <span>{t("pay.origin")}</span>
+                <strong>{originLabel}</strong>
               </li>
               <li>
-                <span className="confirm__dot confirm__dot--end" />
-                <div>
-                  <small>
-                    {isExcursion ? t("pay.excursionType") : t("pay.destination")}
-                  </small>
-                  <strong>{reservation.destination}</strong>
-                </div>
+                <span>
+                  {isExcursion ? t("pay.excursionType") : t("pay.destination")}
+                </span>
+                <strong>{reservation.destination}</strong>
               </li>
             </ol>
-          </div>
+          </article>
 
-          <div className="confirm__meta confirm__meta--footer">
-            <div>
-              <span>{t("pay.passengers")}</span>
-              <strong>{reservation.passengers}</strong>
+          <aside className="pay-checkout" id="datos-pago">
+            <div className="pay-checkout__amount">
+              <span>{t("pay.amount")}</span>
+              <strong>{priceLabel}</strong>
+              {dop != null && (
+                <p>
+                  {t("pay.cardnetDop", {
+                    amount: dop.toLocaleString("en-US", {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    }),
+                  })}
+                </p>
+              )}
             </div>
-            <div>
-              <span>{t("pay.serviceType")}</span>
-              <strong>
-                {isExcursion
-                  ? t("pay.excursionType")
-                  : reservation.wantReturn
-                    ? t("pay.privateRound")
-                    : t("pay.privateOne")}
-              </strong>
-            </div>
-            {!isExcursion && (
-              <div>
-                <span>{t("pay.vehicle")}</span>
-                <strong>{reservation.vehicle}</strong>
+
+            {alreadyPaid ? (
+              <p className="pay-alert pay-alert--ok" role="status">
+                {t("pay.alreadyPaid", { id: reservation.id })}
+              </p>
+            ) : (
+              <div className="pay-checkout__methods">
+                <div className="pay-method">
+                  <CardnetPayButton
+                    reservation={reservation}
+                    amount={reservation.price}
+                    onChoose={() => chooseMethod("card")}
+                    busy={paying && method === "card"}
+                  />
+                  {method === "card" && (
+                    <RecaptchaBox
+                      key="card"
+                      ref={captchaRef}
+                      onToken={(token) => void onCaptchaToken(token)}
+                    />
+                  )}
+                </div>
+                <p className="pay-checkout__or">{t("pay.or")}</p>
+                <div className="pay-method">
+                  <PayPalHostedButton
+                    reservation={reservation}
+                    amount={reservation.price}
+                    hideTicket
+                    onChoose={() => chooseMethod("paypal")}
+                    unlocked={paypalUnlocked}
+                  />
+                  {method === "paypal" && !paypalUnlocked && (
+                    <RecaptchaBox
+                      key="paypal"
+                      ref={captchaRef}
+                      onToken={(token) => void onCaptchaToken(token)}
+                    />
+                  )}
+                </div>
+                {payError && (
+                  <p className="form-error" role="alert">
+                    {payError}
+                  </p>
+                )}
               </div>
             )}
-            <div>
-              <span>{t("pay.amount")}</span>
-              <strong>
-                {reservation.price == null
-                  ? t("pay.toConfirm")
-                  : `US$${reservation.price}`}
-              </strong>
-            </div>
-          </div>
-        </article>
-
-        <div className="confirm__pay payment-form" id="datos-pago">
-          <h2>{t("pay.methodsTitle")}</h2>
-          <p>
-            {reservation.price == null
-              ? t("pay.methodsLeadPending")
-              : t("pay.methodsLead", { price: reservation.price })}
-          </p>
-
-          {alreadyPaid ? (
-            <p className="confirm__banner confirm__banner--ok" role="status">
-              {t("pay.alreadyPaid", { id: reservation.id })}
-            </p>
-          ) : (
-            <div className="pay-options">
-              <RecaptchaBox ref={captchaRef} onToken={setCaptchaToken} />
-              <CardnetPayButton
-                reservation={reservation}
-                amount={reservation.price}
-                captchaToken={captchaToken}
-                onCaptchaUsed={() => captchaRef.current?.reset()}
-              />
-              <div className="pay-divider" aria-hidden>
-                <span>{t("pay.or")}</span>
-              </div>
-              <PayPalHostedButton
-                reservation={reservation}
-                amount={reservation.price}
-                hideTicket
-                captchaToken={captchaToken}
-                onCaptchaUsed={() => captchaRef.current?.reset()}
-              />
-            </div>
-          )}
+          </aside>
         </div>
       </div>
     </section>

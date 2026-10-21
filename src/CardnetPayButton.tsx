@@ -9,15 +9,20 @@ import type { Reservation } from "./reservations";
 type CardnetPayButtonProps = {
   reservation: Reservation;
   amount: number | null;
-  captchaToken: string;
-  onCaptchaUsed: () => void;
+  captchaToken?: string;
+  onCaptchaUsed?: () => void;
+  /** Show the captcha for this button instead of paying immediately. */
+  onChoose?: () => void;
+  busy?: boolean;
 };
 
 export function CardnetPayButton({
   reservation,
   amount,
-  captchaToken,
+  captchaToken = "",
   onCaptchaUsed,
+  onChoose,
+  busy = false,
 }: CardnetPayButtonProps) {
   const { t, locale } = useI18n();
   const [loading, setLoading] = useState(false);
@@ -37,6 +42,11 @@ export function CardnetPayButton({
   }
 
   async function onPayClick() {
+    if (onChoose) {
+      setError("");
+      onChoose();
+      return;
+    }
     if (!captchaToken) {
       setError(t("pay.captchaError"));
       return;
@@ -80,7 +90,7 @@ export function CardnetPayButton({
       <button
         type="button"
         className="btn-blue cardnet-pay__btn"
-        disabled={loading || !captchaToken}
+        disabled={loading || busy || (!onChoose && !captchaToken)}
         onClick={() => void onPayClick()}
       >
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
@@ -101,7 +111,7 @@ export function CardnetPayButton({
             strokeLinecap="round"
           />
         </svg>
-        {loading
+        {loading || busy
           ? t("pay.cardnetConnecting")
           : t("pay.cardnetPayAmount", { price: amount })}
       </button>

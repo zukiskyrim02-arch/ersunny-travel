@@ -5,7 +5,6 @@ import { adminDevApi } from "./server/devApi.js";
 import { applyEnvFile } from "./server/envFile.js";
 import { readJsonObject } from "./server/paymentGuards.js";
 import { postCardnetSession, postCardnetVerify } from "./server/paymentRoute.js";
-import { securityHeaderRecord } from "./server/securityHeaders.js";
 
 /** Local `/api/cardnet/*` for Vite so Cardnet works without `vercel dev`. */
 function cardnetDevApi(): Plugin {
@@ -100,8 +99,5 @@ export default defineConfig(({ mode }) => {
     plugins: [react(), cardnetDevApi(), adminDevApi()],
     base: process.env.VITE_BASE || "/",
     appType: "spa",
-    server: {
-      headers: securityHeaderRecord({ upgradeInsecure: false }),
-    },
   };
 });
