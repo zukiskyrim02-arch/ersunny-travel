@@ -80,6 +80,12 @@ test("Cardnet routes do not allow every origin", () => {
   assert.equal(verify.includes("Access-Control-Allow-Origin"), false);
 });
 
+test("booking notices do not use the FormSubmit table", () => {
+  const src = fs.readFileSync(new URL("../src/notifyBooking.ts", import.meta.url), "utf8");
+  assert.equal(src.includes("formsubmit.co"), false);
+  assert.equal(src.includes("_template"), false);
+});
+
 test("vercel.json publishes the security headers", () => {
   const vercel = JSON.parse(
     fs.readFileSync(new URL("../vercel.json", import.meta.url), "utf8"),

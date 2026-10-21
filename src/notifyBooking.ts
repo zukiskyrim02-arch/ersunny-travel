@@ -1,183 +1,74 @@
 import {
-  customerBookingReceivedEmail,
-  customerPaymentConfirmEmail,
-  customerPickupReadyEmail,
-} from "./emailTemplates";
-import { getSiteContact } from "./store/config";
-import {
   customerConfirmPickupUrl,
   getReservationEmail,
-  staffPickupFormUrl,
   type Reservation,
 } from "./reservations";
 
-type NotifyPayload = Record<string, string>;
+type Notice = "request" | "paid" | "pickup" | "confirmed";
 
-/** Notify company inbox with booking details (FormSubmit, no backend required). */
-export async function sendBookingNotification(
-  payload: NotifyPayload,
-): Promise<void> {
-  const contact = getSiteContact();
-  const res = await fetch(
-    `https://formsubmit.co/ajax/${encodeURIComponent(contact.email)}`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-      },
-      body: JSON.stringify({
-        _subject: payload._subject || "New Ersunny Travel booking",
-        _template: "box",
-        _captcha: "false",
-        ...payload,
-      }),
-      signal: AbortSignal.timeout(8000),
-    },
-  );
-
-  if (!res.ok) {
-    throw new Error("Could not send confirmation email.");
-  }
-}
-
-function withCustomerEmail(
+/** Designed company and customer mail. FormSubmit's gray table is not used. */
+async function sendDesignedNotice(
+  notice: Notice,
   reservation: Reservation,
-  autoresponseHtml: string,
-): NotifyPayload {
-  const customerEmail = getReservationEmail(reservation);
-  if (!customerEmail) return {};
-  return {
-    email: customerEmail,
-    replyto: customerEmail,
-    _autoresponse: autoresponseHtml,
-  };
+  confirmUrl = "",
+): Promise<void> {
+  const res = await fetch("/api/cardnet/session", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Accept: "application/json" },
+    body: JSON.stringify({
+      intent: "booking-email",
+      notice,
+      reservationId: reservation.id,
+      name: reservation.name,
+      contactInfo: reservation.contactInfo,
+      email: getReservationEmail(reservation) || "",
+      origin: reservation.origin,
+      destination: reservation.destination,
+      date: reservation.date,
+      returnDate: reservation.returnDate || "",
+      passengers: reservation.passengers,
+      vehicle: reservation.vehicle,
+      price: reservation.price,
+      kind: reservation.kind,
+      hotelPickup: reservation.hotelPickup || "",
+      flight: reservation.flight || "",
+      notes: reservation.notes || "",
+      pickupTime: reservation.pickupTime || "",
+      returnTime: reservation.returnTime || "",
+      confirmUrl,
+    }),
+  });
+  if (!res.ok) throw new Error("Could not send confirmation email.");
 }
 
-/** New transfer request → staff inbox + styled customer confirmation. */
+/** New transfer request → company inbox and customer. */
 export async function sendTransferBookingEmails(
   reservation: Reservation,
-  extras: {
-    service: string;
-    transferType: string;
-    adults: string;
-    children: string;
-    whatsapp: string;
-    arrivalAirline: string;
-    arrivalFlight: string;
-    departureAirline?: string;
-    departureFlight?: string;
-  },
+  _extras?: unknown,
 ): Promise<void> {
-  const contact = getSiteContact();
-  const customerEmail = getReservationEmail(reservation) ?? "";
-
-  await sendBookingNotification({
-    _subject: `New transfer booking · ${reservation.id}`,
-    Guest: reservation.name,
-    Email: customerEmail || "not provided",
-    WhatsApp: extras.whatsapp,
-    "Reservation ID": reservation.id,
-    Service: extras.service,
-    "Transfer type": extras.transferType,
-    Route: `${reservation.origin} → ${reservation.destination}`,
-    Date: reservation.date,
-    "Return date": reservation.returnDate ?? "—",
-    Adults: extras.adults,
-    Children: extras.children,
-    Passengers: String(reservation.passengers),
-    Hotel: reservation.hotelPickup ?? "—",
-    Vehicle: reservation.vehicle,
-    "Price (USD)":
-      reservation.price != null ? String(reservation.price) : "TBC",
-    "Arrival airline": extras.arrivalAirline,
-    "Arrival flight": extras.arrivalFlight,
-    "Departure airline": extras.departureAirline ?? "—",
-    "Departure flight": extras.departureFlight ?? "—",
-    ...withCustomerEmail(
-      reservation,
-      customerBookingReceivedEmail(reservation, contact),
-    ),
-  });
+  await sendDesignedNotice("request", reservation);
 }
 
-/** After payment: company gets all data + link/button to set pickup times. */
+/**
+ * Paid notices are sent by the server when the charge is confirmed.
+ * Calling FormSubmit here used to deliver the gray table.
+ */
 export async function sendPaidBookingEmails(
-  reservation: Reservation,
+  _reservation: Reservation,
 ): Promise<void> {
-  const contact = getSiteContact();
-  const customerEmail = getReservationEmail(reservation);
-  const setPickupLink = staffPickupFormUrl(reservation);
-
-  await sendBookingNotification({
-    _subject: `Paid booking ${reservation.id} — set pickup times`,
-    Status: "Paid",
-    Guest: reservation.name,
-    Email: customerEmail ?? "not provided",
-    Contact: reservation.contactInfo,
-    "Reservation ID": reservation.id,
-    Service: reservation.notes ?? reservation.kind,
-    Route: `${reservation.origin} → ${reservation.destination}`,
-    Date: reservation.date,
-    "Return date": reservation.returnDate ?? "—",
-    Passengers: String(reservation.passengers),
-    Vehicle: reservation.vehicle,
-    "Price (USD)":
-      reservation.price != null ? String(reservation.price) : "—",
-    Flight: reservation.flight ?? "—",
-    "Round trip": reservation.wantReturn ? "Yes" : "No",
-    "Set pickup times": setPickupLink,
-    ...withCustomerEmail(
-      reservation,
-      customerPaymentConfirmEmail(reservation, contact),
-    ),
-  });
+  return;
 }
 
-/** Staff saved times → email customer a confirm link; copy to company. */
+/** Staff saved times → customer confirm link, with a copy to the company. */
 export async function sendPickupTimesToCustomer(
   reservation: Reservation,
 ): Promise<void> {
-  const contact = getSiteContact();
-  const customerEmail = getReservationEmail(reservation);
-  const confirmLink = customerConfirmPickupUrl(reservation);
-  const pickup = `${reservation.date} at ${reservation.pickupTime}`;
-  const returnPickup =
-    reservation.wantReturn && reservation.returnDate
-      ? `${reservation.returnDate} at ${reservation.returnTime}`
-      : "—";
-
-  await sendBookingNotification({
-    _subject: `Pickup times set · ${reservation.id}`,
-    Guest: reservation.name,
-    Email: customerEmail ?? "not provided",
-    "Reservation ID": reservation.id,
-    Pickup: pickup,
-    Return: returnPickup,
-    "Customer confirm link": confirmLink,
-    ...withCustomerEmail(
-      reservation,
-      customerPickupReadyEmail(reservation, confirmLink, contact),
-    ),
-  });
+  await sendDesignedNotice("pickup", reservation, customerConfirmPickupUrl(reservation));
 }
 
-/** Customer clicked confirm on the assigned schedule. */
+/** Customer confirmed the assigned schedule. */
 export async function sendCustomerConfirmedPickup(
   reservation: Reservation,
 ): Promise<void> {
-  const customerEmail = getReservationEmail(reservation);
-  await sendBookingNotification({
-    _subject: `Customer confirmed pickup · ${reservation.id}`,
-    Guest: reservation.name,
-    Email: customerEmail ?? "not provided",
-    Contact: reservation.contactInfo,
-    "Reservation ID": reservation.id,
-    Pickup: `${reservation.date} · ${reservation.pickupTime}`,
-    Return:
-      reservation.wantReturn && reservation.returnDate
-        ? `${reservation.returnDate} · ${reservation.returnTime}`
-        : "—",
-    ...(customerEmail ? { email: customerEmail, replyto: customerEmail } : {}),
-  });
+  await sendDesignedNotice("confirmed", reservation);
 }

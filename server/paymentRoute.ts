@@ -22,7 +22,7 @@ import {
   shouldMarkReservationPaid,
   validatePresentFields,
 } from "./paymentGuards.js";
-import { notifyCompanyOfPayment } from "./companyMail.js";
+import { mailFromBody, notifyCompanyOfPayment, sendDesignedBookingEmails, type BookingNotice } from "./companyMail.js";
 import { capturePayPalOrder } from "./paypal.js";
 import { readReservationPrice } from "./reservationPrice.js";
 
@@ -51,6 +51,34 @@ export async function postCardnetSession(
 ): Promise<PaymentResponse> {
   const invalid = validatePresentFields(body);
   if (invalid) return { status: 400, json: { error: invalid } };
+
+  if (body.intent === "booking-email") {
+    const gate = limited(remoteIp, "booking-email", 12);
+    if (gate) return gate;
+    const notice = String(body.notice || "");
+    const allowed: BookingNotice[] = ["request", "paid", "pickup", "confirmed"];
+    if (!allowed.includes(notice as BookingNotice)) {
+      return { status: 400, json: { error: "notice" } };
+    }
+    const reservation = mailFromBody(body);
+    if (!parseReservationId(reservation.id || "")) {
+      return { status: 400, json: { error: "reservation_id" } };
+    }
+    try {
+      await sendDesignedBookingEmails({
+        notice: notice as BookingNotice,
+        reservation,
+        confirmUrl: String(body.confirmUrl || ""),
+      });
+    } catch (err) {
+      console.error(
+        "[mail] booking notice failed",
+        err instanceof Error ? err.message : err,
+      );
+      return { status: 502, json: { error: "send_failed" } };
+    }
+    return { status: 200, json: { ok: true } };
+  }
 
   if (body.intent === "paypal") {
     const gate = limited(remoteIp, "paypal-open", 20);
