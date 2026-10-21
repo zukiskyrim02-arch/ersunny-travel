@@ -40,22 +40,21 @@ export function PaymentPage() {
 
   const reservation = useMemo(() => {
     if (!queryId) return undefined;
-    const local = findReservation(queryId);
-    if (local) return local;
-    return fetched && fetched.id.toUpperCase() === queryId.toUpperCase()
-      ? fetched
-      : undefined;
+    const remote =
+      fetched && fetched.id.toUpperCase() === queryId.toUpperCase() ? fetched : undefined;
+    if (remote) return remote;
+    return findReservation(queryId);
   }, [queryId, fetched]);
 
   useEffect(() => {
-    if (!queryId || findReservation(queryId)) return;
+    if (!queryId) return;
     let cancelled = false;
     void fetchReservationFromFirebase(queryId).then((found) => {
       if (cancelled) return;
       if (found) {
         setFetched(found);
         setErrorKey("");
-      } else {
+      } else if (!findReservation(queryId)) {
         setErrorKey("pay.notFound");
       }
     });

@@ -13,6 +13,8 @@ import {
   verifyCardnetPayment,
 } from "./payments/cardnet";
 import {
+  ensureReservationSaved,
+  fetchReservationFromFirebase,
   findReservation,
   updateReservation,
   type Reservation,
@@ -157,15 +159,24 @@ export function PaymentSection({ reservation: initial }: PaymentSectionProps) {
   async function onCaptchaToken(token: string) {
     const chosen = methodRef.current;
     if (!token || !chosen || payingRef.current) return;
-    if (chosen === "card" && (reservation.price == null || reservation.price <= 0)) return;
     payingRef.current = true;
     setPaying(true);
     setPayError("");
     try {
+      const saved = await fetchReservationFromFirebase(reservation.id);
+      const current = saved?.price != null ? saved : reservation;
+      if (!saved) await ensureReservationSaved(current);
+      if (saved) setReservation(saved);
       if (chosen === "card") {
+        if (current.price == null || current.price <= 0) {
+          setPayError(t("pay.pricePending"));
+          methodRef.current = null;
+          setMethod(null);
+          return;
+        }
         const session = await startCardnetCheckout({
-          reservation,
-          amountUsd: reservation.price!,
+          reservation: current,
+          amountUsd: current.price,
           captchaToken: token,
           pageLanguage: locale === "es" ? "ESP" : "ING",
         });
@@ -191,15 +202,26 @@ export function PaymentSection({ reservation: initial }: PaymentSectionProps) {
       setMethod(null);
     } catch (err) {
       const message = err instanceof Error ? err.message : "";
-      setPayError(
-        message === "captcha"
-          ? t("pay.captchaError")
-          : message === "rate_limited"
-            ? t("pay.rateLimited")
-            : message === "amount" || message === "reservation_price"
-              ? t("pay.amountMismatch")
-              : message || t("pay.cardnetError"),
-      );
+      const savedPrice =
+        err && typeof err === "object" && "price" in err
+          ? Number((err as { price?: number }).price)
+          : NaN;
+      if (message === "amount" && Number.isFinite(savedPrice) && savedPrice > 0) {
+        setReservation((current) => ({ ...current, price: savedPrice }));
+        setPayError(t("pay.savedPrice", { price: savedPrice }));
+      } else {
+        setPayError(
+          message === "captcha"
+            ? t("pay.captchaError")
+            : message === "rate_limited"
+              ? t("pay.rateLimited")
+              : message === "reservation_price"
+                ? t("pay.priceUnconfirmed")
+                : message === "amount"
+                  ? t("pay.amountMismatch")
+                  : message || t("pay.cardnetError"),
+        );
+      }
       methodRef.current = null;
       setMethod(null);
     } finally {

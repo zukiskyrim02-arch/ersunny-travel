@@ -58,6 +58,24 @@ export function canChargeStoredPrice(
   return amountsMatch(stored, requested);
 }
 
+/**
+ * Dollars to charge. Accepts the saved USD price, or the peso amount of that
+ * same price, and always returns the saved dollars.
+ */
+export function acceptedChargeUsd(
+  stored: number | null,
+  requested: number,
+  pesosPerDollar: number,
+): number | null {
+  const saved = stored == null ? null : parseAmountUsd(stored);
+  if (saved == null) return null;
+  if (amountsMatch(saved, requested)) return saved;
+  if (!Number.isFinite(pesosPerDollar) || pesosPerDollar <= 0) return null;
+  const dop = Math.round(saved * pesosPerDollar * 100) / 100;
+  if (amountsMatch(dop, requested)) return saved;
+  return null;
+}
+
 export function shouldMarkReservationPaid(input: {
   providerApproved: boolean;
   orderMatches: boolean;

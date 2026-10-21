@@ -55,11 +55,15 @@ export function stripUndefined<T>(value: T): T {
 }
 
 export function dbSet(path: string, value: unknown): void {
-  const database = getDb();
-  if (!database) return;
-  void set(ref(database, path), stripUndefined(value)).catch((err) => {
+  void dbSetAsync(path, value).catch((err) => {
     console.warn(`[firebase] write failed (${path})`, err);
   });
+}
+
+export async function dbSetAsync(path: string, value: unknown): Promise<void> {
+  const database = getDb();
+  if (!database) return;
+  await set(ref(database, path), stripUndefined(value));
 }
 
 export function dbRemove(path: string): void {

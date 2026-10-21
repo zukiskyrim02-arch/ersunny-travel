@@ -4,6 +4,7 @@ import test from "node:test";
 import { cardnetOrderMatches, isCardnetApproved } from "./cardnet.ts";
 import {
   approvalFromBrowserReturn,
+  acceptedChargeUsd,
   canChargeStoredPrice,
   paymentAllowsAnyOrigin,
   shouldMarkReservationPaid,
@@ -25,6 +26,10 @@ test("a different amount does not open a card session", () => {
   assert.equal(canChargeStoredPrice(120, 120), true);
   assert.equal(canChargeStoredPrice(120, 119.99), false);
   assert.equal(canChargeStoredPrice(null, 120), false);
+  assert.equal(acceptedChargeUsd(130, 130, 61.45), 130);
+  assert.equal(acceptedChargeUsd(130, 7988.5, 61.45), 130);
+  assert.equal(acceptedChargeUsd(130, 90, 61.45), null);
+  assert.equal(acceptedChargeUsd(null, 130, 61.45), null);
 });
 
 test("returning to the success page is not a payment", () => {

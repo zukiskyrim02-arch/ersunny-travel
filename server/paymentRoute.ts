@@ -13,6 +13,7 @@ import {
 } from "./cardnet.js";
 import { cardnetStateCookie, clearCardnetCookie, readCardnetState } from "./cookies.js";
 import {
+  acceptedChargeUsd,
   canChargeStoredPrice,
   consumeIpLimit,
   parseAmountUsd,
@@ -99,15 +100,23 @@ export async function postCardnetSession(
   if (!origin) return { status: 400, json: { error: "origin required" } };
 
   const stored = await readReservationPrice(reservationId);
-  if (!canChargeStoredPrice(stored, amountUsd)) {
-    return { status: 400, json: { error: stored == null ? "reservation_price" : "amount" } };
+  const pesosPerDollar = Number(process.env.CARDNET_USD_DOP_RATE || "") || 61.45;
+  const chargeUsd = acceptedChargeUsd(stored, amountUsd, pesosPerDollar);
+  if (chargeUsd == null) {
+    return {
+      status: 400,
+      json: {
+        error: stored == null ? "reservation_price" : "amount",
+        ...(stored != null ? { price: stored } : {}),
+      },
+    };
   }
 
   const config = getCardnetConfig();
   const returnUrl = cardnetReturnUrl(origin, reservationId, "return");
   const cancelUrl = cardnetReturnUrl(origin, reservationId, "cancel");
   const created = await createCardnetSession(config, {
-    amountUsd,
+    amountUsd: chargeUsd,
     reservationId,
     returnUrl,
     cancelUrl,
@@ -121,7 +130,7 @@ export async function postCardnetSession(
     session: created.session,
     sk: created.sessionKey,
     reservationId,
-    amount: amountUsd,
+    amount: chargeUsd,
   });
   return {
     status: 200,

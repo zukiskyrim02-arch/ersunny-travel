@@ -38,7 +38,7 @@ export type Reservation = {
   authorizationCode?: string;
 };
 
-import { dbGet, dbRemove, dbSet, dbSubscribe } from "./firebase";
+import { dbGet, dbRemove, dbSet, dbSetAsync, dbSubscribe } from "./firebase";
 
 const STORAGE_KEY = "ersunny-reservations";
 
@@ -48,6 +48,11 @@ function reservationKey(id: string): string {
 
 function pushReservation(reservation: Reservation) {
   dbSet(`reservations/${reservationKey(reservation.id)}`, reservation);
+}
+
+/** Write the reservation and wait, so a payment can read the same price. */
+export async function ensureReservationSaved(reservation: Reservation): Promise<void> {
+  await dbSetAsync(`reservations/${reservationKey(reservation.id)}`, reservation);
 }
 
 export function getReservationEmail(reservation: Reservation): string | undefined {

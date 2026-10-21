@@ -93,17 +93,20 @@ export async function startCardnetCheckout(opts: {
     }),
   });
   const text = await res.text();
-  let data: (CardnetSessionResponse & { error?: string }) | null = null;
+  let data: (CardnetSessionResponse & { error?: string; price?: number }) | null = null;
   try {
-    data = JSON.parse(text) as CardnetSessionResponse & { error?: string };
+    data = JSON.parse(text) as CardnetSessionResponse & { error?: string; price?: number };
   } catch {
     throw new Error(
       "Card payment service is unavailable. Please try again.",
     );
   }
-  if (!res.ok || !data.session) {
-    if (data.error === "captcha") throw new Error("captcha");
-    throw new Error(data.error || "Could not start card payment.");
+  if (!res.ok || !data?.session) {
+    const error = new Error(data?.error || "Could not start card payment.") as Error & {
+      price?: number;
+    };
+    if (typeof data?.price === "number") error.price = data.price;
+    throw error;
   }
   return data;
 }

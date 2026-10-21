@@ -34,7 +34,10 @@ export function databaseUrl() {
     process.env.FIREBASE_DATABASE_URL ||
     process.env.VITE_FIREBASE_DATABASE_URL ||
     ""
-  ).replace(/\/$/, "");
+  )
+    .trim()
+    .replace(/^['"]|['"]$/g, "")
+    .replace(/\/$/, "");
 }
 
 export function firebaseAdminReady() {
