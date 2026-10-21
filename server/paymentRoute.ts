@@ -22,6 +22,7 @@ import {
   shouldMarkReservationPaid,
   validatePresentFields,
 } from "./paymentGuards.js";
+import { notifyCompanyOfPayment } from "./companyMail.js";
 import { capturePayPalOrder } from "./paypal.js";
 import { readReservationPrice } from "./reservationPrice.js";
 
@@ -73,6 +74,16 @@ export async function postCardnetSession(
       orderMatches: true,
       amountMatches: true,
     });
+    if (paid) {
+      try {
+        await notifyCompanyOfPayment(captured.reservationId);
+      } catch (err) {
+        console.error(
+          "[mail] company notice failed",
+          err instanceof Error ? err.message : err,
+        );
+      }
+    }
     return {
       status: 200,
       json: {
@@ -174,6 +185,16 @@ export async function postCardnetVerify(
     orderMatches: cardnetOrderMatches(result, payload.reservationId),
     amountMatches: canChargeStoredPrice(stored, payload.amount),
   });
+  if (approved) {
+    try {
+      await notifyCompanyOfPayment(payload.reservationId);
+    } catch (err) {
+      console.error(
+        "[mail] company notice failed",
+        err instanceof Error ? err.message : err,
+      );
+    }
+  }
 
   return {
     status: 200,
