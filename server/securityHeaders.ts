@@ -5,7 +5,7 @@ export const CONTENT_SECURITY_POLICY = [
   "base-uri 'self'",
   "object-src 'none'",
   "frame-ancestors 'none'",
-  "script-src 'self' https://www.paypal.com https://www.paypalobjects.com https://www.google.com https://www.gstatic.com",
+  "script-src 'self' https://www.paypal.com https://www.paypalobjects.com https://www.google.com https://www.gstatic.com https://*.firebaseio.com",
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   "font-src 'self' https://fonts.gstatic.com data:",
   "img-src 'self' data: blob: https://res.cloudinary.com https://images.unsplash.com https://www.paypalobjects.com https://www.google.com https://www.gstatic.com",
