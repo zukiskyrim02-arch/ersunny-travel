@@ -12,6 +12,7 @@ import {
   readCardnetReturnFromUrl,
   verifyCardnetPayment,
 } from "./payments/cardnet";
+import { formatDisplayDate, formatDisplayTime } from "../shared/datetime";
 import {
   ensureReservationSaved,
   fetchReservationFromFirebase,
@@ -23,18 +24,6 @@ import {
 type PaymentSectionProps = {
   reservation: Reservation;
 };
-
-function formatDate(iso: string, locale: string) {
-  if (!iso) return "—";
-  const d = new Date(`${iso}T12:00:00`);
-  if (Number.isNaN(d.getTime())) return iso;
-  const loc = locale === "zh" ? "zh-CN" : locale;
-  return d.toLocaleDateString(loc, {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  });
-}
 
 export function PaymentSection({ reservation: initial }: PaymentSectionProps) {
   const { t, locale } = useI18n();
@@ -124,8 +113,8 @@ export function PaymentSection({ reservation: initial }: PaymentSectionProps) {
 
   const dateLabel =
     reservation.wantReturn && reservation.returnDate
-      ? `${formatDate(reservation.date, locale)} – ${formatDate(reservation.returnDate, locale)}`
-      : formatDate(reservation.date, locale);
+      ? `${formatDisplayDate(reservation.date)} – ${formatDisplayDate(reservation.returnDate)}`
+      : formatDisplayDate(reservation.date) || "—";
 
   const serviceSubtitle = isExcursion
     ? reservation.destination
@@ -135,7 +124,7 @@ export function PaymentSection({ reservation: initial }: PaymentSectionProps) {
 
   const pickupTimeLabel =
     reservation.pickupTime && reservation.pickupTime !== "To be confirmed"
-      ? reservation.pickupTime
+      ? formatDisplayTime(reservation.pickupTime)
       : t("pay.toConfirm");
   const priceLabel =
     reservation.price == null ? t("pay.toConfirm") : `US$${reservation.price}`;

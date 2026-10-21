@@ -10,6 +10,7 @@ import {
   shouldMarkReservationPaid,
 } from "./paymentGuards.ts";
 import { SECURITY_HEADERS } from "./securityHeaders.ts";
+import { formatDisplayDate, formatDisplayTime } from "../shared/datetime.ts";
 
 test("only Cardnet response code 00 is an approval", () => {
   assert.equal(isCardnetApproved({ ResponseCode: "00" }), true);
@@ -78,6 +79,17 @@ test("Cardnet routes do not allow every origin", () => {
   const verify = fs.readFileSync(new URL("../api/cardnet/verify.ts", import.meta.url), "utf8");
   assert.equal(session.includes("Access-Control-Allow-Origin"), false);
   assert.equal(verify.includes("Access-Control-Allow-Origin"), false);
+});
+
+test("booking dates use an English month and 12-hour time", () => {
+  assert.equal(formatDisplayDate("2026-10-22"), "22 October 2026");
+  assert.equal(formatDisplayDate("2026-01-05"), "5 January 2026");
+  assert.equal(formatDisplayTime("07:30"), "07:30 AM");
+  assert.equal(formatDisplayTime("19:05"), "07:05 PM");
+  assert.equal(formatDisplayTime("00:00"), "12:00 AM");
+  assert.equal(formatDisplayTime("12:00"), "12:00 PM");
+  assert.equal(formatDisplayTime("7:30 pm"), "07:30 PM");
+  assert.equal(formatDisplayTime("To be confirmed"), "To be confirmed");
 });
 
 test("booking notices do not use the FormSubmit table", () => {

@@ -3,6 +3,7 @@ import { useLogoSrc } from "./media/library";
 import { useI18n } from "./i18n/I18nProvider";
 import { getSiteContact } from "./store/config";
 import { sendCustomerConfirmedPickup } from "./notifyBooking";
+import { formatDisplayDate, formatDisplayTime } from "../shared/datetime";
 import {
   decodeStaffPayload,
   findReservation,
@@ -84,7 +85,7 @@ export function ConfirmPickupPage() {
 
   const returnSuffix =
     reservation?.wantReturn && reservation.returnTime
-      ? ` · ${t("confirm.return")} ${reservation.returnDate} · ${reservation.returnTime}`
+      ? ` · ${t("confirm.return")} ${formatDisplayDate(reservation.returnDate)} · ${formatDisplayTime(reservation.returnTime)}`
       : "";
 
   return (
@@ -108,9 +109,9 @@ export function ConfirmPickupPage() {
               <div>
                 <dt>{t("confirm.pickup")}</dt>
                 <dd>
-                  {reservation.date}
+                  {formatDisplayDate(reservation.date)}
                   {hasSchedule
-                    ? ` · ${reservation.pickupTime}`
+                    ? ` · ${formatDisplayTime(reservation.pickupTime)}`
                     : ` · ${t("confirm.pending")}`}
                 </dd>
               </div>
@@ -118,10 +119,10 @@ export function ConfirmPickupPage() {
                 <div>
                   <dt>{t("confirm.return")}</dt>
                   <dd>
-                    {reservation.returnDate}
+                    {formatDisplayDate(reservation.returnDate)}
                     {reservation.returnTime &&
                     reservation.returnTime !== "To be confirmed"
-                      ? ` · ${reservation.returnTime}`
+                      ? ` · ${formatDisplayTime(reservation.returnTime)}`
                       : ` · ${t("confirm.pending")}`}
                   </dd>
                 </div>
@@ -133,8 +134,8 @@ export function ConfirmPickupPage() {
             ) : reservation.customerConfirmed ? (
               <p className="tracker-ok" role="status">
                 {t("confirm.confirmed", {
-                  date: reservation.date,
-                  time: reservation.pickupTime ?? "",
+                  date: formatDisplayDate(reservation.date),
+                  time: formatDisplayTime(reservation.pickupTime ?? ""),
                   return: returnSuffix,
                 })}
               </p>

@@ -1,4 +1,5 @@
 import type { Reservation } from "../reservations";
+import { formatDisplayDate } from "../../shared/datetime";
 
 /** PayPal REST app Client ID. Public in the browser, stored in VITE_PAYPAL_CLIENT_ID. */
 export const PAYPAL_CLIENT_ID = import.meta.env.VITE_PAYPAL_CLIENT_ID || "";
@@ -32,8 +33,8 @@ export function buildPayPalTicket(reservation: Reservation): {
 
   const when =
     reservation.wantReturn && reservation.returnDate
-      ? `${reservation.date} → ${reservation.returnDate}`
-      : reservation.date;
+      ? `${formatDisplayDate(reservation.date)} → ${formatDisplayDate(reservation.returnDate)}`
+      : formatDisplayDate(reservation.date);
 
   return {
     service,

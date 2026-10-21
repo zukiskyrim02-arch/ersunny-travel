@@ -5,6 +5,7 @@ import {
 } from "../store/config";
 import type { Reservation, ReservationStatus } from "../reservations";
 import type { AdminTab } from "./types";
+import { formatDisplayDate } from "../../shared/datetime";
 
 const STATUS_META: { id: ReservationStatus; label: string; color: string }[] = [
   { id: "pending", label: "Pendientes", color: "#f5b400" },
@@ -249,10 +250,7 @@ export function OverviewPanel({
                     </small>
                   </span>
                   <time dateTime={item.date}>
-                    {new Date(`${item.date}T12:00:00`).toLocaleDateString("es-DO", {
-                      day: "numeric",
-                      month: "short",
-                    })}
+                    {formatDisplayDate(item.date)}
                   </time>
                 </li>
               ))}
@@ -290,7 +288,7 @@ export function OverviewPanel({
                       <small className="admin-table__sub">{item.id}</small>
                     </td>
                     <td>{item.kind === "excursion" ? item.destination : `${item.origin} → ${item.destination}`}</td>
-                    <td>{item.date || "—"}</td>
+                    <td>{item.date ? formatDisplayDate(item.date) : "—"}</td>
                     <td>{item.price == null ? "—" : money(item.price)}</td>
                     <td>
                       <span className={`admin-pill admin-pill--${statusOf(item)}`}>

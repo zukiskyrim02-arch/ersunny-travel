@@ -1,5 +1,6 @@
 import { useEffect, useId, useRef, useState } from "react";
 import { useI18n } from "./i18n/I18nProvider";
+import { formatDisplayDate } from "../shared/datetime";
 import { buildPayPalTicket, loadPayPalSdk, PAYPAL_CLIENT_ID } from "./payments/paypal";
 import {
   updateReservation,
@@ -254,8 +255,8 @@ export function PayPalHostedButton({
             <dt>{t("pay.date")}</dt>
             <dd>
               {reservation.wantReturn && reservation.returnDate
-                ? `${reservation.date} → ${reservation.returnDate}`
-                : reservation.date}
+                ? `${formatDisplayDate(reservation.date)} → ${formatDisplayDate(reservation.returnDate)}`
+                : formatDisplayDate(reservation.date)}
             </dd>
           </div>
           <div>

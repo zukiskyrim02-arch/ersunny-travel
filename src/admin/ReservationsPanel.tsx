@@ -9,6 +9,7 @@ import {
   type ReservationStatus,
 } from "../reservations";
 import { sendServiceSurvey } from "../reviews";
+import { formatDisplayDate, formatDisplayTime } from "../../shared/datetime";
 import { reviewsEnabled } from "../../shared/features";
 import { useReservations } from "../store/hooks";
 
@@ -203,8 +204,8 @@ export function ReservationsPanel({
                   : `${r.origin} → ${r.destination}`}
               </p>
               <p>
-                Fecha {r.date}
-                {r.wantReturn && r.returnDate ? ` – ${r.returnDate}` : ""} ·{" "}
+                Fecha {formatDisplayDate(r.date)}
+                {r.wantReturn && r.returnDate ? ` – ${formatDisplayDate(r.returnDate)}` : ""} ·{" "}
                 {r.passengers} pax · {r.vehicle}
                 {r.price != null
                   ? ` · US$${r.price}`
@@ -212,8 +213,8 @@ export function ReservationsPanel({
               </p>
               {(r.pickupTime || r.time) && (
                 <p className="admin-muted">
-                  Pickup: {r.pickupTime || r.time}
-                  {r.returnTime ? ` · Retorno: ${r.returnTime}` : ""}
+                  Pickup: {formatDisplayTime(r.pickupTime || r.time)}
+                  {r.returnTime ? ` · Retorno: ${formatDisplayTime(r.returnTime)}` : ""}
                 </p>
               )}
               {r.flight && <p className="admin-muted">Vuelo: {r.flight}</p>}
@@ -239,7 +240,7 @@ export function ReservationsPanel({
                   Hora pickup
                   <input
                     type="text"
-                    placeholder="14:30"
+                    placeholder="02:30 PM"
                     value={r.pickupTime ?? ""}
                     onChange={(e) =>
                       updateReservation(r.id, {

@@ -1,4 +1,5 @@
 import { Resend } from "resend";
+import { formatDisplayDate, formatDisplayTime } from "../shared/datetime.js";
 import { parseAmountUsd, parseEmail, parseReservationId } from "./paymentGuards.js";
 import { databaseUrl } from "./rtdb.js";
 
@@ -96,6 +97,8 @@ function money(price: number | null | undefined): string {
 
 function detailRows(data: ReservationMail, id: string): string {
   const route = [data.origin, data.destination].filter(Boolean).join(" → ");
+  const date = formatDisplayDate(data.date);
+  const returnDate = formatDisplayDate(data.returnDate);
   return [
     row("Reserva", id),
     row("Cliente", clip(data.name, 80)),
@@ -104,9 +107,9 @@ function detailRows(data: ReservationMail, id: string): string {
     row("Servicio", clip(data.kind === "excursion" ? "Excursión" : data.kind === "transfer" ? "Traslado" : data.notes || data.kind, 160)),
     row("Ruta", clip(route, 180)),
     row("Hotel", clip(data.hotelPickup, 120)),
-    row("Fecha", clip(data.returnDate ? `${data.date} · Regreso ${data.returnDate}` : data.date, 80)),
-    row("Recogida", clip(data.pickupTime, 40)),
-    row("Regreso", clip(data.returnTime, 40)),
+    row("Fecha", clip(returnDate ? `${date} · Regreso ${returnDate}` : date, 80)),
+    row("Recogida", clip(formatDisplayTime(data.pickupTime), 40)),
+    row("Regreso", clip(formatDisplayTime(data.returnTime), 40)),
     row("Pasajeros", data.passengers != null ? String(data.passengers) : ""),
     row("Vehículo", clip(data.vehicle, 80)),
     row("Precio", money(data.price)),

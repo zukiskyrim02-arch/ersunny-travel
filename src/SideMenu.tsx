@@ -3,6 +3,7 @@ import { useLogoSrc } from "./media/library";
 import { useI18n } from "./i18n/I18nProvider";
 import { useAppConfig } from "./store/hooks";
 import { sendCustomerConfirmedPickup } from "./notifyBooking";
+import { formatDisplayDate, formatDisplayTime } from "../shared/datetime";
 import {
   fetchReservationFromFirebase,
   findReservation,
@@ -19,7 +20,7 @@ type SideMenuProps = {
 
 function formatTimeLabel(value?: string) {
   if (!value || value === "To be confirmed") return null;
-  return value;
+  return formatDisplayTime(value);
 }
 
 export function SideMenu({ open, onClose, panel, onPanelChange }: SideMenuProps) {
@@ -57,7 +58,7 @@ export function SideMenu({ open, onClose, panel, onPanelChange }: SideMenuProps)
       status: "confirmed",
     });
     setResult(updated);
-    setStatusMsg(`Pickup confirmed: ${updated.date} at ${pickup}.`);
+    setStatusMsg(`Pickup confirmed: ${formatDisplayDate(updated.date)} at ${pickup}.`);
     try {
       await sendCustomerConfirmedPickup(updated);
     } catch {
@@ -170,7 +171,7 @@ export function SideMenu({ open, onClose, panel, onPanelChange }: SideMenuProps)
                     <div>
                       <dt>{t("side.date")}</dt>
                       <dd>
-                        {result.date}
+                        {formatDisplayDate(result.date)}
                         {scheduledPickup
                           ? ` · ${scheduledPickup}`
                           : ` · ${t("side.timePending")}`}
@@ -180,7 +181,7 @@ export function SideMenu({ open, onClose, panel, onPanelChange }: SideMenuProps)
                       <div>
                         <dt>{t("side.return")}</dt>
                         <dd>
-                          {result.returnDate}
+                          {formatDisplayDate(result.returnDate)}
                           {formatTimeLabel(result.returnTime)
                             ? ` · ${formatTimeLabel(result.returnTime)}`
                             : ` · ${t("side.timePending")}`}
@@ -196,7 +197,7 @@ export function SideMenu({ open, onClose, panel, onPanelChange }: SideMenuProps)
                   {result.customerConfirmed || statusMsg ? (
                     <p className="tracker-ok" role="status">
                       {statusMsg ||
-                        `Pickup confirmed: ${result.date} at ${scheduledPickup}.`}
+                        `Pickup confirmed: ${formatDisplayDate(result.date)} at ${scheduledPickup}.`}
                     </p>
                   ) : scheduledPickup ? (
                     <button
