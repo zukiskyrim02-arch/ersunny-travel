@@ -229,7 +229,11 @@ export function AdminApp() {
           {tab === "excursions" && (
             <ExcursionsPanel
               excursions={draft.excursions}
+              pickups={draft.excursionPickups}
               onChange={(excursions) => patch({ excursions })}
+              onPickupsChange={(excursionPickups) =>
+                patch({ excursionPickups })
+              }
             />
           )}
           {tab === "media" && <MediaPanel />}

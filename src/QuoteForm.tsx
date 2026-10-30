@@ -1,5 +1,6 @@
-import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
+import { useMemo, useState, type FormEvent } from "react";
 import { airportLabel } from "./data";
+import { HotelCombo } from "./HotelCombo";
 import { useI18n } from "./i18n/I18nProvider";
 import { sendTransferBookingEmails } from "./notifyBooking";
 import {
@@ -20,7 +21,10 @@ export function QuoteForm({ onBooked }: QuoteFormProps) {
   const { vehicles: allVehicles, hotelsByZone } = config;
   const vehicles = allVehicles.filter((v) => v.active !== false);
   const zones = zonesOf(config);
-  const hotels = zones.flatMap((zone) => hotelsByZone[zone] ?? []);
+  const hotels = useMemo(
+    () => zones.flatMap((zone) => hotelsByZone[zone] ?? []),
+    [zones, hotelsByZone],
+  );
   const [service, setService] = useState("Private Transfer");
   const [transferType, setTransferType] = useState("Airport → Hotel");
   const [rideClass, setRideClass] = useState("Private");
@@ -39,19 +43,11 @@ export function QuoteForm({ onBooked }: QuoteFormProps) {
   const [whatsapp, setWhatsapp] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
-  const [hotelOpen, setHotelOpen] = useState(false);
-  const hotelWrapRef = useRef<HTMLDivElement>(null);
 
   const isRoundTrip = service === "Round trip";
   const isSharedService = service === "Shared transportation";
   const isShared =
     isSharedService || (isRoundTrip && rideClass === "Shared");
-
-  const hotelMatches = useMemo(() => {
-    const q = hotel.trim().toLowerCase();
-    if (!q) return hotels.slice(0, 8);
-    return hotels.filter((h) => h.toLowerCase().includes(q)).slice(0, 8);
-  }, [hotel, hotels]);
 
   const quoted = useMemo(() => {
     const pax = Math.max(0, adults) + Math.max(0, children);
@@ -82,16 +78,6 @@ export function QuoteForm({ onBooked }: QuoteFormProps) {
     isRoundTrip,
     isShared,
   ]);
-
-  useEffect(() => {
-    function onPointerDown(e: MouseEvent) {
-      if (!hotelWrapRef.current?.contains(e.target as Node)) {
-        setHotelOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", onPointerDown);
-    return () => document.removeEventListener("mousedown", onPointerDown);
-  }, []);
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
@@ -300,48 +286,15 @@ export function QuoteForm({ onBooked }: QuoteFormProps) {
             </button>
           </div>
         )}
-        <div className="field hotel-combo" ref={hotelWrapRef}>
-          <label htmlFor="quote-hotel">{t("quote.hotel")}</label>
-          <input
-            id="quote-hotel"
-            role="combobox"
-            placeholder={t("quote.hotelPh")}
-            value={hotel}
-            autoComplete="off"
-            required
-            aria-autocomplete="list"
-            aria-expanded={hotelOpen}
-            aria-controls="quote-hotel-list"
-            onFocus={() => setHotelOpen(true)}
-            onChange={(e) => {
-              setHotel(e.target.value);
-              setHotelOpen(true);
-            }}
-          />
-          {hotelOpen && hotelMatches.length > 0 && (
-            <ul
-              id="quote-hotel-list"
-              className="hotel-combo__list"
-              role="listbox"
-            >
-              {hotelMatches.map((h) => (
-                <li key={h}>
-                  <button
-                    type="button"
-                    role="option"
-                    onMouseDown={(e) => e.preventDefault()}
-                    onClick={() => {
-                      setHotel(h);
-                      setHotelOpen(false);
-                    }}
-                  >
-                    {h}
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
+        <HotelCombo
+          id="quote-hotel"
+          label={t("quote.hotel")}
+          placeholder={t("quote.hotelPh")}
+          value={hotel}
+          options={hotels}
+          required
+          onChange={setHotel}
+        />
         {isRoundTrip ? (
           <>
             <label className="field">

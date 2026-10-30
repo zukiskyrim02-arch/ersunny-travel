@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react";
-import { hotelsByZone as defaultHotels } from "./data";
-import { zonesOf } from "./transfers";
+import { HotelCombo } from "./HotelCombo";
 import { useI18n } from "./i18n/I18nProvider";
 import { useMedia } from "./media/library";
 import { useAppConfig } from "./store/hooks";
@@ -22,9 +21,10 @@ export function ExcursionBooking({ onBooked }: ExcursionBookingProps) {
   const { t, locale } = useI18n();
   const media = useMedia();
   const config = useAppConfig();
-  const hotelsByZone = config.hotelsByZone ?? defaultHotels;
-  const zones = zonesOf({ zones: config.zones, hotelsByZone });
-  const allHotels = zones.flatMap((zone) => hotelsByZone[zone] ?? []);
+  const pickups = useMemo(() => {
+    if (config.excursionPickups.length) return config.excursionPickups;
+    return Object.values(config.hotelsByZone).flat();
+  }, [config.excursionPickups, config.hotelsByZone]);
   const excursions = useMemo(
     () => config.excursions.filter((e) => e.active),
     [config.excursions],
@@ -33,7 +33,7 @@ export function ExcursionBooking({ onBooked }: ExcursionBookingProps) {
   const [selectedId, setSelectedId] = useState("");
   const [date, setDate] = useState("");
   const [passengers, setPassengers] = useState(2);
-  const [hotelPickup, setHotelPickup] = useState(allHotels[0]);
+  const [hotelPickup, setHotelPickup] = useState("");
   const [name, setName] = useState("");
   const [contactInfo, setContactInfo] = useState("");
   const [notes, setNotes] = useState("");
@@ -64,6 +64,10 @@ export function ExcursionBooking({ onBooked }: ExcursionBookingProps) {
     }
     if (!date) {
       setError(t("exc.errorDate"));
+      return;
+    }
+    if (!hotelPickup.trim()) {
+      setError(t("exc.errorHotel"));
       return;
     }
     if (!name.trim() || !contactInfo.trim()) {
@@ -190,25 +194,16 @@ export function ExcursionBooking({ onBooked }: ExcursionBookingProps) {
             </div>
 
             <div className="booking-form__grid">
-              <div className="field field--full">
-                <label htmlFor="exc-hotel">{t("exc.pickupHotel")}</label>
-                <select
-                  id="exc-hotel"
-                  value={hotelPickup}
-                  onChange={(e) => setHotelPickup(e.target.value)}
-                  required
-                >
-                  {zones.map((zone) => (
-                    <optgroup key={zone} label={zone}>
-                      {(hotelsByZone[zone] ?? []).map((h) => (
-                        <option key={`${zone}-${h}`} value={h}>
-                          {h}
-                        </option>
-                      ))}
-                    </optgroup>
-                  ))}
-                </select>
-              </div>
+              <HotelCombo
+                id="exc-hotel"
+                className="field--full"
+                label={t("exc.pickupHotel")}
+                placeholder={t("quote.hotelPh")}
+                value={hotelPickup}
+                options={pickups}
+                required
+                onChange={setHotelPickup}
+              />
 
               <div className="field">
                 <label htmlFor="exc-date">{t("exc.date")}</label>

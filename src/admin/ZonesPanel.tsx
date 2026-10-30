@@ -47,8 +47,8 @@ export function ZonesPanel({
         <div>
           <h1>Hoteles</h1>
           <p>
-            Los hoteles del formulario de traslados y de excursiones. La zona
-            decide qué precio de la tabla de traslados se cobra.
+            Hoteles del formulario de traslados. La zona decide el precio. Los
+            puntos de recogida de excursiones se editan en Excursiones.
           </p>
         </div>
       </header>
@@ -100,7 +100,11 @@ export function ZonesPanel({
               <p className="admin-note">Todavía no hay hoteles en esta zona.</p>
             ) : (
               <ul className="admin-hotel-list">
-                {(config.hotelsByZone[item] ?? []).map((hotel) => (
+                {[...(config.hotelsByZone[item] ?? [])]
+                  .sort((a, b) =>
+                    a.localeCompare(b, undefined, { sensitivity: "base" }),
+                  )
+                  .map((hotel) => (
                   <li key={hotel}>
                     <span>{hotel}</span>
                     <button

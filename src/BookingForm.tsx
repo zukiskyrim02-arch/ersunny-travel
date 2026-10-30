@@ -31,6 +31,12 @@ function pricingZone(origin: Place, destination: Place): Zone {
   return "Punta Cana";
 }
 
+function sortedHotels(list: string[] | undefined) {
+  return [...(list ?? [])].sort((a, b) =>
+    a.localeCompare(b, undefined, { sensitivity: "base" }),
+  );
+}
+
 function PlaceOptions({
   hotelsByZone,
 }: {
@@ -40,21 +46,21 @@ function PlaceOptions({
     <>
       <option value="airport">{airportLabel}</option>
       <optgroup label="Punta Cana">
-        {hotelsByZone["Punta Cana"].map((h) => (
+        {sortedHotels(hotelsByZone["Punta Cana"]).map((h) => (
           <option key={h} value={`hotel:Punta Cana:${h}`}>
             {h}
           </option>
         ))}
       </optgroup>
       <optgroup label="Bávaro">
-        {hotelsByZone.Bávaro.map((h) => (
+        {sortedHotels(hotelsByZone.Bávaro).map((h) => (
           <option key={h} value={`hotel:Bávaro:${h}`}>
             {h}
           </option>
         ))}
       </optgroup>
       <optgroup label="Macao">
-        {hotelsByZone.Macao.map((h) => (
+        {sortedHotels(hotelsByZone.Macao).map((h) => (
           <option key={h} value={`hotel:Macao:${h}`}>
             {h}
           </option>

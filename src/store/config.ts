@@ -70,6 +70,8 @@ export type AppConfig = {
   zones: string[];
   zoneSurcharge: Record<Zone, number>;
   hotelsByZone: Record<Zone, string[]>;
+  /** Pickup hotels / meeting points offered on the excursion booking form. */
+  excursionPickups: string[];
   excursions: ManagedExcursion[];
   contact: SiteContact;
   bank: SiteBank;
@@ -110,6 +112,11 @@ export function defaultConfig(): AppConfig {
       Bávaro: [...defaultHotels.Bávaro],
       Macao: [...defaultHotels.Macao],
     },
+    excursionPickups: [
+      ...defaultHotels["Punta Cana"],
+      ...defaultHotels.Bávaro,
+      ...defaultHotels.Macao,
+    ],
     excursions: defaultExcursions.map((e) => ({
       ...e,
       price: "price" in e ? (e.price as number | null) : null,
@@ -133,6 +140,26 @@ function mergeHotels(
     hotels[zone] = Array.isArray(saved) ? saved : [...(base[zone] ?? [])];
   }
   return hotels;
+}
+
+function normalizePickupList(
+  value: unknown,
+  fallback: string[],
+): string[] {
+  if (value == null) return [...fallback];
+  const list = asList<string>(value);
+  if (!list) return [...fallback];
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const item of list) {
+    const name = String(item || "").replace(/\s+/g, " ").trim();
+    if (!name) continue;
+    const key = name.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push(name.slice(0, 120));
+  }
+  return out;
 }
 
 function sharperRemoteImage(url: string): string {
@@ -186,6 +213,10 @@ export function getConfig(): AppConfig {
         zones,
       ),
       hotelsByZone: mergeHotels(parsed.hotelsByZone, base.hotelsByZone, zones),
+      excursionPickups: normalizePickupList(
+        parsed.excursionPickups,
+        base.excursionPickups,
+      ),
       excursions: (() => {
         const stored = asList<ManagedExcursion>(parsed.excursions);
         const list = stored?.length ? stored : base.excursions;
@@ -261,13 +292,20 @@ function applyRemoteConfig(value: unknown) {
   }
   const remoteVehicles = asList<ManagedVehicle>(remote.vehicles);
   const remoteExcursions = asList<ManagedExcursion>(remote.excursions);
-  writeLocalConfig({
+  const nextLocal = {
     ...local,
     ...remote,
     vehicles: remoteVehicles ?? local.vehicles,
     excursions: remoteExcursions ?? local.excursions,
     updatedAt: remoteAt || localAt || undefined,
     azul: { ...local.azul, ...(remote.azul ?? {}), authKey: local.azul.authKey },
+  };
+  writeLocalConfig({
+    ...nextLocal,
+    excursionPickups: normalizePickupList(
+      remote.excursionPickups,
+      local.excursionPickups,
+    ),
   });
 }
 
@@ -317,4 +355,10 @@ export function getSiteBank(): SiteBank {
 
 export function getHotelsByZone(): Record<Zone, string[]> {
   return getConfig().hotelsByZone;
+}
+
+export function getExcursionPickups(): string[] {
+  const config = getConfig();
+  if (config.excursionPickups.length) return config.excursionPickups;
+  return Object.values(config.hotelsByZone).flat();
 }

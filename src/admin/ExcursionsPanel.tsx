@@ -16,10 +16,14 @@ function money(price: number | null) {
 
 export function ExcursionsPanel({
   excursions,
+  pickups,
   onChange,
+  onPickupsChange,
 }: {
   excursions: ManagedExcursion[];
+  pickups: string[];
   onChange: (e: ManagedExcursion[]) => void;
+  onPickupsChange: (pickups: string[]) => void;
 }) {
   const [uploadingId, setUploadingId] = useState<string | null>(null);
   const [uploadError, setUploadError] = useState("");
@@ -27,6 +31,7 @@ export function ExcursionsPanel({
   const [sort, setSort] = useState<"order" | "name" | "price">("order");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [editing, setEditing] = useState(false);
+  const [pickupDraft, setPickupDraft] = useState("");
 
   const visible = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -120,6 +125,21 @@ export function ExcursionsPanel({
     setUploadError("");
   }
 
+  function addPickup() {
+    const name = pickupDraft.replace(/\s+/g, " ").trim();
+    if (!name) return;
+    if (pickups.some((item) => item.toLowerCase() === name.toLowerCase())) {
+      setPickupDraft("");
+      return;
+    }
+    onPickupsChange([...pickups, name]);
+    setPickupDraft("");
+  }
+
+  function removePickup(name: string) {
+    onPickupsChange(pickups.filter((item) => item !== name));
+  }
+
   if (selected) {
     return (
       <ExcursionDetail
@@ -151,6 +171,58 @@ export function ExcursionsPanel({
           + Nueva excursión
         </button>
       </header>
+
+      <article className="admin-edit-card admin-edit-card--wide">
+        <h3>
+          Puntos de recogida
+          <span className="admin-muted"> · {pickups.length}</span>
+        </h3>
+        <p className="admin-note">
+          Estos hoteles o puntos aparecen en el formulario de excursiones del
+          sitio. Guarda los cambios del admin para publicarlos.
+        </p>
+        <form
+          className="admin-hotel-add"
+          onSubmit={(e) => {
+            e.preventDefault();
+            addPickup();
+          }}
+        >
+          <label>
+            Punto nuevo
+            <input
+              value={pickupDraft}
+              placeholder="Hotel, lobby o punto de encuentro"
+              onChange={(e) => setPickupDraft(e.target.value)}
+            />
+          </label>
+          <button type="submit" className="btn btn--primary">
+            Agregar
+          </button>
+        </form>
+        {pickups.length === 0 ? (
+          <p className="admin-note">Todavía no hay puntos de recogida.</p>
+        ) : (
+          <ul className="admin-hotel-list">
+            {[...pickups]
+              .sort((a, b) =>
+                a.localeCompare(b, undefined, { sensitivity: "base" }),
+              )
+              .map((point) => (
+              <li key={point}>
+                <span>{point}</span>
+                <button
+                  type="button"
+                  className="admin-danger"
+                  onClick={() => removePickup(point)}
+                >
+                  Quitar
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </article>
 
       <div className="admin-pkg-toolbar">
         <label className="admin-pkg-search">

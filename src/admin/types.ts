@@ -49,7 +49,7 @@ export const ADMIN_TABS: {
   {
     id: "excursions",
     label: "Excursiones",
-    hint: "Tours del catálogo",
+    hint: "Tours y puntos de recogida",
     group: "catalog",
   },
   {
