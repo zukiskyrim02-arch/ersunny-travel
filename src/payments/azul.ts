@@ -102,7 +102,7 @@ export async function buildAzulSaleFields(
   const amount = toAzulAmount(reservation.price);
   const itbis = azul.itbis || "000";
   const use1 = "1";
-  const label1 = "Reservation";
+  const label1 = "Booking reference";
   const value1 = reservation.id;
   const use2 = "1";
   const label2 = reservation.kind === "excursion" ? "Excursion" : "Transfer";

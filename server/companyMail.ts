@@ -100,20 +100,30 @@ function detailRows(data: ReservationMail, id: string): string {
   const date = formatDisplayDate(data.date);
   const returnDate = formatDisplayDate(data.returnDate);
   return [
-    row("Reserva", id),
-    row("Cliente", clip(data.name, 80)),
-    row("Contacto", clip(data.contactInfo, 120)),
-    row("Correo", clip(data.email, 120)),
-    row("Servicio", clip(data.kind === "excursion" ? "Excursión" : data.kind === "transfer" ? "Traslado" : data.notes || data.kind, 160)),
-    row("Ruta", clip(route, 180)),
+    row("Booking reference", id),
+    row("Guest", clip(data.name, 80)),
+    row("Contact", clip(data.contactInfo, 120)),
+    row("Email", clip(data.email, 120)),
+    row(
+      "Service",
+      clip(
+        data.kind === "excursion"
+          ? "Excursion"
+          : data.kind === "transfer"
+            ? "Transfer"
+            : data.notes || data.kind,
+        160,
+      ),
+    ),
+    row("Route", clip(route, 180)),
     row("Hotel", clip(data.hotelPickup, 120)),
-    row("Fecha", clip(returnDate ? `${date} · Regreso ${returnDate}` : date, 80)),
-    row("Recogida", clip(formatDisplayTime(data.pickupTime), 40)),
-    row("Regreso", clip(formatDisplayTime(data.returnTime), 40)),
-    row("Pasajeros", data.passengers != null ? String(data.passengers) : ""),
-    row("Vehículo", clip(data.vehicle, 80)),
-    row("Precio", money(data.price)),
-    row("Vuelo", clip(data.flight, 80)),
+    row("Date", clip(returnDate ? `${date} · Return ${returnDate}` : date, 80)),
+    row("Pickup", clip(formatDisplayTime(data.pickupTime), 40)),
+    row("Return", clip(formatDisplayTime(data.returnTime), 40)),
+    row("Passengers", data.passengers != null ? String(data.passengers) : ""),
+    row("Vehicle", clip(data.vehicle, 80)),
+    row("Price", money(data.price)),
+    row("Flight", clip(data.flight, 80)),
   ].join("");
 }
 
@@ -140,44 +150,44 @@ function copyFor(notice: BookingNotice, id: string, name: string): {
   customerSubject: string;
   customerIntro: string;
 } {
-  const guest = name || "cliente";
+  const guest = name || "guest";
   if (notice === "paid") {
     return {
-      subject: `Pago recibido · ${id}`,
-      eyebrow: "Pago recibido",
-      title: "La reserva ya está pagada",
-      intro: `El pago de ${id} quedó confirmado. Revisa los datos y coordina la hora de recogida.`,
+      subject: `Payment received · ${id}`,
+      eyebrow: "Payment received",
+      title: "This booking is paid",
+      intro: `Payment for booking reference ${id} is confirmed. Review the details and coordinate the pickup time.`,
       customerSubject: `Payment received · ${id}`,
-      customerIntro: `Hi ${guest}, we received your payment for ${id}. Ersunny Travel will confirm your pickup time next.`,
+      customerIntro: `Hi ${guest}, we received your payment for booking reference ${id}. Ersunny Travel will confirm your pickup time next.`,
     };
   }
   if (notice === "pickup") {
     return {
-      subject: `Hora de recogida · ${id}`,
-      eyebrow: "Recogida",
-      title: "La hora de recogida está lista",
-      intro: `Ya hay hora de recogida para ${id}. El cliente recibió el enlace para confirmarla.`,
+      subject: `Pickup time ready · ${id}`,
+      eyebrow: "Pickup",
+      title: "Pickup time is ready",
+      intro: `Pickup time is set for booking reference ${id}. The guest received the link to confirm it.`,
       customerSubject: `Confirm your pickup · ${id}`,
-      customerIntro: `Hi ${guest}, your pickup time for ${id} is ready. Open the button below to confirm it.`,
+      customerIntro: `Hi ${guest}, your pickup time for booking reference ${id} is ready. Open the button below to confirm it.`,
     };
   }
   if (notice === "confirmed") {
     return {
-      subject: `El cliente confirmó la recogida · ${id}`,
-      eyebrow: "Confirmado",
-      title: "El cliente aceptó la hora",
-      intro: `${guest} confirmó la hora de recogida de ${id}.`,
+      subject: `Guest confirmed pickup · ${id}`,
+      eyebrow: "Confirmed",
+      title: "Guest accepted the pickup time",
+      intro: `${guest} confirmed the pickup time for booking reference ${id}.`,
       customerSubject: `Pickup confirmed · ${id}`,
-      customerIntro: `Hi ${guest}, your pickup time for ${id} is confirmed. We'll see you then.`,
+      customerIntro: `Hi ${guest}, your pickup time for booking reference ${id} is confirmed. We'll see you then.`,
     };
   }
   return {
-    subject: `Nueva reserva · ${id}`,
-    eyebrow: "Nueva reserva",
-    title: "Entró una solicitud",
-    intro: `Hay una reserva nueva, ${id}. El pago todavía puede estar pendiente.`,
+    subject: `New booking · ${id}`,
+    eyebrow: "New booking",
+    title: "A new request came in",
+    intro: `There is a new booking, reference ${id}. Payment may still be pending.`,
     customerSubject: `We received your request · ${id}`,
-    customerIntro: `Hi ${guest}, thanks for choosing Ersunny Travel. We have your request ${id} and will follow up by email or WhatsApp.`,
+    customerIntro: `Hi ${guest}, thanks for choosing Ersunny Travel. We have your request with booking reference ${id} and will follow up by email or WhatsApp.`,
   };
 }
 
@@ -219,7 +229,7 @@ export async function sendDesignedBookingEmails(input: {
       title: copy.title,
       intro: copy.intro,
       rows,
-      ctaLabel: "Abrir la reserva",
+      ctaLabel: "Open booking",
       ctaUrl: page,
     }),
   });
@@ -233,7 +243,10 @@ export async function sendDesignedBookingEmails(input: {
       title: copy.customerSubject,
       intro: copy.customerIntro,
       rows,
-      ctaLabel: input.notice === "pickup" && confirmUrl ? "Confirm pickup time" : "View reservation",
+      ctaLabel:
+        input.notice === "pickup" && confirmUrl
+          ? "Confirm pickup time"
+          : "View booking",
       ctaUrl: input.notice === "pickup" && confirmUrl ? confirmUrl : page,
     }),
   });

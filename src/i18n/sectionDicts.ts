@@ -99,7 +99,7 @@ const en: Dict = {
     "Make sure to have your travel documents ready, such as your passport, e-ticket, and transfer confirmation details.",
   "faq.6.q": "How can I know my pickup time on my departure transfer?",
   "faq.6.a":
-    "The pickup time will be sent to you via email or WhatsApp at least 48 hours before your scheduled transfer. You can also confirm it anytime with your reservation number in the pickup tracker.",
+    "The pickup time will be sent to you via email or WhatsApp at least 48 hours before your scheduled transfer. You can also confirm it anytime with your booking reference in the pickup tracker.",
   "faq.7.q": "Can my kids make the excursions listed on your webpage?",
   "faq.7.a":
     "Yes, most of the excursions are family-friendly. Specific age and height requirements are listed for each activity.",
@@ -135,16 +135,16 @@ const en: Dict = {
 
   "pay.title": "Payment form",
   "pay.lead":
-    "Enter your reservation number to open the secure payment form.",
-  "pay.reservationNumber": "Reservation number",
+    "Enter your booking reference to open the secure payment form.",
+  "pay.reservationNumber": "Booking reference",
   "pay.reservationPh": "e.g. EST-ABCD1234",
   "pay.continue": "Continue to payment",
   "pay.noReservation": "No reservation yet?",
   "pay.bookTransport": "Book transportation",
   "pay.bookExcursion": "book an excursion",
-  "pay.enterNumber": "Enter your reservation number.",
-  "pay.notFound": "Reservation not found. Check the code and try again.",
-  "pay.requested": "Reservation found — complete payment below.",
+  "pay.enterNumber": "Enter your booking reference.",
+  "pay.notFound": "Booking not found. Check the code and try again.",
+  "pay.requested": "Booking found — complete payment below.",
   "pay.copy": "Copy",
   "pay.copied": "Copied",
   "pay.receivedTransfer":
@@ -185,7 +185,7 @@ const en: Dict = {
     "Pay securely with PayPal. You can use your PayPal balance or a card.",
   "pay.paypalHint":
     "The amount is filled automatically from your reservation. After paying, email us your receipt with {id}.",
-  "pay.ticketLabel": "Reservation confirmation ticket",
+  "pay.ticketLabel": "Booking confirmation ticket",
   "pay.ticketEyebrow": "Confirmation ticket",
   "pay.paypalPaid":
     "Payment received for {id}. We emailed your confirmation — Ersunny will send the pickup time next.",
@@ -236,7 +236,7 @@ const en: Dict = {
     "You will be redirected to a secure page to enter your card details safely.",
   "pay.cardnetError": "Card payment could not be started. Please try again.",
   "pay.cardnetConfirmError":
-    "We could not confirm the card payment. If your card was charged, do not pay again — send us the reservation number.",
+    "We could not confirm the card payment. If your card was charged, do not pay again — send us the booking reference.",
   "pay.cardnetVerifying": "Confirming your card payment…",
   "pay.cardnetApproved":
     "Card payment approved for {id}. We emailed your confirmation — Ersunny will send the pickup time next.",
@@ -277,7 +277,7 @@ const en: Dict = {
 
   "confirm.title": "Confirm pickup",
   "confirm.missing":
-    "We couldn't load this reservation. Use the link from your email or check status with your reservation number on the website.",
+    "We couldn't load this booking. Use the link from your email or check status with your booking reference on the website.",
   "confirm.route": "Route",
   "confirm.pickup": "Pickup",
   "confirm.return": "Return",
@@ -396,7 +396,7 @@ const es: Dict = {
     "Asegúrate de tener listos tus documentos de viaje, como pasaporte, e-ticket y detalles de confirmación del traslado.",
   "faq.6.q": "¿Cómo puedo saber mi hora de recogida en el traslado de salida?",
   "faq.6.a":
-    "La hora de recogida se te enviará por correo o WhatsApp al menos 48 horas antes del traslado programado. También puedes confirmarla en cualquier momento con tu número de reserva en el rastreador de pickup.",
+    "La hora de recogida se te enviará por correo o WhatsApp al menos 48 horas antes del traslado programado. También puedes confirmarla en cualquier momento con tu booking reference en el rastreador de pickup.",
   "faq.7.q": "¿Mis hijos pueden hacer las excursiones de su página web?",
   "faq.7.a":
     "Sí, la mayoría de las excursiones son aptas para familias. Los requisitos de edad y altura específicos se indican para cada actividad.",
@@ -433,14 +433,14 @@ const es: Dict = {
 
   "pay.title": "Formulario de pago",
   "pay.lead":
-    "Ingresa tu número de reserva para abrir el formulario de pago seguro.",
-  "pay.reservationNumber": "Número de reserva",
+    "Ingresa tu booking reference para abrir el formulario de pago seguro.",
+  "pay.reservationNumber": "Booking reference",
   "pay.reservationPh": "ej. EST-ABCD1234",
   "pay.continue": "Continuar al pago",
   "pay.noReservation": "¿Aún no tienes reserva?",
   "pay.bookTransport": "Reservar transporte",
   "pay.bookExcursion": "reservar una excursión",
-  "pay.enterNumber": "Ingresa tu número de reserva.",
+  "pay.enterNumber": "Ingresa tu booking reference.",
   "pay.notFound":
     "Reserva no encontrada. Verifica el código e inténtalo de nuevo.",
   "pay.requested": "Reserva encontrada — completa el pago abajo.",
@@ -535,7 +535,7 @@ const es: Dict = {
     "Te redirigiremos a una página segura para ingresar los datos de tu tarjeta.",
   "pay.cardnetError": "No se pudo iniciar el pago con tarjeta. Inténtalo de nuevo.",
   "pay.cardnetConfirmError":
-    "No se pudo confirmar el pago con tarjeta. Si el cargo se hizo, no pagues de nuevo y envíanos el número de reserva.",
+    "No se pudo confirmar el pago con tarjeta. Si el cargo se hizo, no pagues de nuevo y envíanos el booking reference.",
   "pay.cardnetVerifying": "Confirmando tu pago con tarjeta…",
   "pay.cardnetApproved":
     "Pago con tarjeta aprobado para {id}. Enviamos tu confirmación — Ersunny te enviará la hora de pickup.",
@@ -577,7 +577,7 @@ const es: Dict = {
 
   "confirm.title": "Confirmar pickup",
   "confirm.missing":
-    "No pudimos cargar esta reserva. Usa el enlace de tu correo o consulta el estado con tu número de reserva en el sitio web.",
+    "No pudimos cargar esta reserva. Usa el enlace de tu correo o consulta el estado con tu booking reference en el sitio web.",
   "confirm.route": "Ruta",
   "confirm.pickup": "Pickup",
   "confirm.return": "Regreso",
@@ -696,7 +696,7 @@ const fr: Dict = {
     "Assurez-vous d'avoir vos documents de voyage prêts, tels que passeport, e-billet et détails de confirmation du transfert.",
   "faq.6.q": "Comment connaître mon heure de prise en charge pour le transfert de départ ?",
   "faq.6.a":
-    "L'heure de prise en charge vous sera envoyée par e-mail ou WhatsApp au moins 48 heures avant le transfert prévu. Vous pouvez aussi la confirmer à tout moment avec votre numéro de réservation dans le suivi pickup.",
+    "L'heure de prise en charge vous sera envoyée par e-mail ou WhatsApp au moins 48 heures avant le transfert prévu. Vous pouvez aussi la confirmer à tout moment avec votre booking reference dans le suivi pickup.",
   "faq.7.q": "Mes enfants peuvent-ils participer aux excursions listées sur votre site ?",
   "faq.7.a":
     "Oui, la plupart des excursions conviennent aux familles. Les exigences d'âge et de taille spécifiques sont indiquées pour chaque activité.",
@@ -733,14 +733,14 @@ const fr: Dict = {
 
   "pay.title": "Formulaire de paiement",
   "pay.lead":
-    "Saisissez votre numéro de réservation pour ouvrir le formulaire de paiement sécurisé.",
-  "pay.reservationNumber": "Numéro de réservation",
+    "Enter your booking reference to open the secure payment form.",
+  "pay.reservationNumber": "Booking reference",
   "pay.reservationPh": "ex. EST-ABCD1234",
   "pay.continue": "Continuer vers le paiement",
   "pay.noReservation": "Pas encore de réservation ?",
   "pay.bookTransport": "Réserver un transport",
   "pay.bookExcursion": "réserver une excursion",
-  "pay.enterNumber": "Saisissez votre numéro de réservation.",
+  "pay.enterNumber": "Enter your booking reference.",
   "pay.notFound":
     "Réservation introuvable. Vérifiez le code et réessayez.",
   "pay.requested": "Réservation trouvée — complétez le paiement ci-dessous.",
@@ -835,7 +835,7 @@ const fr: Dict = {
 
   "confirm.title": "Confirmer le pickup",
   "confirm.missing":
-    "Impossible de charger cette réservation. Utilisez le lien de votre e-mail ou vérifiez le statut avec votre numéro de réservation sur le site.",
+    "Impossible de charger cette réservation. Utilisez le lien de votre e-mail ou vérifiez le statut avec votre booking reference sur le site.",
   "confirm.route": "Itinéraire",
   "confirm.pickup": "Pickup",
   "confirm.return": "Retour",
@@ -954,7 +954,7 @@ const de: Dict = {
     "Stellen Sie sicher, dass Ihre Reisedokumente bereit sind, wie Reisepass, E-Ticket und Transfer-Bestätigungsdetails.",
   "faq.6.q": "Wie erfahre ich meine Abholzeit beim Abflugtransfer?",
   "faq.6.a":
-    "Die Abholzeit wird Ihnen mindestens 48 Stunden vor dem geplanten Transfer per E-Mail oder WhatsApp mitgeteilt. Sie können sie auch jederzeit mit Ihrer Reservierungsnummer im Abhol-Tracker bestätigen.",
+    "Die Abholzeit wird Ihnen mindestens 48 Stunden vor dem geplanten Transfer per E-Mail oder WhatsApp mitgeteilt. Sie können sie auch jederzeit mit Ihrer Booking reference im Abhol-Tracker bestätigen.",
   "faq.7.q": "Können meine Kinder an den Ausflügen auf Ihrer Website teilnehmen?",
   "faq.7.a":
     "Ja, die meisten Ausflüge sind familienfreundlich. Spezifische Alters- und Größenanforderungen sind für jede Aktivität aufgeführt.",
@@ -991,14 +991,14 @@ const de: Dict = {
 
   "pay.title": "Zahlungsformular",
   "pay.lead":
-    "Geben Sie Ihre Reservierungsnummer ein, um das sichere Zahlungsformular zu öffnen.",
-  "pay.reservationNumber": "Reservierungsnummer",
+    "Enter your booking reference to open the secure payment form.",
+  "pay.reservationNumber": "Booking reference",
   "pay.reservationPh": "z. B. EST-ABCD1234",
   "pay.continue": "Weiter zur Zahlung",
   "pay.noReservation": "Noch keine Reservierung?",
   "pay.bookTransport": "Transport buchen",
   "pay.bookExcursion": "einen Ausflug buchen",
-  "pay.enterNumber": "Geben Sie Ihre Reservierungsnummer ein.",
+  "pay.enterNumber": "Enter your booking reference.",
   "pay.notFound":
     "Reservierung nicht gefunden. Prüfen Sie den Code und versuchen Sie es erneut.",
   "pay.requested": "Reservierung gefunden — schließen Sie die Zahlung unten ab.",
@@ -1093,7 +1093,7 @@ const de: Dict = {
 
   "confirm.title": "Abholung bestätigen",
   "confirm.missing":
-    "Diese Reservierung konnte nicht geladen werden. Nutzen Sie den Link aus Ihrer E-Mail oder prüfen Sie den Status mit Ihrer Reservierungsnummer auf der Website.",
+    "Diese Reservierung konnte nicht geladen werden. Nutzen Sie den Link aus Ihrer E-Mail oder prüfen Sie den Status mit Ihrer Booking reference auf der Website.",
   "confirm.route": "Route",
   "confirm.pickup": "Abholung",
   "confirm.return": "Rückfahrt",
@@ -1205,7 +1205,7 @@ const zh: Dict = {
     "请准备好旅行证件，如护照、电子机票和接送确认信息。",
   "faq.6.q": "如何知道离开时的接机时间？",
   "faq.6.a":
-    "接机时间将在预定接送前至少 48 小时通过邮件或 WhatsApp 发送。您也可随时用预订号在接机查询中确认。",
+    "接机时间将在预定接送前至少 48 小时通过邮件或 WhatsApp 发送。您也可随时用 booking reference 在接机查询中确认。",
   "faq.7.q": "孩子可以参加网站上的短途游吗？",
   "faq.7.a":
     "可以，大多数短途游适合家庭。每项活动会注明具体年龄和身高要求。",
@@ -1237,14 +1237,14 @@ const zh: Dict = {
   "contact.country": "多米尼加共和国",
 
   "pay.title": "付款表单",
-  "pay.lead": "输入预订号以打开安全付款表单。",
-  "pay.reservationNumber": "预订号",
+  "pay.lead": "Enter your booking reference to open the secure payment form.",
+  "pay.reservationNumber": "Booking reference",
   "pay.reservationPh": "例如 EST-ABCD1234",
   "pay.continue": "继续付款",
   "pay.noReservation": "还没有预订？",
   "pay.bookTransport": "预订交通",
   "pay.bookExcursion": "预订短途游",
-  "pay.enterNumber": "请输入预订号。",
+  "pay.enterNumber": "Enter your booking reference.",
   "pay.notFound": "未找到该预订。请核对代码后重试。",
   "pay.requested": "已找到预订 — 请在下方完成付款。",
   "pay.copy": "复制",
@@ -1286,7 +1286,7 @@ const zh: Dict = {
   "pay.paypalLeadPending":
     "使用 PayPal 安全支付。",
   "pay.paypalHint":
-    "如提示请在 PayPal 备注中填写预订号 {id}，并发送收据给我们。",
+    "如提示请在 PayPal 备注中填写 booking reference {id}，并发送收据给我们。",
   "pay.connecting": "正在加载 PayPal…",
   "pay.pricePending": "价格待定 — 暂不可付款",
   "pay.payAmount": "使用 PayPal 支付 US${price}",
@@ -1336,7 +1336,7 @@ const zh: Dict = {
 
   "confirm.title": "确认接机",
   "confirm.missing":
-    "无法加载此预订。请使用邮件中的链接，或在网站上用预订号查询状态。",
+    "无法加载此预订。请使用邮件中的链接，或在网站上用 booking reference 查询状态。",
   "confirm.route": "路线",
   "confirm.pickup": "接机",
   "confirm.return": "返程",
@@ -1454,7 +1454,7 @@ const ru: Dict = {
     "Убедитесь, что у вас готовы документы для поездки: паспорт, e-билет и данные подтверждения трансфера.",
   "faq.6.q": "Как узнать время подачи для трансфера на вылет?",
   "faq.6.a":
-    "Время подачи будет отправлено вам по e-mail или WhatsApp не менее чем за 48 часов до запланированного трансфера. Вы также можете подтвердить его в любое время по номеру бронирования в трекере.",
+    "Время подачи будет отправлено вам по e-mail или WhatsApp не менее чем за 48 часов до запланированного трансфера. Вы также можете подтвердить его в любое время по booking reference в трекере.",
   "faq.7.q": "Могут ли мои дети участвовать в экскурсиях на вашем сайте?",
   "faq.7.a":
     "Да, большинство экскурсий подходят для семей. Конкретные требования по возрасту и росту указаны для каждой активности.",
@@ -1491,14 +1491,14 @@ const ru: Dict = {
 
   "pay.title": "Форма оплаты",
   "pay.lead":
-    "Введите номер бронирования, чтобы открыть защищённую форму оплаты.",
-  "pay.reservationNumber": "Номер бронирования",
+    "Enter your booking reference to open the secure payment form.",
+  "pay.reservationNumber": "Booking reference",
   "pay.reservationPh": "напр. EST-ABCD1234",
   "pay.continue": "Перейти к оплате",
   "pay.noReservation": "Ещё нет бронирования?",
   "pay.bookTransport": "Заказать транспорт",
   "pay.bookExcursion": "забронировать экскурсию",
-  "pay.enterNumber": "Введите номер бронирования.",
+  "pay.enterNumber": "Enter your booking reference.",
   "pay.notFound":
     "Бронирование не найдено. Проверьте код и попробуйте снова.",
   "pay.requested": "Бронирование найдено — завершите оплату ниже.",
@@ -1593,7 +1593,7 @@ const ru: Dict = {
 
   "confirm.title": "Подтвердить трансфер",
   "confirm.missing":
-    "Не удалось загрузить это бронирование. Используйте ссылку из e-mail или проверьте статус по номеру бронирования на сайте.",
+    "Не удалось загрузить это бронирование. Используйте ссылку из e-mail или проверьте статус по booking reference на сайте.",
   "confirm.route": "Маршрут",
   "confirm.pickup": "Подача",
   "confirm.return": "Обратно",

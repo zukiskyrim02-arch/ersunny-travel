@@ -227,7 +227,10 @@ export function PaymentSection({ reservation: initial }: PaymentSectionProps) {
           <p className="pay-screen__eyebrow">{t("pay.title")}</p>
           <h1>{serviceSubtitle}</h1>
           <div className="pay-screen__id">
-            <span>{reservation.id}</span>
+            <div className="pay-screen__id-meta">
+              <span className="pay-screen__id-label">{t("pay.reservationNumber")}</span>
+              <span className="pay-screen__id-value">{reservation.id}</span>
+            </div>
             <button type="button" className="copy-btn" onClick={() => void copyId()}>
               {copiedId ? t("pay.copied") : t("pay.copy")}
             </button>

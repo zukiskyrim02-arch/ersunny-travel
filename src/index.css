@@ -2953,7 +2953,22 @@ ul {
   gap: 0.55rem;
 }
 
-.pay-screen__id span {
+.pay-screen__id-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.pay-screen__id-label {
+  color: var(--muted, #64748b);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.pay-screen__id-value {
   color: var(--ink);
   font-size: 0.95rem;
   font-weight: 750;

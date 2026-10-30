@@ -74,7 +74,7 @@ export const faqs = [
   },
   {
     q: "How can I know my pickup time on my departure transfer?",
-    a: "The pickup time will be sent to you via email or WhatsApp at least 48 hours before your scheduled transfer. You can also confirm it anytime with your reservation number in the pickup tracker.",
+    a: "The pickup time will be sent to you via email or WhatsApp at least 48 hours before your scheduled transfer. You can also confirm it anytime with your booking reference in the pickup tracker.",
   },
   {
     q: "Can my kids make the excursions listed on your webpage?",
@@ -186,7 +186,7 @@ export const steps = [
   },
   {
     title: "Confirm your pickup",
-    copy: "Use the tracker with your reservation number to view your pickup time.",
+    copy: "Use the tracker with your booking reference to view your pickup time.",
   },
 ];
 
