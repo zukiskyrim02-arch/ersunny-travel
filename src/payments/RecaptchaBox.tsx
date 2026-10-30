@@ -1,5 +1,6 @@
 import { forwardRef, useEffect, useImperativeHandle, useRef } from "react";
 import { useI18n } from "../i18n/I18nProvider";
+import type { Locale } from "../i18n/locales";
 
 type Grecaptcha = {
   ready: (callback: () => void) => void;
@@ -19,6 +20,7 @@ type Grecaptcha = {
 declare global {
   interface Window {
     grecaptcha?: Grecaptcha;
+    ___grecaptcha_cfg?: unknown;
   }
 }
 
@@ -28,14 +30,37 @@ export type RecaptchaHandle = {
 
 const SITE_KEY = import.meta.env.VITE_RECAPTCHA_SITE_KEY || "";
 
-let loader: Promise<Grecaptcha> | null = null;
+/** Google reCAPTCHA `hl` codes for our site locales. */
+function recaptchaHl(locale: Locale): string {
+  if (locale === "zh") return "zh-CN";
+  return locale;
+}
 
-function loadRecaptcha(): Promise<Grecaptcha> {
-  if (window.grecaptcha?.render) return Promise.resolve(window.grecaptcha);
+let loader: Promise<Grecaptcha> | null = null;
+let loadedHl: string | null = null;
+
+function unloadRecaptcha() {
+  document
+    .querySelectorAll('script[src*="google.com/recaptcha/api.js"]')
+    .forEach((el) => el.remove());
+  delete window.grecaptcha;
+  delete window.___grecaptcha_cfg;
+  loader = null;
+  loadedHl = null;
+}
+
+function loadRecaptcha(hl: string): Promise<Grecaptcha> {
+  if (window.grecaptcha?.render && loadedHl === hl) {
+    return Promise.resolve(window.grecaptcha);
+  }
+  if (loadedHl != null && loadedHl !== hl) {
+    unloadRecaptcha();
+  }
   if (!loader) {
+    loadedHl = hl;
     loader = new Promise((resolve, reject) => {
       const script = document.createElement("script");
-      script.src = "https://www.google.com/recaptcha/api.js?render=explicit";
+      script.src = `https://www.google.com/recaptcha/api.js?hl=${encodeURIComponent(hl)}&render=explicit`;
       script.async = true;
       script.onload = () => {
         const api = window.grecaptcha;
@@ -45,7 +70,10 @@ function loadRecaptcha(): Promise<Grecaptcha> {
         }
         api.ready(() => resolve(api));
       };
-      script.onerror = () => reject(new Error("reCAPTCHA did not load"));
+      script.onerror = () => {
+        unloadRecaptcha();
+        reject(new Error("reCAPTCHA did not load"));
+      };
       document.head.appendChild(script);
     });
   }
@@ -56,7 +84,7 @@ export const RecaptchaBox = forwardRef<
   RecaptchaHandle,
   { onToken: (token: string) => void }
 >(function RecaptchaBox({ onToken }, ref) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const boxRef = useRef<HTMLDivElement>(null);
   const widgetId = useRef<number | null>(null);
   const onTokenRef = useRef(onToken);
@@ -72,8 +100,13 @@ export const RecaptchaBox = forwardRef<
   useEffect(() => {
     if (!SITE_KEY || !boxRef.current) return undefined;
     let cancelled = false;
+    const hl = recaptchaHl(locale);
+    const host = boxRef.current;
+    host.innerHTML = "";
+    widgetId.current = null;
+    onTokenRef.current("");
 
-    loadRecaptcha()
+    loadRecaptcha(hl)
       .then((api) => {
         if (cancelled || !boxRef.current || widgetId.current != null) return;
         widgetId.current = api.render(boxRef.current, {
@@ -83,12 +116,16 @@ export const RecaptchaBox = forwardRef<
           "error-callback": () => onTokenRef.current(""),
         });
       })
-      .catch(() => onTokenRef.current(""));
+      .catch(() => {
+        if (!cancelled) onTokenRef.current("");
+      });
 
     return () => {
       cancelled = true;
+      widgetId.current = null;
+      if (host) host.innerHTML = "";
     };
-  }, []);
+  }, [locale]);
 
   if (!SITE_KEY) {
     return <p className="recaptcha-box__missing">{t("pay.captchaMissing")}</p>;
