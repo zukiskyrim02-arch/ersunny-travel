@@ -9,7 +9,7 @@ import {
   type Reservation,
 } from "./reservations";
 import { useAppConfig } from "./store/hooks";
-import { fareFor, zoneForHotel, zonesOf } from "./transfers";
+import { quoteTransfer, zoneForHotel, zonesOf } from "./transfers";
 
 type QuoteFormProps = {
   onBooked: (reservation: Reservation) => void;
@@ -25,9 +25,8 @@ export function QuoteForm({ onBooked }: QuoteFormProps) {
     () => zones.flatMap((zone) => hotelsByZone[zone] ?? []),
     [zones, hotelsByZone],
   );
-  const [service, setService] = useState("Private Transfer");
+  const [service, setService] = useState("One way");
   const [transferType, setTransferType] = useState("Airport → Hotel");
-  const [rideClass, setRideClass] = useState("Private");
   const [date, setDate] = useState("");
   const [departureDate, setDepartureDate] = useState("");
   const [adults, setAdults] = useState(2);
@@ -45,9 +44,6 @@ export function QuoteForm({ onBooked }: QuoteFormProps) {
   const [error, setError] = useState("");
 
   const isRoundTrip = service === "Round trip";
-  const isSharedService = service === "Shared transportation";
-  const isShared =
-    isSharedService || (isRoundTrip && rideClass === "Shared");
 
   const quoted = useMemo(() => {
     const pax = Math.max(0, adults) + Math.max(0, children);
@@ -58,15 +54,14 @@ export function QuoteForm({ onBooked }: QuoteFormProps) {
       vehicles[vehicles.length - 1];
     if (!vehicle) return null;
     const zone = zoneForHotel(hotelsByZone, hotel) ?? zones[0] ?? "Punta Cana";
-    const fare = fareFor(config, vehicle.id, zone);
-    const price = isRoundTrip
-      ? isShared
-        ? fare.sharedRoundTrip
-        : fare.roundTrip
-      : isShared
-        ? fare.sharedOneWay
-        : fare.oneWay;
-    return { vehicle, zone, price };
+    const price = quoteTransfer(
+      config,
+      vehicle.id,
+      zone,
+      pax,
+      isRoundTrip,
+    );
+    return { vehicle, zone, price, pax };
   }, [
     adults,
     children,
@@ -76,7 +71,6 @@ export function QuoteForm({ onBooked }: QuoteFormProps) {
     hotel,
     config,
     isRoundTrip,
-    isShared,
   ]);
 
   async function onSubmit(e: FormEvent) {
@@ -104,12 +98,12 @@ export function QuoteForm({ onBooked }: QuoteFormProps) {
 
     const origin = isRoundTrip
       ? airportLabel
-      : transferType === "Hotel → Airport" || transferType === "Hotel → Hotel"
+      : transferType === "Hotel → Airport"
         ? hotel.trim()
         : airportLabel;
     const destination = isRoundTrip
       ? hotel.trim()
-      : transferType === "Airport → Hotel" || transferType === "Hotel → Hotel"
+      : transferType === "Airport → Hotel"
         ? hotel.trim()
         : airportLabel;
 
@@ -123,11 +117,7 @@ export function QuoteForm({ onBooked }: QuoteFormProps) {
         : ""
     }`;
 
-    const typeLabel = isRoundTrip
-      ? rideClass
-      : isSharedService
-        ? "Shared"
-        : transferType;
+    const typeLabel = isRoundTrip ? "Private" : `Private · ${transferType}`;
 
     const reservation: Reservation = {
       id: generateReservationId("transfer"),
@@ -142,7 +132,7 @@ export function QuoteForm({ onBooked }: QuoteFormProps) {
       returnDate: isRoundTrip ? departureDate : undefined,
       returnTime: isRoundTrip ? "To be confirmed" : undefined,
       passengers: safeAdults + safeChildren,
-      vehicle: isShared ? "Shared transfer" : vehicle.name,
+      vehicle: vehicle.name,
       wantReturn: isRoundTrip,
       price,
       flight: flightNotes,
@@ -183,24 +173,11 @@ export function QuoteForm({ onBooked }: QuoteFormProps) {
         <label className="field">
           <span>{t("quote.service")}</span>
           <select value={service} onChange={(e) => setService(e.target.value)} required>
-            <option value="Private Transfer">{t("quote.privateTransfer")}</option>
-            <option value="Shared transportation">{t("quote.sharedTransportation")}</option>
+            <option value="One way">{t("quote.oneWay")}</option>
             <option value="Round trip">{t("quote.roundTrip")}</option>
           </select>
         </label>
-        {isRoundTrip ? (
-          <label className="field">
-            <span>{t("quote.rideType")}</span>
-            <select
-              value={rideClass}
-              onChange={(e) => setRideClass(e.target.value)}
-              required
-            >
-              <option value="Private">{t("quote.private")}</option>
-              <option value="Shared">{t("quote.shared")}</option>
-            </select>
-          </label>
-        ) : (
+        {!isRoundTrip && (
           <label className="field">
             <span>{t("quote.transferType")}</span>
             <select
@@ -210,7 +187,6 @@ export function QuoteForm({ onBooked }: QuoteFormProps) {
             >
               <option value="Airport → Hotel">{t("quote.airportHotel")}</option>
               <option value="Hotel → Airport">{t("quote.hotelAirport")}</option>
-              <option value="Hotel → Hotel">{t("quote.hotelHotel")}</option>
             </select>
           </label>
         )}

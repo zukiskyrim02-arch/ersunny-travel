@@ -1,4 +1,7 @@
 import { useState, type FormEvent } from "react";
+import { AdminPager } from "./AdminPager";
+import { usePagination } from "./pagination";
+
 
 type FlightCard = {
   airline: string;
@@ -32,6 +35,7 @@ export function FlightsPanel() {
   const [error, setError] = useState("");
   const [flights, setFlights] = useState<FlightCard[]>([]);
   const [selected, setSelected] = useState(0);
+  const flightPager = usePagination(flights);
 
   async function search(event: FormEvent) {
     event.preventDefault();
@@ -50,11 +54,13 @@ export function FlightsPanel() {
       };
       if (!res.ok || !body.flights?.length) {
         setFlights([]);
+        flightPager.resetPage();
         setError(body.error || "No se pudo buscar el vuelo.");
         return;
       }
       setFlights(body.flights);
       setSelected(0);
+      flightPager.resetPage();
     } catch {
       setError("No se pudo buscar el vuelo.");
     } finally {
@@ -62,7 +68,8 @@ export function FlightsPanel() {
     }
   }
 
-  const current = flights[selected] ?? flights[0];
+  const current =
+    flights[selected] ?? flightPager.paged[0] ?? flights[0];
 
   return (
     <section className="admin-panel">
@@ -105,10 +112,13 @@ export function FlightsPanel() {
       {current && (
         <div className="admin-flight-layout">
           <div className="admin-flight-list">
-            {flights.map((item, index) => (
+            {flightPager.paged.map((item, index) => {
+              const absoluteIndex =
+                (flightPager.page - 1) * flightPager.pageSize + index;
+              return (
               <article
-                key={`${item.code}-${item.departure.time}-${index}`}
-                className={`admin-flight${index === selected ? " is-on" : ""}`}
+                key={`${item.code}-${item.departure.time}-${absoluteIndex}`}
+                className={`admin-flight${absoluteIndex === selected ? " is-on" : ""}`}
               >
                 <p className="admin-flight__date">{item.dateLabel}</p>
                 <div className="admin-flight__route">
@@ -132,7 +142,7 @@ export function FlightsPanel() {
                   <div className="admin-flight__pick">
                     <b>{item.transfer.pickup}</b>
                     <small>{item.transfer.title}</small>
-                    <button type="button" onClick={() => setSelected(index)}>
+                    <button type="button" onClick={() => setSelected(absoluteIndex)}>
                       Ver
                     </button>
                   </div>
@@ -142,7 +152,18 @@ export function FlightsPanel() {
                   {item.detail ? ` · ${item.detail}` : ""}
                 </p>
               </article>
-            ))}
+              );
+            })}
+            <AdminPager
+              total={flightPager.total}
+              page={flightPager.page}
+              pageSize={flightPager.pageSize}
+              pageCount={flightPager.pageCount}
+              onPageChange={(page) => {
+                flightPager.setPage(page);
+                setSelected((page - 1) * flightPager.pageSize);
+              }}
+            />
           </div>
 
           <aside className="admin-card admin-flight-plan">

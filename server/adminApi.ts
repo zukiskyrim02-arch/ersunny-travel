@@ -17,6 +17,7 @@ import {
   publicReviews,
   submitReview,
 } from "./reviews.js";
+import { processReservationRefund } from "./refund.js";
 
 export type { ApiResult };
 
@@ -101,6 +102,25 @@ export async function dispatchAdminApi(input: DispatchInput): Promise<ApiResult>
   if (reviewsEnabled && method === "POST" && path === "/api/reviews/invite") {
     if (!session) return unauthorized();
     return inviteReview(input.body, input.origin);
+  }
+  if (method === "POST" && path === "/api/payments/refund") {
+    if (!session) return unauthorized();
+    const result = await processReservationRefund({
+      reservationId: String(input.body.reservationId || ""),
+      clientIp: input.ip,
+    });
+    if (!result.ok) {
+      return { status: result.status, body: { error: result.error } };
+    }
+    return {
+      status: 200,
+      body: {
+        ok: true,
+        reservationId: result.reservationId,
+        provider: result.provider,
+        refundReference: result.refundReference,
+      },
+    };
   }
 
   return { status: 404, body: { error: "not_found" } };

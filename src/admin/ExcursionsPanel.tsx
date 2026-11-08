@@ -1,6 +1,8 @@
 import { useMemo, useState } from "react";
 import { uploadPhoto } from "../photos/uploadPhoto";
 import type { ManagedExcursion } from "../store/config";
+import { AdminPager } from "./AdminPager";
+import { usePagination } from "./pagination";
 import { slugify } from "./types";
 
 function durationLabel(duration: string) {
@@ -32,6 +34,23 @@ export function ExcursionsPanel({
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [editing, setEditing] = useState(false);
   const [pickupDraft, setPickupDraft] = useState("");
+  const [pickupQuery, setPickupQuery] = useState("");
+
+  const sortedPickups = useMemo(
+    () =>
+      [...pickups].sort((a, b) =>
+        a.localeCompare(b, undefined, { sensitivity: "base" }),
+      ),
+    [pickups],
+  );
+
+  const filteredPickups = useMemo(() => {
+    const q = pickupQuery.trim().toLowerCase();
+    if (!q) return sortedPickups;
+    return sortedPickups.filter((point) => point.toLowerCase().includes(q));
+  }, [sortedPickups, pickupQuery]);
+
+  const pickupPager = usePagination(filteredPickups);
 
   const visible = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -52,6 +71,7 @@ export function ExcursionsPanel({
     return list;
   }, [excursions, query, sort]);
 
+  const catalogPager = usePagination(visible);
   const selected = excursions.find((item) => item.id === selectedId) ?? null;
   const featured = visible[0];
   const popular = visible.slice(1, 5);
@@ -132,8 +152,16 @@ export function ExcursionsPanel({
       setPickupDraft("");
       return;
     }
-    onPickupsChange([...pickups, name]);
+    const next = [...pickups, name].sort((a, b) =>
+      a.localeCompare(b, undefined, { sensitivity: "base" }),
+    );
+    onPickupsChange(next);
     setPickupDraft("");
+    setPickupQuery("");
+    const index = next.findIndex(
+      (item) => item.toLowerCase() === name.toLowerCase(),
+    );
+    pickupPager.goToIndex(Math.max(0, index));
   }
 
   function removePickup(name: string) {
@@ -172,17 +200,32 @@ export function ExcursionsPanel({
         </button>
       </header>
 
-      <article className="admin-edit-card admin-edit-card--wide">
-        <h3>
-          Puntos de recogida
-          <span className="admin-muted"> · {pickups.length}</span>
-        </h3>
-        <p className="admin-note">
-          Estos hoteles o puntos aparecen en el formulario de excursiones del
-          sitio. Guarda los cambios del admin para publicarlos.
-        </p>
+      <article className="admin-edit-card admin-edit-card--wide admin-pickups">
+        <div className="admin-pickups__head">
+          <div>
+            <h3>
+              Puntos de recogida
+              <span className="admin-muted"> · {pickups.length}</span>
+            </h3>
+            <p className="admin-note">
+              Hoteles o puntos del formulario de excursiones, en orden A–Z.
+            </p>
+          </div>
+          <label className="admin-pickups__search">
+            <span className="visually-hidden">Buscar punto</span>
+            <input
+              type="search"
+              value={pickupQuery}
+              placeholder="Buscar punto…"
+              onChange={(e) => {
+                setPickupQuery(e.target.value);
+                pickupPager.resetPage();
+              }}
+            />
+          </label>
+        </div>
         <form
-          className="admin-hotel-add"
+          className="admin-hotel-add admin-pickups__add"
           onSubmit={(e) => {
             e.preventDefault();
             addPickup();
@@ -202,25 +245,32 @@ export function ExcursionsPanel({
         </form>
         {pickups.length === 0 ? (
           <p className="admin-note">Todavía no hay puntos de recogida.</p>
+        ) : filteredPickups.length === 0 ? (
+          <p className="admin-note">Ningún punto coincide con la búsqueda.</p>
         ) : (
-          <ul className="admin-hotel-list">
-            {[...pickups]
-              .sort((a, b) =>
-                a.localeCompare(b, undefined, { sensitivity: "base" }),
-              )
-              .map((point) => (
-              <li key={point}>
-                <span>{point}</span>
-                <button
-                  type="button"
-                  className="admin-danger"
-                  onClick={() => removePickup(point)}
-                >
-                  Quitar
-                </button>
-              </li>
-            ))}
-          </ul>
+          <>
+            <ul className="admin-hotel-list admin-pickups__list">
+              {pickupPager.paged.map((point) => (
+                <li key={point}>
+                  <span>{point}</span>
+                  <button
+                    type="button"
+                    className="admin-danger"
+                    onClick={() => removePickup(point)}
+                  >
+                    Quitar
+                  </button>
+                </li>
+              ))}
+            </ul>
+            <AdminPager
+              total={pickupPager.total}
+              page={pickupPager.page}
+              pageSize={pickupPager.pageSize}
+              pageCount={pickupPager.pageCount}
+              onPageChange={pickupPager.setPage}
+            />
+          </>
         )}
       </article>
 
@@ -233,13 +283,19 @@ export function ExcursionsPanel({
           <input
             type="search"
             value={query}
-            onChange={(event) => setQuery(event.target.value)}
+            onChange={(event) => {
+              setQuery(event.target.value);
+              catalogPager.resetPage();
+            }}
             placeholder="Buscar excursión…"
           />
         </label>
         <select
           value={sort}
-          onChange={(event) => setSort(event.target.value as typeof sort)}
+          onChange={(event) => {
+            setSort(event.target.value as typeof sort);
+            catalogPager.resetPage();
+          }}
           aria-label="Ordenar excursiones"
         >
           <option value="order">Orden del sitio</option>
@@ -309,7 +365,7 @@ export function ExcursionsPanel({
             <span>{visible.length} en total</span>
           </div>
           <div className="admin-pkg-grid">
-            {visible.map((item) => (
+            {catalogPager.paged.map((item) => (
               <article key={item.id} className="admin-pkg-card">
                 <img src={item.image} alt="" />
                 <div>
@@ -326,6 +382,13 @@ export function ExcursionsPanel({
               </article>
             ))}
           </div>
+          <AdminPager
+            total={catalogPager.total}
+            page={catalogPager.page}
+            pageSize={catalogPager.pageSize}
+            pageCount={catalogPager.pageCount}
+            onPageChange={catalogPager.setPage}
+          />
         </>
       )}
     </section>

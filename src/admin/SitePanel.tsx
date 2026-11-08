@@ -7,14 +7,14 @@ export function SitePanel({
   config: AppConfig;
   onChange: (patch: Partial<AppConfig>) => void;
 }) {
-  const { contact, bank, page } = config;
+  const { contact, page } = config;
 
   return (
     <section className="admin-panel">
       <header className="admin-panel__head">
         <div>
           <h1>Información del sitio</h1>
-          <p>Contacto, banco y textos opcionales del home / nosotros.</p>
+          <p>Contacto y textos opcionales del home / nosotros.</p>
         </div>
       </header>
 
@@ -65,61 +65,6 @@ export function SitePanel({
                   onChange({
                     contact: { ...contact, location: e.target.value },
                   })
-                }
-              />
-            </label>
-          </div>
-        </div>
-      </div>
-
-      <div className="admin-block">
-        <h2>Transferencia bancaria</h2>
-        <div className="admin-edit-card admin-edit-card--wide">
-          <div className="admin-edit-card__row">
-            <label>
-              Banco
-              <input
-                value={bank.bank}
-                onChange={(e) =>
-                  onChange({ bank: { ...bank, bank: e.target.value } })
-                }
-              />
-            </label>
-            <label>
-              Tipo de cuenta
-              <input
-                value={bank.accountType}
-                onChange={(e) =>
-                  onChange({ bank: { ...bank, accountType: e.target.value } })
-                }
-              />
-            </label>
-            <label>
-              Número de cuenta
-              <input
-                value={bank.accountNumber}
-                onChange={(e) =>
-                  onChange({
-                    bank: { ...bank, accountNumber: e.target.value },
-                  })
-                }
-              />
-            </label>
-            <label>
-              Titular
-              <input
-                value={bank.holder}
-                onChange={(e) =>
-                  onChange({ bank: { ...bank, holder: e.target.value } })
-                }
-              />
-            </label>
-            <label>
-              RNC
-              <input
-                value={bank.rnc}
-                onChange={(e) =>
-                  onChange({ bank: { ...bank, rnc: e.target.value } })
                 }
               />
             </label>

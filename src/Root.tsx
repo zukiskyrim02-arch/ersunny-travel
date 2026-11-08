@@ -159,7 +159,10 @@ export function Root() {
     if (!result) return;
 
     if (result.status === "approved" && result.orderNumber) {
-      updateReservation(result.orderNumber, { status: "paid" });
+      updateReservation(result.orderNumber, {
+        status: "paid",
+        paymentMethod: "paypal",
+      });
       const found = findReservation(result.orderNumber);
       setAzulBanner(
         found

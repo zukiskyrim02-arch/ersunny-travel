@@ -1,6 +1,5 @@
 import { useMemo, useState } from "react";
 import {
-  deleteReservation,
   generateReservationId,
   saveReservation,
   updateReservation,
@@ -8,10 +7,15 @@ import {
   type Reservation,
   type ReservationStatus,
 } from "../reservations";
+import { sendPickupTimesToCustomer } from "../notifyBooking";
 import { sendServiceSurvey } from "../reviews";
 import { formatDisplayDate, formatDisplayTime } from "../../shared/datetime";
 import { reviewsEnabled } from "../../shared/features";
 import { useReservations } from "../store/hooks";
+import { AdminPager } from "./AdminPager";
+import { usePagination } from "./pagination";
+
+
 
 const statusLabel: Record<ReservationStatus, string> = {
   pending: "Pendiente",
@@ -19,7 +23,20 @@ const statusLabel: Record<ReservationStatus, string> = {
   confirmed: "Confirmada",
   completed: "Completada",
   cancelled: "Cancelada",
+  refunded: "Devuelta",
 };
+
+function money(price: number | null | undefined) {
+  if (price == null || !Number.isFinite(price)) return "A confirmar";
+  return `US$${price.toLocaleString("en-US", {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+  })}`;
+}
+
+function whatsappDigits(contactInfo: string) {
+  return contactInfo.replace(/\D/g, "");
+}
 
 function surveyMessage(error: string | undefined, already: boolean) {
   if (already) return "La encuesta ya se había enviado.";
@@ -64,17 +81,34 @@ export function ReservationsPanel({
   const [editing, setEditing] = useState<Reservation | null>(null);
   const [creating, setCreating] = useState(false);
   const [surveyNote, setSurveyNote] = useState("");
+  const [confirmingId, setConfirmingId] = useState<string | null>(null);
+  const [confirmNote, setConfirmNote] = useState("");
 
   const filtered = useMemo(() => {
-    return items.filter((r) => {
-      if (filter !== "all" && (r.status ?? "pending") !== filter) return false;
-      if (kind !== "all" && (r.kind ?? "transfer") !== kind) return false;
-      if (!q.trim()) return true;
-      const hay =
-        `${r.id} ${r.name} ${r.contactInfo} ${r.email ?? ""} ${r.origin} ${r.destination}`.toLowerCase();
-      return hay.includes(q.trim().toLowerCase());
-    });
+    return items
+      .filter((r) => {
+        if (filter !== "all" && (r.status ?? "pending") !== filter) return false;
+        if (kind !== "all" && (r.kind ?? "transfer") !== kind) return false;
+        if (!q.trim()) return true;
+        const hay =
+          `${r.id} ${r.name} ${r.contactInfo} ${r.email ?? ""} ${r.origin} ${r.destination}`.toLowerCase();
+        return hay.includes(q.trim().toLowerCase());
+      })
+      .sort(
+        (a, b) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+      );
   }, [items, filter, kind, q]);
+
+  const {
+    page: safePage,
+    setPage,
+    pageCount,
+    pageSize,
+    paged,
+    total,
+    resetPage,
+  } = usePagination(filtered);
 
   function openCreate() {
     setCreating(true);
@@ -107,40 +141,77 @@ export function ReservationsPanel({
     }
   }
 
-  function changeStatus(reservation: Reservation, status: ReservationStatus) {
-    updateReservation(reservation.id, { status });
-    if (reviewsEnabled && status === "completed" && !reservation.surveySentAt) {
-      void requestSurvey(reservation.id);
+  async function confirmPickupTime(reservation: Reservation) {
+    const pickupTime = (reservation.pickupTime || "").trim();
+    if (!pickupTime || /por confirmar|to be confirmed/i.test(pickupTime)) {
+      setConfirmNote("Escribe la hora de pickup antes de confirmar.");
+      return;
+    }
+    setConfirmingId(reservation.id);
+    setConfirmNote("");
+    const updated = {
+      ...reservation,
+      pickupTime,
+      time: pickupTime,
+      pickupConfirmedAt: new Date().toISOString(),
+      customerConfirmed: false,
+    };
+    updateReservation(reservation.id, {
+      pickupTime,
+      time: pickupTime,
+      pickupConfirmedAt: updated.pickupConfirmedAt,
+      customerConfirmed: false,
+    });
+    try {
+      await sendPickupTimesToCustomer(updated);
+      setConfirmNote(`Hora confirmada y enviada al cliente · ${reservation.id}`);
+    } catch {
+      setConfirmNote(
+        `Hora guardada en ${reservation.id}, pero no se pudo enviar el correo. Avísale por WhatsApp.`,
+      );
+    } finally {
+      setConfirmingId(null);
     }
   }
 
   return (
-    <section className="admin-panel">
+    <section className="admin-panel admin-res">
       <header className="admin-panel__head">
         <div>
           <h1>Reservas</h1>
           <p>
             {reviewsEnabled
-              ? "Consulta, edita y crea traslados y excursiones. Al marcar una reserva como completada se envía la encuesta al correo del cliente."
-              : "Consulta, edita y crea traslados y excursiones."}
+              ? "Traslados y excursiones. Al completar una reserva se envía la encuesta al cliente."
+              : "Traslados y excursiones en un solo lugar."}
           </p>
           {surveyNote && <p className="admin-ok">{surveyNote}</p>}
+          {confirmNote && <p className="admin-ok">{confirmNote}</p>}
         </div>
         <button type="button" className="btn btn--primary" onClick={openCreate}>
           + Nueva reserva
         </button>
       </header>
 
-      <div className="admin-filters">
-        <input
-          type="search"
-          placeholder="Buscar ID, nombre, email, destino…"
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-        />
+      <div className="admin-res__toolbar">
+        <label className="admin-res__search">
+          <span className="visually-hidden">Buscar reservas</span>
+          <input
+            type="search"
+            placeholder="Buscar ID, nombre, email, destino…"
+            value={q}
+            onChange={(e) => {
+              setQ(e.target.value);
+              resetPage();
+            }}
+          />
+        </label>
         <select
           value={filter}
-          onChange={(e) => setFilter(e.target.value as typeof filter)}
+          aria-label="Filtrar por estado"
+          onChange={(e) => {
+            setFilter(e.target.value as typeof filter);
+            resetPage();
+          }}
         >
           <option value="all">Todos los estados</option>
           <option value="pending">Pendientes</option>
@@ -148,10 +219,15 @@ export function ReservationsPanel({
           <option value="confirmed">Confirmadas</option>
           <option value="completed">Completadas</option>
           <option value="cancelled">Canceladas</option>
+          <option value="refunded">Devueltas</option>
         </select>
         <select
           value={kind}
-          onChange={(e) => setKind(e.target.value as typeof kind)}
+          aria-label="Filtrar por tipo"
+          onChange={(e) => {
+            setKind(e.target.value as typeof kind);
+            resetPage();
+          }}
         >
           <option value="all">Todos los tipos</option>
           <option value="transfer">Traslados</option>
@@ -174,115 +250,184 @@ export function ReservationsPanel({
       {filtered.length === 0 ? (
         <p className="admin-note">No hay reservas con ese filtro.</p>
       ) : (
-        <div className="admin-res-list">
-          {filtered.map((r) => (
-            <article key={r.id} className="admin-res-card">
-              <div className="admin-res-card__top">
-                <div>
-                  <strong>{r.id}</strong>
-                  <span
-                    className={`admin-pill admin-pill--${r.status ?? "pending"}`}
-                  >
-                    {statusLabel[r.status ?? "pending"]}
-                  </span>
-                  <span className="admin-pill admin-pill--kind">
-                    {r.kind === "excursion" ? "Excursión" : "Traslado"}
-                  </span>
-                  {r.customerConfirmed && (
-                    <span className="admin-pill admin-pill--ok">Cliente OK</span>
-                  )}
-                </div>
-                <small>{new Date(r.createdAt).toLocaleString("es-DO")}</small>
-              </div>
-              <p>
-                <strong>{r.name}</strong> · {r.contactInfo}
-                {r.email ? ` · ${r.email}` : ""}
-              </p>
-              <p>
-                {r.kind === "excursion"
-                  ? `${r.destination} · pickup ${r.hotelPickup || r.origin}`
-                  : `${r.origin} → ${r.destination}`}
-              </p>
-              <p>
-                Fecha {formatDisplayDate(r.date)}
-                {r.wantReturn && r.returnDate ? ` – ${formatDisplayDate(r.returnDate)}` : ""} ·{" "}
-                {r.passengers} pax · {r.vehicle}
-                {r.price != null
-                  ? ` · US$${r.price}`
-                  : " · precio a confirmar"}
-              </p>
-              {(r.pickupTime || r.time) && (
-                <p className="admin-muted">
-                  Pickup: {formatDisplayTime(r.pickupTime || r.time)}
-                  {r.returnTime ? ` · Retorno: ${formatDisplayTime(r.returnTime)}` : ""}
-                </p>
-              )}
-              {r.flight && <p className="admin-muted">Vuelo: {r.flight}</p>}
-              {r.notes && <p className="admin-muted">Notas: {r.notes}</p>}
+        <>
+          <div className="admin-res-list">
+            {paged.map((r) => {
+              const wa = whatsappDigits(r.contactInfo);
+              const route =
+                r.kind === "excursion"
+                  ? r.destination
+                  : `${r.origin} → ${r.destination}`;
+              return (
+                <article key={r.id} className="admin-res-card">
+                  <div className="admin-res-card__top">
+                    <div className="admin-res-card__id">
+                      <strong>{r.id}</strong>
+                      <div className="admin-res-card__tags">
+                        <span
+                          className={`admin-pill admin-pill--${r.status ?? "pending"}`}
+                        >
+                          {statusLabel[r.status ?? "pending"]}
+                        </span>
+                        <span className="admin-pill admin-pill--kind">
+                          {r.kind === "excursion" ? "Excursión" : "Traslado"}
+                        </span>
+                        {r.pickupConfirmedAt && (
+                          <span className="admin-pill admin-pill--pickup">
+                            Hora confirmada
+                          </span>
+                        )}
+                        {r.customerConfirmed && (
+                          <span className="admin-pill admin-pill--ok">
+                            Cliente OK
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="admin-res-card__price">
+                      <b>{money(r.price)}</b>
+                      <small>
+                        {new Date(r.createdAt).toLocaleString("es-DO", {
+                          dateStyle: "medium",
+                          timeStyle: "short",
+                        })}
+                      </small>
+                    </div>
+                  </div>
 
-              <div className="admin-res-card__actions">
-                <label>
-                  Estado
-                  <select
-                    value={r.status ?? "pending"}
-                    onChange={(e) =>
-                      changeStatus(r, e.target.value as ReservationStatus)
-                    }
-                  >
-                    <option value="pending">Pendiente</option>
-                    <option value="paid">Pagada</option>
-                    <option value="confirmed">Confirmada</option>
-                    <option value="completed">Completada</option>
-                    <option value="cancelled">Cancelada</option>
-                  </select>
-                </label>
-                <label>
-                  Hora pickup
-                  <input
-                    type="text"
-                    placeholder="02:30 PM"
-                    value={r.pickupTime ?? ""}
-                    onChange={(e) =>
-                      updateReservation(r.id, {
-                        pickupTime: e.target.value,
-                        time: e.target.value || "Por confirmar",
-                      })
-                    }
-                  />
-                </label>
-                <button
-                  type="button"
-                  className="btn btn--ghost"
-                  onClick={() => {
-                    setCreating(false);
-                    setEditing({ ...r });
-                  }}
-                >
-                  Editar
-                </button>
-                <a
-                  className="btn btn--primary"
-                  href={`https://wa.me/${r.contactInfo.replace(/\D/g, "")}?text=${encodeURIComponent(`Hola ${r.name}, sobre tu reserva ${r.id}:`)}`}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  WhatsApp
-                </a>
-                <button
-                  type="button"
-                  className="admin-danger"
-                  onClick={() => {
-                    if (confirm(`¿Eliminar reserva ${r.id}?`)) {
-                      deleteReservation(r.id);
-                    }
-                  }}
-                >
-                  Eliminar
-                </button>
-              </div>
-            </article>
-          ))}
-        </div>
+                  <div className="admin-res-card__body">
+                    <div className="admin-res-card__guest">
+                      <strong>{r.name || "Sin nombre"}</strong>
+                      <span>{r.contactInfo || "Sin contacto"}</span>
+                      {r.email ? <span>{r.email}</span> : null}
+                    </div>
+
+                    <div className="admin-res-card__facts">
+                      <div>
+                        <span>Ruta</span>
+                        <strong>{route}</strong>
+                        {r.kind === "excursion" && (r.hotelPickup || r.origin) ? (
+                          <small>Pickup {r.hotelPickup || r.origin}</small>
+                        ) : null}
+                      </div>
+                      <div>
+                        <span>Fecha</span>
+                        <strong>
+                          {formatDisplayDate(r.date)}
+                          {r.wantReturn && r.returnDate
+                            ? ` – ${formatDisplayDate(r.returnDate)}`
+                            : ""}
+                        </strong>
+                      </div>
+                      <div>
+                        <span>Pickup</span>
+                        <strong>
+                          {formatDisplayTime(r.pickupTime || r.time)}
+                        </strong>
+                        {r.returnTime ? (
+                          <small>Retorno {formatDisplayTime(r.returnTime)}</small>
+                        ) : null}
+                      </div>
+                      <div>
+                        <span>Detalle</span>
+                        <strong>
+                          {r.passengers} pax · {r.vehicle}
+                        </strong>
+                        {r.flight ? <small>Vuelo {r.flight}</small> : null}
+                      </div>
+                    </div>
+
+                    {r.notes ? (
+                      <p className="admin-res-card__notes">{r.notes}</p>
+                    ) : null}
+                  </div>
+
+                  {(r.status === "paid" || wa) && (
+                    <div className="admin-res-card__actions">
+                      {r.status === "paid" ? (
+                        <div className="admin-res-card__pickup">
+                          <label>
+                            Hora pickup
+                            <input
+                              type="text"
+                              placeholder="02:30 PM"
+                              value={r.pickupTime ?? ""}
+                              onChange={(e) =>
+                                updateReservation(r.id, {
+                                  pickupTime: e.target.value,
+                                  time: e.target.value || "Por confirmar",
+                                  pickupConfirmedAt: undefined,
+                                  customerConfirmed: false,
+                                })
+                              }
+                            />
+                          </label>
+                          {r.pickupConfirmedAt ? (
+                            <p className="admin-res-card__pickup-ok">
+                              Confirmada{" "}
+                              {new Date(r.pickupConfirmedAt).toLocaleString(
+                                "es-DO",
+                                {
+                                  dateStyle: "short",
+                                  timeStyle: "short",
+                                },
+                              )}
+                              {r.customerConfirmed
+                                ? " · el cliente también OK"
+                                : " · esperando al cliente"}
+                            </p>
+                          ) : (
+                            <p className="admin-res-card__pickup-wait">
+                              Aún no la has confirmado al cliente
+                            </p>
+                          )}
+                        </div>
+                      ) : null}
+                      <div className="admin-res-card__buttons">
+                        {r.status === "paid" ? (
+                          <button
+                            type="button"
+                            className={`btn ${r.pickupConfirmedAt ? "btn--ghost" : "btn--primary"}`}
+                            disabled={confirmingId === r.id}
+                            onClick={() => void confirmPickupTime(r)}
+                          >
+                            {confirmingId === r.id
+                              ? "Confirmando…"
+                              : r.pickupConfirmedAt
+                                ? "Reconfirmar hora"
+                                : "Confirmar hora"}
+                          </button>
+                        ) : null}
+                        {wa ? (
+                          <a
+                            className="btn btn--primary"
+                            href={`https://wa.me/${wa}?text=${encodeURIComponent(
+                              r.pickupTime
+                                ? `Hola ${r.name}, tu pickup para ${r.id} es a las ${formatDisplayTime(r.pickupTime)}.`
+                                : `Hola ${r.name}, sobre tu reserva ${r.id}:`,
+                            )}`}
+                            target="_blank"
+                            rel="noreferrer"
+                          >
+                            WhatsApp
+                          </a>
+                        ) : null}
+                      </div>
+                    </div>
+                  )}
+                </article>
+              );
+            })}
+          </div>
+
+          <AdminPager
+            total={total}
+            page={safePage}
+            pageSize={pageSize}
+            pageCount={pageCount}
+            onPageChange={setPage}
+          />
+        </>
       )}
     </section>
   );
@@ -353,6 +498,7 @@ function ReservationEditor({
             <option value="confirmed">Confirmada</option>
             <option value="completed">Completada</option>
             <option value="cancelled">Cancelada</option>
+            <option value="refunded">Devuelta</option>
           </select>
         </label>
       </div>

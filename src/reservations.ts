@@ -5,7 +5,10 @@ export type ReservationStatus =
   | "paid"
   | "confirmed"
   | "completed"
-  | "cancelled";
+  | "cancelled"
+  | "refunded";
+
+export type PaymentMethod = "card" | "paypal";
 
 export type Reservation = {
   id: string;
@@ -30,12 +33,30 @@ export type Reservation = {
   createdAt: string;
   status?: ReservationStatus;
   pickupTime?: string;
+  /** When staff set and confirmed the pickup time to the customer. */
+  pickupConfirmedAt?: string;
   /** Customer acknowledged the staff-confirmed pickup time. */
   customerConfirmed?: boolean;
   /** When the post-service survey email was sent. */
   surveySentAt?: string;
   /** Cardnet AuthorizationCode from the consulta GET. The card number is never stored. */
   authorizationCode?: string;
+  /** How the customer paid when known. */
+  paymentMethod?: PaymentMethod;
+  /** PayPal order id from checkout. */
+  paypalOrderId?: string;
+  /** PayPal capture id required to refund. */
+  paypalCaptureId?: string;
+  /** Cardnet TxToken from the approved session (needed to refund). */
+  cardnetTxToken?: string;
+  /** Cardnet RetrievalReferenceNumber from the approved session. */
+  cardnetRetrievalReference?: string;
+  /** DOP amount charged by Cardnet. */
+  cardnetAmountDop?: number;
+  /** When a provider refund completed. */
+  refundedAt?: string;
+  /** Provider reference returned by the refund call. */
+  refundReference?: string;
 };
 
 import { dbGet, dbRemove, dbSet, dbSetAsync, dbSubscribe } from "./firebase";
@@ -217,7 +238,13 @@ export function updateReservation(
   const all = listReservations();
   const idx = all.findIndex((r) => r.id.toUpperCase() === id.trim().toUpperCase());
   if (idx < 0) return undefined;
-  all[idx] = { ...all[idx], ...patch, id: all[idx].id };
+  const next: Reservation = { ...all[idx], ...patch, id: all[idx].id };
+  for (const [key, value] of Object.entries(patch)) {
+    if (value === undefined) {
+      delete (next as Record<string, unknown>)[key];
+    }
+  }
+  all[idx] = next;
   writeAll(all);
   pushReservation(all[idx]);
   return all[idx];

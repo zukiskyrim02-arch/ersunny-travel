@@ -1,5 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import "../admin.css";
+import { formatDisplayDate } from "../../shared/datetime";
 import {
   defaultConfig,
   getConfig,
@@ -7,6 +8,7 @@ import {
   type AppConfig,
 } from "../store/config";
 import { useAppConfig, useReservations } from "../store/hooks";
+import type { Reservation } from "../reservations";
 import { useI18n } from "../i18n/I18nProvider";
 import { useLogoSrc } from "../media/library";
 import { AdminLogin } from "./AdminLogin";
@@ -33,6 +35,13 @@ import {
   TabIcon,
 } from "./navIcons";
 
+function needsPickupFollowUp(reservation: Reservation) {
+  if ((reservation.status ?? "pending") !== "paid") return false;
+  const time = (reservation.pickupTime || reservation.time || "").trim();
+  if (!time) return true;
+  return /por confirmar|to be confirmed/i.test(time);
+}
+
 export function AdminApp() {
   const { locale } = useI18n();
   const copy = adminCopy(locale);
@@ -41,14 +50,45 @@ export function AdminApp() {
   const [tab, setTab] = useState<AdminTab>("overview");
   const [navOpen, setNavOpen] = useState(false);
   const [finder, setFinder] = useState("");
+  const [alertsOpen, setAlertsOpen] = useState(false);
+  const alertsRef = useRef<HTMLDivElement>(null);
   const liveConfig = useAppConfig();
   const reservations = useReservations();
   const [draft, setDraft] = useState<AppConfig>(() => getConfig());
   const [savedMsg, setSavedMsg] = useState("");
 
+  const pickupAlerts = useMemo(
+    () =>
+      reservations
+        .filter(needsPickupFollowUp)
+        .sort(
+          (a, b) =>
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+        ),
+    [reservations],
+  );
+
   useEffect(() => {
     setDraft(liveConfig);
   }, [liveConfig]);
+
+  useEffect(() => {
+    if (!alertsOpen) return;
+    function onPointerDown(event: MouseEvent) {
+      if (!alertsRef.current?.contains(event.target as Node)) {
+        setAlertsOpen(false);
+      }
+    }
+    function onKey(event: KeyboardEvent) {
+      if (event.key === "Escape") setAlertsOpen(false);
+    }
+    document.addEventListener("mousedown", onPointerDown);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onPointerDown);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [alertsOpen]);
 
   useEffect(() => {
     let cancelled = false;
@@ -195,14 +235,89 @@ export function AdminApp() {
           </form>
           <div className="admin__chrome-side">
             {savedMsg && <span className="admin-ok">{savedMsg}</span>}
-            <div className="admin__user">
-              <span className="admin__user-badge" aria-hidden>
-                AD
-              </span>
-              <span>
-                <strong>Administrador</strong>
-                <small>Ersunny Travel</small>
-              </span>
+            <div className="admin__alerts" ref={alertsRef}>
+              <button
+                type="button"
+                className={`admin__user${pickupAlerts.length ? " has-alerts" : ""}${alertsOpen ? " is-open" : ""}`}
+                aria-expanded={alertsOpen}
+                aria-haspopup="dialog"
+                onClick={() => setAlertsOpen((open) => !open)}
+              >
+                <span className="admin__user-badge" aria-hidden>
+                  AD
+                  {pickupAlerts.length > 0 ? (
+                    <i className="admin__user-count">
+                      {pickupAlerts.length > 9 ? "9+" : pickupAlerts.length}
+                    </i>
+                  ) : null}
+                </span>
+                <span>
+                  <strong>Administrador</strong>
+                  <small>
+                    {pickupAlerts.length > 0
+                      ? `${pickupAlerts.length} sin hora de pickup`
+                      : "Ersunny Travel"}
+                  </small>
+                </span>
+              </button>
+
+              {alertsOpen && (
+                <div className="admin__alerts-panel" role="dialog" aria-label="Pendientes de pickup">
+                  <header>
+                    <div>
+                      <p>Seguimiento</p>
+                      <strong>Pagadas sin hora</strong>
+                    </div>
+                    <button
+                      type="button"
+                      className="admin-linkish"
+                      onClick={() => {
+                        setFinder("");
+                        setTab("reservations");
+                        setAlertsOpen(false);
+                      }}
+                    >
+                      Ver reservas
+                    </button>
+                  </header>
+                  {pickupAlerts.length === 0 ? (
+                    <p className="admin__alerts-empty">
+                      No hay reservas pagadas pendientes de hora.
+                    </p>
+                  ) : (
+                    <ul>
+                      {pickupAlerts.slice(0, 8).map((item) => (
+                        <li key={item.id}>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setFinder(item.id);
+                              setTab("reservations");
+                              setAlertsOpen(false);
+                            }}
+                          >
+                            <span>
+                              <strong>{item.name || "Sin nombre"}</strong>
+                              <small>
+                                {item.id} ·{" "}
+                                {item.date
+                                  ? formatDisplayDate(item.date)
+                                  : "Sin fecha"}
+                              </small>
+                            </span>
+                            <b>Poner hora</b>
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                  {pickupAlerts.length > 8 ? (
+                    <p className="admin__alerts-more">
+                      +{pickupAlerts.length - 8} más en Reservas
+                    </p>
+                  ) : null}
+                </div>
+              )}
             </div>
           </div>
         </header>
@@ -238,7 +353,9 @@ export function AdminApp() {
           )}
           {tab === "media" && <MediaPanel />}
           {tab === "site" && <SitePanel config={draft} onChange={patch} />}
-          {tab === "payments" && <PaymentsPanel />}
+          {tab === "payments" && (
+            <PaymentsPanel config={draft} onChange={patch} />
+          )}
         </main>
       </div>
     </div>

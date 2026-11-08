@@ -20,6 +20,8 @@ import {
   updateReservation,
   type Reservation,
 } from "./reservations";
+import { DEFAULT_USD_DOP_RATE } from "./store/config";
+import { useAppConfig } from "./store/hooks";
 
 type PaymentSectionProps = {
   reservation: Reservation;
@@ -27,6 +29,7 @@ type PaymentSectionProps = {
 
 export function PaymentSection({ reservation: initial }: PaymentSectionProps) {
   const { t, locale } = useI18n();
+  const config = useAppConfig();
   const [reservation, setReservation] = useState(initial);
   const [copiedId, setCopiedId] = useState(false);
   const [cardnetBanner, setCardnetBanner] = useState<string | null>(null);
@@ -63,7 +66,15 @@ export function PaymentSection({ reservation: initial }: PaymentSectionProps) {
         if (result.approved) {
           updateReservation(result.reservationId, {
             status: "paid",
+            paymentMethod: "card",
             authorizationCode: result.authorizationCode || undefined,
+            cardnetTxToken: result.cardnetTxToken || undefined,
+            cardnetRetrievalReference:
+              result.cardnetRetrievalReference || undefined,
+            cardnetAmountDop:
+              result.cardnetAmountDop != null
+                ? result.cardnetAmountDop
+                : undefined,
           });
           const found = findReservation(result.reservationId);
           if (found) setReservation(found);
@@ -128,7 +139,7 @@ export function PaymentSection({ reservation: initial }: PaymentSectionProps) {
       : t("pay.toConfirm");
   const priceLabel =
     reservation.price == null ? t("pay.toConfirm") : `US$${reservation.price}`;
-  const usdDopRate = Number(import.meta.env.VITE_USD_DOP_RATE || "") || 61.45;
+  const usdDopRate = config.usdDopRate || DEFAULT_USD_DOP_RATE;
   const dop =
     reservation.price != null && reservation.price > 0
       ? Math.round(reservation.price * usdDopRate * 100) / 100

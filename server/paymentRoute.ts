@@ -25,6 +25,7 @@ import {
 import { mailFromBody, notifyCompanyOfPayment, sendDesignedBookingEmails, type BookingNotice } from "./companyMail.js";
 import { capturePayPalOrder } from "./paypal.js";
 import { readReservationPrice } from "./reservationPrice.js";
+import { resolveUsdDopRate } from "./usdDopRate.js";
 
 export type PaymentResponse = {
   status: number;
@@ -118,6 +119,8 @@ export async function postCardnetSession(
         approved: paid,
         reservationId: captured.reservationId,
         amount: captured.amount,
+        paypalOrderId: captured.orderId,
+        paypalCaptureId: captured.captureId,
       },
     };
   }
@@ -139,7 +142,7 @@ export async function postCardnetSession(
   if (!origin) return { status: 400, json: { error: "origin required" } };
 
   const stored = await readReservationPrice(reservationId);
-  const pesosPerDollar = Number(process.env.CARDNET_USD_DOP_RATE || "") || 61.45;
+  const pesosPerDollar = await resolveUsdDopRate();
   const chargeUsd = acceptedChargeUsd(stored, amountUsd, pesosPerDollar);
   if (chargeUsd == null) {
     return {
@@ -151,7 +154,7 @@ export async function postCardnetSession(
     };
   }
 
-  const config = getCardnetConfig();
+  const config = { ...getCardnetConfig(), usdDopRate: pesosPerDollar };
   const returnUrl = cardnetReturnUrl(origin, reservationId, "return");
   const cancelUrl = cardnetReturnUrl(origin, reservationId, "cancel");
   const created = await createCardnetSession(config, {
@@ -224,6 +227,11 @@ export async function postCardnetVerify(
     }
   }
 
+  const pesosPerDollar = await resolveUsdDopRate();
+  const amountDop =
+    outcome.amountDop ??
+    Math.round(payload.amount * pesosPerDollar * 100) / 100;
+
   return {
     status: 200,
     json: {
@@ -237,6 +245,9 @@ export async function postCardnetVerify(
       reservationId: payload.reservationId,
       amount: payload.amount,
       session: payload.session,
+      cardnetTxToken: approved ? outcome.txToken : "",
+      cardnetRetrievalReference: approved ? outcome.retrievalReference : "",
+      cardnetAmountDop: approved ? amountDop : null,
     },
     cookies: [clearCardnetCookie(host)],
   };

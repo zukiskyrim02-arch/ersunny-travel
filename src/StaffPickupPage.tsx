@@ -73,6 +73,7 @@ export function StaffPickupPage() {
       returnTime: isRoundTrip ? returnTime : reservation.returnTime,
       wantReturn: isRoundTrip,
       status: reservation.status === "pending" ? "paid" : reservation.status,
+      pickupConfirmedAt: new Date().toISOString(),
       customerConfirmed: false,
     });
     setReservation(updated);

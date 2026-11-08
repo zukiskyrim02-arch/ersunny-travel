@@ -145,15 +145,25 @@ export function PayPalHostedButton({
             const body = (await res.json().catch(() => ({}))) as {
               approved?: boolean;
               error?: string;
+              paypalOrderId?: string;
+              paypalCaptureId?: string;
             };
             if (!res.ok || !body.approved) {
               if (!cancelled) setError(paypalNotice(body.error, t));
               return;
             }
             const updated =
-              updateReservation(reservation.id, { status: "paid" }) ?? {
+              updateReservation(reservation.id, {
+                status: "paid",
+                paymentMethod: "paypal",
+                paypalOrderId: body.paypalOrderId || data.orderID,
+                paypalCaptureId: body.paypalCaptureId || undefined,
+              }) ?? {
                 ...reservation,
                 status: "paid" as const,
+                paymentMethod: "paypal" as const,
+                paypalOrderId: body.paypalOrderId || data.orderID,
+                paypalCaptureId: body.paypalCaptureId,
               };
             try {
               await sendPaidBookingEmails(updated);

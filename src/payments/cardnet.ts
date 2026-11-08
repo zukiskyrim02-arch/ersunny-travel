@@ -16,6 +16,9 @@ export type CardnetVerifyResponse = {
   session: string;
   authorizationCode?: string;
   responseCode?: string;
+  cardnetTxToken?: string;
+  cardnetRetrievalReference?: string;
+  cardnetAmountDop?: number | null;
   error?: string;
 };
 

@@ -6,6 +6,8 @@ import {
   saveReservation,
   type Reservation,
 } from "./reservations";
+import { quoteTransfer } from "./transfers";
+
 
 type Place =
   | { kind: "airport" }
@@ -106,9 +108,14 @@ export function BookingForm({ onBooked }: BookingFormProps) {
   const price = useMemo(() => {
     if (!activeVehicle) return 0;
     const zone = pricingZone(origin, destination);
-    const oneWay = activeVehicle.basePrice + (config.zoneSurcharge[zone] ?? 0);
-    return wantReturn ? oneWay * 2 : oneWay;
-  }, [activeVehicle, origin, destination, wantReturn, config.zoneSurcharge]);
+    return quoteTransfer(
+      config,
+      activeVehicle.id,
+      zone,
+      passengers,
+      wantReturn,
+    );
+  }, [activeVehicle, origin, destination, wantReturn, config, passengers]);
 
   // Keep selected vehicle valid when catalog changes
   useEffect(() => {

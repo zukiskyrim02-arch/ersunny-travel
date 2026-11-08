@@ -21,6 +21,8 @@ export type ManagedVehicle = {
   name: string;
   capacity: string;
   maxPassengers: number;
+  /** Passengers covered by the base zone price before extras apply. */
+  includedPassengers: number;
   basePrice: number;
   active: boolean;
 };
@@ -77,9 +79,19 @@ export type AppConfig = {
   bank: SiteBank;
   page: SitePageCopy;
   azul: AzulConfig;
+  /** Dominican pesos per 1 USD for Cardnet charges (editable in Admin → Pagos). */
+  usdDopRate: number;
   /** Milliseconds. Newer local saves win over a stale Firebase snapshot. */
   updatedAt?: number;
 };
+
+export const DEFAULT_USD_DOP_RATE = 61.45;
+
+export function parseUsdDopRate(value: unknown): number | null {
+  const n = typeof value === "number" ? value : Number(value);
+  if (!Number.isFinite(n) || n <= 0 || n > 200) return null;
+  return Math.round(n * 10000) / 10000;
+}
 
 const CONFIG_KEY = "ersunny-config-v1";
 
@@ -96,27 +108,31 @@ export function defaultPageCopy(): SitePageCopy {
 }
 
 export function defaultConfig(): AppConfig {
-  const vehicles = defaultVehicles.map((v) => ({
-    ...v,
-    maxPassengers: v.id === "sedan" ? 3 : v.id === "suv" ? 5 : 10,
-    active: true,
-  }));
+  const vehicles = defaultVehicles.map((v) => {
+    const maxPassengers = v.id === "sedan" ? 3 : v.id === "suv" ? 5 : 10;
+    const includedPassengers =
+      v.id === "sedan" ? 3 : v.id === "suv" ? 4 : 4;
+    return {
+      ...v,
+      maxPassengers,
+      includedPassengers: Math.min(includedPassengers, maxPassengers),
+      active: true,
+    };
+  });
   const zoneSurcharge = { ...defaultZoneSurcharge };
+  const hotelsByZone = Object.fromEntries(
+    TRANSFER_ZONES.map((zone) => [zone, [...(defaultHotels[zone] ?? [])]]),
+  ) as Record<Zone, string[]>;
   return {
     vehicles,
     zones: [...TRANSFER_ZONES],
     zoneSurcharge,
     transferRates: buildTransferRates(vehicles, zoneSurcharge),
-    hotelsByZone: {
-      "Punta Cana": [...defaultHotels["Punta Cana"]],
-      Bávaro: [...defaultHotels.Bávaro],
-      Macao: [...defaultHotels.Macao],
-    },
-    excursionPickups: [
-      ...defaultHotels["Punta Cana"],
-      ...defaultHotels.Bávaro,
-      ...defaultHotels.Macao,
-    ],
+    hotelsByZone,
+    excursionPickups: TRANSFER_ZONES.flatMap(
+      (zone) => defaultHotels[zone] ?? [],
+    ),
+
     excursions: defaultExcursions.map((e) => ({
       ...e,
       price: "price" in e ? (e.price as number | null) : null,
@@ -126,6 +142,7 @@ export function defaultConfig(): AppConfig {
     bank: { ...defaultBank },
     page: defaultPageCopy(),
     azul: defaultAzulConfig(),
+    usdDopRate: DEFAULT_USD_DOP_RATE,
   };
 }
 
@@ -136,8 +153,19 @@ function mergeHotels(
 ): Record<Zone, string[]> {
   const hotels: Record<Zone, string[]> = {};
   for (const zone of zones) {
-    const saved = parsed?.[zone];
-    hotels[zone] = Array.isArray(saved) ? saved : [...(base[zone] ?? [])];
+    const fromBase = [...(base[zone] ?? [])];
+    const saved = Array.isArray(parsed?.[zone]) ? parsed?.[zone] ?? [] : [];
+    // Catalog hotels are authoritative; keep any extra hotels added in admin.
+    const seen = new Set(fromBase.map((item) => item.toLowerCase()));
+    const extras = saved.filter((item) => {
+      const key = item.toLowerCase();
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+    hotels[zone] = [...fromBase, ...extras].sort((a, b) =>
+      a.localeCompare(b, undefined, { sensitivity: "base" }),
+    );
   }
   return hotels;
 }
@@ -188,20 +216,39 @@ export function getConfig(): AppConfig {
     const base = defaultConfig();
     const vehicleList = asList<ManagedVehicle>(parsed.vehicles);
     const vehicles = (vehicleList?.length ? vehicleList : base.vehicles).map(
-      (v) => ({
-        ...v,
-        active: v.active ?? true,
-      }),
+      (v) => {
+        const maxPassengers = Math.max(1, Number(v.maxPassengers) || 1);
+        const includedPassengers = Math.min(
+          maxPassengers,
+          Math.max(1, Number(v.includedPassengers) || Math.min(4, maxPassengers)),
+        );
+        return {
+          ...v,
+          maxPassengers,
+          includedPassengers,
+          active: v.active ?? true,
+        };
+      },
     );
-    const zones = zonesOf({
-      zones: asList<string>(parsed.zones),
-      hotelsByZone: parsed.hotelsByZone,
-    });
+    const zones = [
+      ...new Set([
+        ...TRANSFER_ZONES,
+        ...zonesOf({
+          zones: asList<string>(parsed.zones),
+          hotelsByZone: parsed.hotelsByZone,
+        }),
+      ]),
+    ];
     const zoneSurcharge = {
       ...base.zoneSurcharge,
       ...parsed.zoneSurcharge,
     };
     for (const zone of zones) zoneSurcharge[zone] ??= 0;
+    const hotelsByZone = mergeHotels(
+      parsed.hotelsByZone,
+      base.hotelsByZone,
+      zones,
+    );
     return {
       vehicles,
       zones,
@@ -212,11 +259,12 @@ export function getConfig(): AppConfig {
         parsed.transferRates,
         zones,
       ),
-      hotelsByZone: mergeHotels(parsed.hotelsByZone, base.hotelsByZone, zones),
+      hotelsByZone,
       excursionPickups: normalizePickupList(
         parsed.excursionPickups,
-        base.excursionPickups,
+        Object.values(hotelsByZone).flat(),
       ),
+
       excursions: (() => {
         const stored = asList<ManagedExcursion>(parsed.excursions);
         const list = stored?.length ? stored : base.excursions;
@@ -241,6 +289,8 @@ export function getConfig(): AppConfig {
       bank: { ...base.bank, ...parsed.bank },
       page: { ...base.page, ...parsed.page },
       azul: { ...base.azul, ...parsed.azul },
+      usdDopRate:
+        parseUsdDopRate(parsed.usdDopRate) ?? base.usdDopRate,
       updatedAt: typeof parsed.updatedAt === "number" ? parsed.updatedAt : undefined,
     };
   } catch {
@@ -306,6 +356,8 @@ function applyRemoteConfig(value: unknown) {
       remote.excursionPickups,
       local.excursionPickups,
     ),
+    usdDopRate:
+      parseUsdDopRate(remote.usdDopRate) ?? local.usdDopRate,
   });
 }
 

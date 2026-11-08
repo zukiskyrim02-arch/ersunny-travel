@@ -41,8 +41,8 @@ export function HotelCombo({
 
   const matches = useMemo(() => {
     const q = value.trim().toLowerCase();
-    if (!q) return hotels.slice(0, 8);
-    return hotels.filter((h) => h.toLowerCase().includes(q)).slice(0, 8);
+    if (!q) return hotels;
+    return hotels.filter((h) => h.toLowerCase().includes(q));
   }, [value, hotels]);
 
   useEffect(() => {

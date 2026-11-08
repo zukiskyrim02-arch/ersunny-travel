@@ -9,7 +9,8 @@ function isAdminApi(url: string) {
     url.startsWith("/api/media/") ||
     url === "/api/flights" ||
     url === "/api/reviews" ||
-    url.startsWith("/api/reviews/")
+    url.startsWith("/api/reviews/") ||
+    url === "/api/payments/refund"
   );
 }
 

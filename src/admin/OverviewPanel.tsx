@@ -5,7 +5,11 @@ import {
 } from "../store/config";
 import type { Reservation, ReservationStatus } from "../reservations";
 import type { AdminTab } from "./types";
-import { formatDisplayDate } from "../../shared/datetime";
+import { formatDisplayDate, formatDisplayTime } from "../../shared/datetime";
+import { AdminPager } from "./AdminPager";
+import { usePagination } from "./pagination";
+
+
 
 const STATUS_META: { id: ReservationStatus; label: string; color: string }[] = [
   { id: "pending", label: "Pendientes", color: "#f5b400" },
@@ -13,6 +17,7 @@ const STATUS_META: { id: ReservationStatus; label: string; color: string }[] = [
   { id: "confirmed", label: "Confirmadas", color: "#22a06b" },
   { id: "completed", label: "Completadas", color: "#0f766e" },
   { id: "cancelled", label: "Canceladas", color: "#d5deea" },
+  { id: "refunded", label: "Devueltas", color: "#94a3b8" },
 ];
 
 function money(value: number) {
@@ -88,20 +93,45 @@ export function OverviewPanel({
     const today = dayKey(new Date());
     return [...reservations]
       .filter((item) => item.date >= today && statusOf(item) !== "cancelled")
-      .sort((a, b) => a.date.localeCompare(b.date) || a.createdAt.localeCompare(b.createdAt))
-      .slice(0, 4);
+      .sort((a, b) => a.date.localeCompare(b.date) || a.createdAt.localeCompare(b.createdAt));
   }, [reservations]);
 
   const recent = useMemo(() => {
-    return [...reservations]
-      .sort(
-        (a, b) =>
-          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
-      )
-      .slice(0, 6);
+    return [...reservations].sort(
+      (a, b) =>
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+    );
   }, [reservations]);
 
-  const tours = config.excursions.filter((item) => item.active).slice(0, 3);
+  const tours = useMemo(
+    () => config.excursions.filter((item) => item.active),
+    [config.excursions],
+  );
+  const upcomingPager = usePagination(upcoming, 4);
+  const recentPager = usePagination(recent, 6);
+  const toursPager = usePagination(tours, 3);
+  const reservationsByDate = useMemo(() => {
+    const map = new Map<string, Reservation[]>();
+    const add = (key: string, item: Reservation) => {
+      if (!key) return;
+      const list = map.get(key) ?? [];
+      if (list.some((row) => row.id === item.id)) return;
+      list.push(item);
+      map.set(key, list);
+    };
+    for (const item of reservations) {
+      add(item.date, item);
+      if (item.wantReturn && item.returnDate) add(item.returnDate, item);
+    }
+    for (const list of map.values()) {
+      list.sort((a, b) => {
+        const aTime = a.pickupTime || a.time || "";
+        const bTime = b.pickupTime || b.time || "";
+        return aTime.localeCompare(bTime) || a.createdAt.localeCompare(b.createdAt);
+      });
+    }
+    return map;
+  }, [reservations]);
   const total = reservations.length;
   const done = stats.counts.paid + stats.counts.confirmed;
 
@@ -151,7 +181,8 @@ export function OverviewPanel({
                 new Date(current.getFullYear(), current.getMonth() + delta, 1),
             )
           }
-          marked={new Set(reservations.map((item) => item.date).filter(Boolean))}
+          byDate={reservationsByDate}
+          onOpenReservations={() => onOpen("reservations")}
         />
       </div>
 
@@ -210,23 +241,32 @@ export function OverviewPanel({
           {tours.length === 0 ? (
             <p className="admin-note">No hay excursiones activas.</p>
           ) : (
-            <div className="admin-pack-grid">
-              {tours.map((tour) => (
-                <button
-                  key={tour.id}
-                  type="button"
-                  className="admin-pack"
-                  onClick={() => onOpen("excursions")}
-                >
-                  <img src={tour.image} alt="" />
-                  <div>
-                    <strong>{tour.title}</strong>
-                    <small>{tour.duration === "Half day" ? "Medio día" : "Día completo"}</small>
-                    <b>{tour.price == null ? "A consultar" : `${money(tour.price)} / persona`}</b>
-                  </div>
-                </button>
-              ))}
-            </div>
+            <>
+              <div className="admin-pack-grid">
+                {toursPager.paged.map((tour) => (
+                  <button
+                    key={tour.id}
+                    type="button"
+                    className="admin-pack"
+                    onClick={() => onOpen("excursions")}
+                  >
+                    <img src={tour.image} alt="" />
+                    <div>
+                      <strong>{tour.title}</strong>
+                      <small>{tour.duration === "Half day" ? "Medio día" : "Día completo"}</small>
+                      <b>{tour.price == null ? "A consultar" : `${money(tour.price)} / persona`}</b>
+                    </div>
+                  </button>
+                ))}
+              </div>
+              <AdminPager
+                total={toursPager.total}
+                page={toursPager.page}
+                pageSize={toursPager.pageSize}
+                pageCount={toursPager.pageCount}
+                onPageChange={toursPager.setPage}
+              />
+            </>
           )}
         </article>
 
@@ -240,21 +280,30 @@ export function OverviewPanel({
           {upcoming.length === 0 ? (
             <p className="admin-note">No hay servicios próximos.</p>
           ) : (
-            <ul className="admin-upcoming">
-              {upcoming.map((item) => (
-                <li key={item.id}>
-                  <span>
-                    <strong>{item.kind === "excursion" ? item.destination : item.name}</strong>
-                    <small>
-                      {item.kind === "excursion" ? "Excursión" : "Traslado"} · {item.destination}
-                    </small>
-                  </span>
-                  <time dateTime={item.date}>
-                    {formatDisplayDate(item.date)}
-                  </time>
-                </li>
-              ))}
-            </ul>
+            <>
+              <ul className="admin-upcoming">
+                {upcomingPager.paged.map((item) => (
+                  <li key={item.id}>
+                    <span>
+                      <strong>{item.kind === "excursion" ? item.destination : item.name}</strong>
+                      <small>
+                        {item.kind === "excursion" ? "Excursión" : "Traslado"} · {item.destination}
+                      </small>
+                    </span>
+                    <time dateTime={item.date}>
+                      {formatDisplayDate(item.date)}
+                    </time>
+                  </li>
+                ))}
+              </ul>
+              <AdminPager
+                total={upcomingPager.total}
+                page={upcomingPager.page}
+                pageSize={upcomingPager.pageSize}
+                pageCount={upcomingPager.pageCount}
+                onPageChange={upcomingPager.setPage}
+              />
+            </>
           )}
         </article>
       </div>
@@ -269,6 +318,7 @@ export function OverviewPanel({
         {recent.length === 0 ? (
           <p className="admin-note">Aún no hay reservas guardadas.</p>
         ) : (
+          <>
           <div className="admin-table-wrap">
             <table className="admin-table">
               <thead>
@@ -281,7 +331,7 @@ export function OverviewPanel({
                 </tr>
               </thead>
               <tbody>
-                {recent.map((item) => (
+                {recentPager.paged.map((item) => (
                   <tr key={item.id}>
                     <td>
                       <strong>{item.name || "Sin nombre"}</strong>
@@ -300,6 +350,14 @@ export function OverviewPanel({
               </tbody>
             </table>
           </div>
+          <AdminPager
+            total={recentPager.total}
+            page={recentPager.page}
+            pageSize={recentPager.pageSize}
+            pageCount={recentPager.pageCount}
+            onPageChange={recentPager.setPage}
+          />
+          </>
         )}
         <div className="admin-dash__tools">
           <button
@@ -454,15 +512,24 @@ function StatusDonut({
   );
 }
 
+function serviceTime(item: Reservation) {
+  const raw = item.pickupTime || item.time || "";
+  if (!raw || /por confirmar/i.test(raw)) return "Por confirmar";
+  return formatDisplayTime(raw) || raw;
+}
+
 function MonthCalendar({
   cursor,
   onShift,
-  marked,
+  byDate,
+  onOpenReservations,
 }: {
   cursor: Date;
   onShift: (delta: number) => void;
-  marked: Set<string>;
+  byDate: Map<string, Reservation[]>;
+  onOpenReservations: () => void;
 }) {
+  const [selectedDay, setSelectedDay] = useState<string | null>(null);
   const year = cursor.getFullYear();
   const month = cursor.getMonth();
   const firstWeekday = new Date(year, month, 1).getDay();
@@ -472,6 +539,7 @@ function MonthCalendar({
     ...Array.from({ length: firstWeekday }, () => null),
     ...Array.from({ length: days }, (_, index) => index + 1),
   ];
+  const dayItems = selectedDay ? (byDate.get(selectedDay) ?? []) : [];
 
   return (
     <article className="admin-card admin-cal">
@@ -497,16 +565,127 @@ function MonthCalendar({
         {cells.map((day, index) => {
           if (!day) return <span key={`empty-${index}`} />;
           const key = dayKey(new Date(year, month, day));
+          const count = byDate.get(key)?.length ?? 0;
+          const hasEvent = count > 0;
+          const className = `admin-cal__day${key === today ? " is-today" : ""}${hasEvent ? " has-event" : ""}`;
+          if (!hasEvent) {
+            return (
+              <span key={key} className={className}>
+                {day}
+              </span>
+            );
+          }
           return (
-            <span
+            <button
               key={key}
-              className={`admin-cal__day${key === today ? " is-today" : ""}${marked.has(key) ? " has-event" : ""}`}
+              type="button"
+              className={className}
+              aria-label={`${day}: ${count} reserva${count === 1 ? "" : "s"}`}
+              onClick={() => setSelectedDay(key)}
             >
               {day}
-            </span>
+            </button>
           );
         })}
       </div>
+
+      {selectedDay && (
+        <div
+          className="admin-cal-modal"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="admin-cal-modal-title"
+          onClick={() => setSelectedDay(null)}
+        >
+          <div
+            className="admin-cal-modal__card"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <header className="admin-cal-modal__head">
+              <div>
+                <p className="admin-cal-modal__kicker">Agenda del día</p>
+                <h2 id="admin-cal-modal-title">
+                  {new Date(`${selectedDay}T12:00:00`).toLocaleDateString("es-DO", {
+                    weekday: "long",
+                    day: "numeric",
+                    month: "long",
+                  })}
+                </h2>
+                <p>
+                  {dayItems.length} servicio{dayItems.length === 1 ? "" : "s"}{" "}
+                  programado{dayItems.length === 1 ? "" : "s"}
+                </p>
+              </div>
+              <button
+                type="button"
+                className="admin-cal-modal__close"
+                aria-label="Cerrar"
+                onClick={() => setSelectedDay(null)}
+              >
+                ×
+              </button>
+            </header>
+
+            <div className="admin-cal-modal__list">
+              {dayItems.map((item) => {
+                const status = statusOf(item);
+                const label =
+                  STATUS_META.find((row) => row.id === status)?.label ?? status;
+                const route =
+                  item.kind === "excursion"
+                    ? item.destination
+                    : `${item.origin} → ${item.destination}`;
+                return (
+                  <article key={item.id} className="admin-cal-modal__item">
+                    <div className="admin-cal-modal__time">
+                      <strong>{serviceTime(item)}</strong>
+                      <span>
+                        {item.kind === "excursion" ? "Excursión" : "Traslado"}
+                      </span>
+                    </div>
+                    <div className="admin-cal-modal__body">
+                      <div className="admin-cal-modal__row">
+                        <strong>{item.name || "Sin nombre"}</strong>
+                        <span className={`admin-pill admin-pill--${status}`}>
+                          {label}
+                        </span>
+                      </div>
+                      <p>{route}</p>
+                      <div className="admin-cal-modal__meta">
+                        <span>{item.passengers} pax</span>
+                        <span>{item.vehicle}</span>
+                        {item.price != null ? <span>{money(item.price)}</span> : null}
+                        {item.flight ? <span>Vuelo {item.flight}</span> : null}
+                      </div>
+                      <small>{item.id}</small>
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+
+            <footer className="admin-cal-modal__foot">
+              <button
+                type="button"
+                className="btn btn--ghost"
+                onClick={() => setSelectedDay(null)}
+              >
+                Cerrar
+              </button>
+              <button
+                type="button"
+                className="btn btn--primary"
+                onClick={() => {
+                  setSelectedDay(null);
+                  onOpenReservations();
+                }}
+              >
+                Ir a reservas
+              </button>
+            </footer>
+          </div>
+        </div>
+      )}
     </article>
   );
 }

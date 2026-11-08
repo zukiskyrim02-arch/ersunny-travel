@@ -41,6 +41,7 @@ export function getCardnetConfig(): CardnetConfig {
       process.env.CARDNET_AVS ||
       "PUNTA CANA DOMINICAN REPUBLIC",
     stateSecret: process.env.CARDNET_STATE_SECRET || "",
+    // Prefer Admin → Pagos (Firebase) via resolveUsdDopRate(); env is fallback only.
     usdDopRate: Number(process.env.CARDNET_USD_DOP_RATE || "") || 61.45,
   };
   if (
@@ -265,27 +266,60 @@ export async function verifyCardnetSession(
   return raw;
 }
 
-/** The consulta GET returns ResponseCode "00" and AuthorizationCode when the charge is approved. */
-export function cardnetOutcome(result: Record<string, unknown>) {
-  const responseCode = String(
-    result.ResponseCode ?? result.responseCode ?? "",
-  ).trim();
-  const authorizationCode = String(
-    result.AuthorizationCode ?? result.authorizationCode ?? "",
-  ).trim();
-  return {
-    approved: isCardnetApproved(result),
-    responseCode,
-    authorizationCode,
-  };
-}
-
 function nestedRecord(result: Record<string, unknown>): Record<string, unknown> | null {
   const tx = result.Transaction;
   if (tx && typeof tx === "object" && !Array.isArray(tx)) {
     return tx as Record<string, unknown>;
   }
   return null;
+}
+
+function pickString(result: Record<string, unknown>, keys: string[]): string {
+  const nested = nestedRecord(result);
+  for (const key of keys) {
+    const top = result[key];
+    if (typeof top === "string" && top.trim()) return top.trim();
+    if (typeof top === "number" && Number.isFinite(top)) return String(top);
+    if (nested) {
+      const value = nested[key];
+      if (typeof value === "string" && value.trim()) return value.trim();
+      if (typeof value === "number" && Number.isFinite(value)) return String(value);
+    }
+  }
+  return "";
+}
+
+/** The consulta GET returns ResponseCode "00" and AuthorizationCode when the charge is approved. */
+export function cardnetOutcome(result: Record<string, unknown>) {
+  const responseCode = pickString(result, ["ResponseCode", "responseCode"]);
+  const authorizationCode = pickString(result, [
+    "AuthorizationCode",
+    "authorizationCode",
+  ]);
+  const txToken = pickString(result, ["TxToken", "txToken", "TXToken"]);
+  const retrievalReference = pickString(result, [
+    "RetrievalReferenceNumber",
+    "retrievalReferenceNumber",
+  ]);
+  const amountRaw = pickString(result, ["Amount", "amount", "Total", "total"]);
+  let amountDop: number | null = null;
+  if (amountRaw.includes(".")) {
+    const n = Number(amountRaw);
+    amountDop = Number.isFinite(n) && n > 0 ? Math.round(n * 100) / 100 : null;
+  } else {
+    const digits = amountRaw.replace(/\D/g, "");
+    const minor = Number(digits);
+    amountDop =
+      Number.isFinite(minor) && minor > 0 ? Math.round(minor) / 100 : null;
+  }
+  return {
+    approved: isCardnetApproved(result),
+    responseCode,
+    authorizationCode,
+    txToken,
+    retrievalReference,
+    amountDop,
+  };
 }
 
 /** Cardnet approves a sale only with response code 00. */
@@ -428,4 +462,93 @@ export function cardnetPaymentUrl(
   if (reservationId) url.searchParams.set("id", reservationId);
   url.searchParams.set("cardnet", flag);
   return url.toString();
+}
+
+function cardnetPaymentApiBase(env: CardnetEnv) {
+  return env === "production"
+    ? "https://ecommerce.cardnet.com.do/api/payment"
+    : "https://labservicios.cardnet.com.do/api/payment";
+}
+
+/**
+ * Linked refund for an approved Cardnet sale (REST). Needs the original TxToken
+ * plus CARDNET_REFUND_BEARER and CARDNET_CLIENT_TOKEN from Cardnet.
+ */
+export async function refundCardnetPayment(input: {
+  reservationId: string;
+  amountDop: number;
+  txToken: string;
+  retrievalReference?: string;
+  clientIp?: string;
+}): Promise<
+  | { ok: true; refundReference: string }
+  | { ok: false; status: number; error: string }
+> {
+  const config = getCardnetConfig();
+  const bearer = (process.env.CARDNET_REFUND_BEARER || "").trim();
+  const clientToken = (process.env.CARDNET_CLIENT_TOKEN || "").trim();
+  if (!bearer || !clientToken) {
+    return {
+      ok: false,
+      status: 503,
+      error:
+        "Cardnet refund API is not configured. Set CARDNET_REFUND_BEARER and CARDNET_CLIENT_TOKEN.",
+    };
+  }
+  const reservationId = sanitizeOrderId(input.reservationId);
+  const txToken = String(input.txToken || "").trim();
+  const amount = Number(input.amountDop);
+  if (!reservationId || !txToken) {
+    return { ok: false, status: 400, error: "cardnet_refs" };
+  }
+  if (!Number.isFinite(amount) || amount <= 0) {
+    return { ok: false, status: 400, error: "amount" };
+  }
+
+  const invoice = reservationId.replace(/[^A-Za-z0-9]/g, "").slice(-15) || "REFUND";
+  const reference =
+    String(input.retrievalReference || "").trim().slice(0, 40) || invoice;
+  const idempotency = `rf-${reservationId}-${txToken}`.slice(0, 64);
+  const res = await fetch(`${cardnetPaymentApiBase(config.env)}/transactions/refund`, {
+    method: "POST",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${bearer}`,
+    },
+    body: JSON.stringify({
+      operation: "refund",
+      "idempotency-key": idempotency,
+      "merchant-id": config.merchantNumber.padStart(15, "0").slice(-15),
+      "terminal-id": config.merchantTerminal.padStart(8, "0").slice(-8),
+      amount: Math.round(amount * 100) / 100,
+      currency: config.currencyCode || "214",
+      "invoice-number": invoice,
+      "reference-number": reference,
+      "client-ip": String(input.clientIp || "127.0.0.1").slice(0, 45),
+      txToken,
+      token: clientToken,
+    }),
+  });
+  const data = (await res.json().catch(() => ({}))) as Record<string, unknown>;
+  const responseCode = String(
+    data["response-code"] ?? data.ResponseCode ?? data.responseCode ?? "",
+  ).trim();
+  if (!res.ok || responseCode !== "00") {
+    const detail = String(
+      data["response-code-desc"] ??
+        data.message ??
+        data.error ??
+        `Cardnet refund failed (${res.status})`,
+    );
+    return {
+      ok: false,
+      status: res.status >= 400 ? res.status : 402,
+      error: detail.slice(0, 240),
+    };
+  }
+  const refundReference = String(
+    data.pnRef ?? data.txToken ?? data["txToken"] ?? data["approval-code"] ?? "refunded",
+  );
+  return { ok: true, refundReference };
 }

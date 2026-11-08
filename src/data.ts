@@ -86,31 +86,121 @@ export const faqs = [
   },
 ];
 
+function sortHotels(list: string[]) {
+  return [...new Set(list.map((item) => item.replace(/\s+/g, " ").trim()).filter(Boolean))].sort(
+    (a, b) => a.localeCompare(b, undefined, { sensitivity: "base" }),
+  );
+}
+
+/** Round trip US$83 — Punta Cana / Cap Cana corridor. */
+const PUNTA_CANA_HOTELS = [
+  "Blue Beach Punta Cana",
+  "Catalonia Bávaro",
+  "Catalonia Punta Cana",
+  "Catalonia Royal Bávaro",
+  "Dreams Cap Cana",
+  "Dreams Flora",
+  "Eden Roc Cap Cana",
+  "Hard Rock Hotel & Casino Punta Cana",
+  "Hyatt Vivid Punta Cana",
+  "Hyatt Zilara Cap Cana",
+  "Hyatt Ziva Cap Cana",
+  "Moon Palace The Grand Punta Cana",
+  "Sanctuary Cap Cana",
+  "Secrets Cap Cana",
+  "Serenade All Suites",
+  "Serenade Caribe Club",
+  "Serenade Punta Cana",
+  "Sunscape Coco Punta Cana",
+  "The St. Regis Cap Cana",
+];
+
+/** Round trip US$83 — Bávaro area. */
+const BAVARO_HOTELS = [
+  "Bahia Principe Grand Aquamarine",
+  "Bahia Principe Grand Bávaro",
+  "Bahia Principe Grand Punta Cana",
+  "Bahia Principe Explore Esmeralda",
+  "Bahia Principe Luxury Ambar",
+  "Bahia Principe Luxury Esmeralda",
+  "Barceló Bávaro Beach",
+  "Barceló Bávaro Palace",
+  "Coral Level at Iberostar Selection Bávaro",
+  "Dreams Royal Beach Punta Cana",
+  "Family Selection at Grand Palladium Select Bávaro",
+  "Grand Bávaro Princess",
+  "Grand Palladium Palace Resort Spa",
+  "Grand Palladium Punta Cana Resort & Spa",
+  "HM Bávaro Beach",
+  "Hotel Flamboyan",
+  "Hotel Maracas Punta Cana",
+  "Hotel Riu Palace Macao",
+  "Hotel Riu Palace Punta Cana",
+  "Hotel Sea Garden Suites Punta Cana Beach",
+  "Iberostar Selection Bávaro Suites",
+  "Iberostar Waves Dominicana",
+  "Iberostar Waves Punta Cana",
+  "Impressive Premium Punta Cana",
+  "Impressive Punta Cana",
+  "JOIA Bávaro by Iberostar",
+  "Lopesan Costa Bávaro Resort, Spa & Casino",
+  "Majestic Colonial Punta Cana",
+  "Majestic Elegance Punta Cana",
+  "Majestic Mirage Punta Cana",
+  "Meliá Caribe Beach Resort",
+  "Occidental Caribe",
+  "Occidental Punta Cana",
+  "Paradisus Grand Cana",
+  "Paradisus Palma Real Golf & Spa Resort",
+  "Punta Cana Princess",
+  "Riu Bambu",
+  "Riu Naiboa",
+  "Riu Republica",
+  "Royalton Bávaro",
+  "Royalton Hideaway Punta Cana",
+  "Royalton Splash Punta Cana",
+  "TRS Turquesa Hotel",
+  "Tropical Deluxe Princess",
+  "Unique by Lopesan Costa Bávaro",
+  "VIK Hotel Arena Blanca",
+  "VIK Hotel Cayena Beach",
+  "Vista Sol Punta Cana Beach Resort & Spa",
+  "Zel Punta Cana",
+];
+
+/** Round trip US$94 — Macao / Uvero Alto / El Faro. */
+const MACAO_HOTELS = [
+  "Breathless Punta Cana Resort & Spa",
+  "Dreams Macao Beach Punta Cana",
+  "Dreams Onyx Resort & Spa",
+  "El Beso Adults Only at Ocean El Faro",
+  "Excellence El Carmen",
+  "Excellence Punta Cana",
+  "Finest Punta Cana",
+  "Grand Sirenis Cocotal Beach Resort",
+  "Grand Sirenis Punta Cana Resort",
+  "Live Aqua Punta Cana",
+  "Nickelodeon Hotels & Resorts Punta Cana",
+  "Ocean El Faro",
+  "Royalton CHIC Punta Cana",
+  "Secrets Macao Beach Punta Cana",
+  "Secrets Tides Punta Cana",
+  "W Punta Cana Adult All-Inclusive",
+  "Wyndham Alltra Punta Cana",
+];
+
+/** Round trip US$224 — Playa Esmeralda / Michès. */
+const PLAYA_ESMERALDA_HOTELS = [
+  "Club Med Michès Playa Esmeralda",
+  "Dreams Playa Esmeralda",
+  "Secrets Playa Esmeralda",
+];
+
 export const hotelsByZone: Record<Zone, string[]> = {
-  "Punta Cana": [
-    "Hard Rock Hotel & Casino Punta Cana",
-    "Barceló Bávaro Palace",
-    "Catalonia Royal Bavaro",
-    "Dreams Royal Beach Punta Cana",
-    "Hotel Riu Palace Punta Cana",
-    "Grand Palladium Punta Cana",
-  ],
-  Bávaro: [
-    "Iberostar Selection Bávaro",
-    "Meliá Caribe Beach",
-    "Secrets Royal Beach Punta Cana",
-    "Paradisus Palma Real",
-    "Occidental Caribe",
-    "Bahia Principe Grand Punta Cana",
-  ],
-  Macao: [
-    "Nickelodeon Hotels & Resorts Punta Cana",
-    "Dreams Onyx Resort & Spa",
-    "Excellence Punta Cana",
-    "Royalton Splash Punta Cana",
-    "Breathless Punta Cana Resort & Spa",
-    "TRS Yucatán Hotel",
-  ],
+  "Punta Cana": sortHotels(PUNTA_CANA_HOTELS),
+  Bávaro: sortHotels(BAVARO_HOTELS),
+  Macao: sortHotels(MACAO_HOTELS),
+  "Playa Esmeralda": sortHotels(PLAYA_ESMERALDA_HOTELS),
 };
 
 export const vehicles: {
@@ -120,14 +210,15 @@ export const vehicles: {
   basePrice: number;
 }[] = [
   { id: "sedan", name: "Premium sedan", capacity: "1–3 passengers", basePrice: 45 },
-  { id: "suv", name: "Comfort SUV", capacity: "1–5 passengers", basePrice: 65 },
-  { id: "van", name: "Private van", capacity: "6–10 passengers", basePrice: 95 },
+  { id: "suv", name: "Comfort SUV", capacity: "1–5 passengers", basePrice: 45 },
+  { id: "van", name: "Private van", capacity: "6–10 passengers", basePrice: 45 },
 ];
 
 export const zoneSurcharge: Record<Zone, number> = {
   "Punta Cana": 0,
-  Bávaro: 5,
-  Macao: 15,
+  Bávaro: 0,
+  Macao: 0,
+  "Playa Esmeralda": 0,
 };
 
 export const destinations = [
@@ -151,6 +242,13 @@ export const destinations = [
     time: "45–60 min",
     image:
       "https://images.unsplash.com/photo-1473496169904-658ba7c44d8a?auto=format&fit=crop&w=1400&q=75&fm=webp",
+  },
+  {
+    zone: "Playa Esmeralda" as Zone,
+    blurb: "Remote Michès coastline with exclusive Playa Esmeralda resorts.",
+    time: "90–120 min",
+    image:
+      "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1400&q=75&fm=webp",
   },
 ];
 

@@ -2,19 +2,31 @@ import { amountsMatch, parseAmountUsd, parsePayPalOrderId, parseReservationId } 
 import { readReservationPrice } from "./reservationPrice.js";
 
 type PayPalAmount = { currency_code?: string; value?: string };
+type PayPalCapture = {
+  id?: string;
+  status?: string;
+  amount?: PayPalAmount;
+};
 type PayPalUnit = {
   custom_id?: string;
   reference_id?: string;
   amount?: PayPalAmount;
-  payments?: { captures?: { status?: string; amount?: PayPalAmount }[] };
+  payments?: { captures?: PayPalCapture[] };
 };
 type PayPalOrder = {
+  id?: string;
   status?: string;
   purchase_units?: PayPalUnit[];
 };
 
 export type PayPalCaptureResult =
-  | { ok: true; reservationId: string; amount: number }
+  | {
+      ok: true;
+      reservationId: string;
+      amount: number;
+      orderId: string;
+      captureId: string;
+    }
   | { ok: false; status: number; error: string };
 
 function paypalClientId() {
@@ -72,8 +84,14 @@ function unitMatches(
   return true;
 }
 
+function completedCapture(unit: PayPalUnit | undefined): PayPalCapture | null {
+  return (
+    unit?.payments?.captures?.find((item) => item.status === "COMPLETED") || null
+  );
+}
+
 function capturedAmountMatches(unit: PayPalUnit, price: number): boolean {
-  const capture = unit.payments?.captures?.find((item) => item.status === "COMPLETED");
+  const capture = completedCapture(unit);
   if (!capture) return false;
   if (capture.amount?.currency_code !== "USD") return false;
   const value = parseAmountUsd(capture.amount.value);
@@ -109,10 +127,17 @@ export async function capturePayPalOrder(input: {
   }
 
   if (loaded.data.status === "COMPLETED") {
-    if (!unit || !capturedAmountMatches(unit, price)) {
+    const capture = completedCapture(unit);
+    if (!unit || !capture?.id || !capturedAmountMatches(unit, price)) {
       return { ok: false, status: 402, error: "PayPal did not confirm this payment." };
     }
-    return { ok: true, reservationId, amount: price };
+    return {
+      ok: true,
+      reservationId,
+      amount: price,
+      orderId,
+      captureId: capture.id,
+    };
   }
 
   const captured = await paypalFetch(
@@ -121,14 +146,87 @@ export async function capturePayPalOrder(input: {
     "POST",
   );
   const capturedUnit = captured.data.purchase_units?.[0];
+  const capture = completedCapture(capturedUnit);
   if (
     !captured.ok ||
     captured.data.status !== "COMPLETED" ||
     !unitMatches(capturedUnit, reservationId, price) ||
     !capturedUnit ||
+    !capture?.id ||
     !capturedAmountMatches(capturedUnit, price)
   ) {
     return { ok: false, status: 402, error: "PayPal did not confirm this payment." };
   }
-  return { ok: true, reservationId, amount: price };
+  return {
+    ok: true,
+    reservationId,
+    amount: price,
+    orderId,
+    captureId: capture.id,
+  };
+}
+
+/** Full refund of a completed PayPal capture. */
+export async function refundPayPalCapture(input: {
+  captureId: string;
+  reservationId: string;
+  amountUsd: number;
+}): Promise<
+  | { ok: true; refundId: string }
+  | { ok: false; status: number; error: string }
+> {
+  const captureId = String(input.captureId || "").trim();
+  const reservationId = parseReservationId(input.reservationId);
+  const amount = parseAmountUsd(input.amountUsd);
+  if (!captureId || captureId.length > 50) {
+    return { ok: false, status: 400, error: "capture_id" };
+  }
+  if (!reservationId) return { ok: false, status: 400, error: "reservation_id" };
+  if (amount == null) return { ok: false, status: 400, error: "amount" };
+
+  let token: string;
+  try {
+    token = await paypalAccessToken();
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "PayPal is not configured.";
+    const status = message === "PayPal is not configured." ? 503 : 502;
+    return { ok: false, status, error: message };
+  }
+
+  const res = await fetch(
+    `${paypalApi()}/v2/payments/captures/${encodeURIComponent(captureId)}/refund`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+        Prefer: "return=representation",
+      },
+      body: JSON.stringify({
+        amount: {
+          currency_code: "USD",
+          value: amount.toFixed(2),
+        },
+        custom_id: reservationId,
+        note_to_payer: `Refund for booking ${reservationId}`,
+      }),
+    },
+  );
+  const data = (await res.json().catch(() => ({}))) as {
+    id?: string;
+    status?: string;
+    message?: string;
+    details?: { description?: string }[];
+  };
+  if (!res.ok || !data.id) {
+    const detail =
+      data.details?.[0]?.description ||
+      data.message ||
+      "PayPal refund failed.";
+    return { ok: false, status: res.status >= 400 ? res.status : 502, error: detail };
+  }
+  if (data.status && !["COMPLETED", "PENDING"].includes(data.status)) {
+    return { ok: false, status: 402, error: `PayPal refund status: ${data.status}` };
+  }
+  return { ok: true, refundId: data.id };
 }

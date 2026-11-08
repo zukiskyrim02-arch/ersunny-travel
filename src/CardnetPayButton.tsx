@@ -5,6 +5,8 @@ import {
   startCardnetCheckout,
 } from "./payments/cardnet";
 import type { Reservation } from "./reservations";
+import { DEFAULT_USD_DOP_RATE } from "./store/config";
+import { useAppConfig } from "./store/hooks";
 
 type CardnetPayButtonProps = {
   reservation: Reservation;
@@ -25,9 +27,10 @@ export function CardnetPayButton({
   busy = false,
 }: CardnetPayButtonProps) {
   const { t, locale } = useI18n();
+  const config = useAppConfig();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const usdDopRate = Number(import.meta.env.VITE_USD_DOP_RATE || "") || 61.45;
+  const usdDopRate = config.usdDopRate || DEFAULT_USD_DOP_RATE;
   const dop =
     amount != null && Number.isFinite(usdDopRate) && usdDopRate > 0
       ? Math.round(amount * usdDopRate * 100) / 100

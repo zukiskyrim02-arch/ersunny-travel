@@ -67,7 +67,7 @@ export const ADMIN_TABS: {
   {
     id: "payments",
     label: "Pagos",
-    hint: "Tarjeta, PayPal y conexiones",
+    hint: "Tasa, historial y devoluciones",
     group: "settings",
   },
 ];

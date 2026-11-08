@@ -5,6 +5,9 @@ import { getConfig, saveConfig } from "../store/config";
 import { useAppConfig } from "../store/hooks";
 import { adminCopy, adminError } from "./copy";
 import { stillUrl, thumbUrl } from "../media/urls";
+import { AdminPager } from "./AdminPager";
+import { usePagination } from "./pagination";
+
 
 type LibraryResponse = {
   cloudinary: boolean;
@@ -110,6 +113,8 @@ export function MediaPanel() {
     );
     return list;
   }, [assets, assignments, query, slotFilter, when, sort, es]);
+
+  const mediaPager = usePagination(shown);
 
   const slots = useMemo(() => {
     const fixed = MEDIA_SLOTS.map((slot) => ({
@@ -285,7 +290,10 @@ export function MediaPanel() {
       <div className="admin-gallery__bar">
         <select
           value={when}
-          onChange={(event) => setWhen(event.target.value as typeof when)}
+          onChange={(event) => {
+            setWhen(event.target.value as typeof when);
+            mediaPager.resetPage();
+          }}
           aria-label={es ? "Fecha" : "Date"}
         >
           <option value="all">{es ? "Todas las fechas" : "All dates"}</option>
@@ -294,7 +302,10 @@ export function MediaPanel() {
         </select>
         <select
           value={slotFilter}
-          onChange={(event) => setSlotFilter(event.target.value)}
+          onChange={(event) => {
+            setSlotFilter(event.target.value);
+            mediaPager.resetPage();
+          }}
           aria-label={es ? "Apartado" : "Section"}
         >
           <option value="all">{es ? "Todos los apartados" : "All sections"}</option>
@@ -313,7 +324,10 @@ export function MediaPanel() {
           <input
             type="search"
             value={query}
-            onChange={(event) => setQuery(event.target.value)}
+            onChange={(event) => {
+              setQuery(event.target.value);
+              mediaPager.resetPage();
+            }}
             placeholder={es ? "Buscar foto o video…" : "Search photo or video…"}
           />
         </label>
@@ -321,7 +335,10 @@ export function MediaPanel() {
           <span>{es ? "Orden" : "Sort by"}</span>
           <select
             value={sort}
-            onChange={(event) => setSort(event.target.value as typeof sort)}
+            onChange={(event) => {
+              setSort(event.target.value as typeof sort);
+              mediaPager.resetPage();
+            }}
           >
             <option value="name">{es ? "Nombre" : "Name"}</option>
             <option value="new">{es ? "Recientes" : "Newest"}</option>
@@ -353,8 +370,9 @@ export function MediaPanel() {
           {assets.length === 0 ? copy.emptyLibrary : es ? "Nada coincide con ese filtro." : "Nothing matches that filter."}
         </p>
       ) : (
+        <>
         <div className="admin-gallery">
-          {shown.map((asset) => {
+          {mediaPager.paged.map((asset) => {
             const used = slots.filter((slot) => assignments[slot.id] === asset.id);
             const open = openId === asset.id;
             return (
@@ -433,6 +451,14 @@ export function MediaPanel() {
             );
           })}
         </div>
+        <AdminPager
+          total={mediaPager.total}
+          page={mediaPager.page}
+          pageSize={mediaPager.pageSize}
+          pageCount={mediaPager.pageCount}
+          onPageChange={mediaPager.setPage}
+        />
+        </>
       )}
     </section>
   );
