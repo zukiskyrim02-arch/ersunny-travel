@@ -109,13 +109,11 @@ export function defaultPageCopy(): SitePageCopy {
 
 export function defaultConfig(): AppConfig {
   const vehicles = defaultVehicles.map((v) => {
-    const maxPassengers = v.id === "sedan" ? 3 : v.id === "suv" ? 5 : 10;
-    const includedPassengers =
-      v.id === "sedan" ? 3 : v.id === "suv" ? 4 : 4;
+    const maxPassengers = v.id === "sedan" ? 4 : v.id === "suv" ? 5 : 10;
     return {
       ...v,
       maxPassengers,
-      includedPassengers: Math.min(includedPassengers, maxPassengers),
+      includedPassengers: Math.min(4, maxPassengers),
       active: true,
     };
   });
@@ -220,6 +218,7 @@ export function getConfig(): AppConfig {
         const maxPassengers = Math.max(1, Number(v.maxPassengers) || 1);
         const includedPassengers = Math.min(
           maxPassengers,
+          4,
           Math.max(1, Number(v.includedPassengers) || Math.min(4, maxPassengers)),
         );
         return {

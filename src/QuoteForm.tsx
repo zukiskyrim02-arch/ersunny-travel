@@ -368,8 +368,19 @@ export function QuoteForm({ onBooked }: QuoteFormProps) {
       {quoted && hotel.trim() && (
         <p className="quote-form__price">
           <span>{t("quote.priceLabel")}</span>
-          <strong>US${quoted.price}</strong>
-          <small>{quoted.vehicle.name}</small>
+          <strong>
+            US$
+            {quoted.price.toLocaleString("en-US", {
+              minimumFractionDigits: Number.isInteger(quoted.price) ? 0 : 2,
+              maximumFractionDigits: 2,
+            })}
+          </strong>
+          <small>
+            {quoted.vehicle.name}
+            {quoted.pax > 4
+              ? ` · +${quoted.pax - 4}×US$5${isRoundTrip ? "×2" : ""}`
+              : ""}
+          </small>
         </p>
       )}
       {error && (

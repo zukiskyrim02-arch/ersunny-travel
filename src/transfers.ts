@@ -16,9 +16,19 @@ export const ZONE_ROUND_TRIP: Record<string, number> = {
   "Playa Esmeralda": 224,
 };
 
+/** Passengers covered by the base zone price. */
+export const BASE_INCLUDED_PASSENGERS = 4;
+
+/** Extra USD charged per passenger above 4, per way (leg). */
+export const EXTRA_PER_WAY_USD = 5;
+
 /** One way = half the round trip + US$5 (e.g. 83 → 41.5 + 5 = 46.5). */
 export function oneWayFromRoundTrip(roundTrip: number) {
   return Math.max(0, Math.round((roundTrip / 2 + 5) * 100) / 100);
+}
+
+function money2(value: number) {
+  return Math.max(0, Math.round(value * 100) / 100);
 }
 
 export function zonesOf(config: {
@@ -63,8 +73,8 @@ export function defaultFare(
   return {
     oneWay,
     roundTrip,
-    extraOneWay: 5,
-    extraRoundTrip: 10,
+    extraOneWay: EXTRA_PER_WAY_USD,
+    extraRoundTrip: EXTRA_PER_WAY_USD * 2,
     sharedOneWay: Math.round(oneWay * 0.75),
     sharedRoundTrip: Math.round(roundTrip * 0.75),
   };
@@ -95,8 +105,11 @@ export function normalizeFare(
 
 export function includedPassengersOf(vehicle: ManagedVehicle | undefined) {
   const max = Math.max(1, vehicle?.maxPassengers ?? 1);
-  const included = Math.max(1, vehicle?.includedPassengers ?? Math.min(4, max));
-  return Math.min(included, max);
+  const included = Math.max(
+    1,
+    vehicle?.includedPassengers ?? Math.min(BASE_INCLUDED_PASSENGERS, max),
+  );
+  return Math.min(included, max, BASE_INCLUDED_PASSENGERS);
 }
 
 /** Private transfer total for a passenger count. */
@@ -110,8 +123,9 @@ export function transferPrice(
   const pax = Math.max(0, Math.floor(passengers));
   const extras = Math.max(0, pax - included);
   const base = roundTrip ? fare.roundTrip : fare.oneWay;
-  const extra = roundTrip ? fare.extraRoundTrip : fare.extraOneWay;
-  return Math.max(0, Math.round(base + extras * extra));
+  // Always charge EXTRA_PER_WAY_USD per extra passenger, per leg.
+  const perExtra = roundTrip ? EXTRA_PER_WAY_USD * 2 : EXTRA_PER_WAY_USD;
+  return money2(base + extras * perExtra);
 }
 
 export function buildTransferRates(
@@ -130,10 +144,12 @@ export function buildTransferRates(
         zone,
       );
       const merged = normalizeFare(existing?.[key], fallback);
-      // Keep catalog round-trip / one-way for known destination zones.
+      // Keep catalog prices for known destination zones.
       if (ZONE_ROUND_TRIP[zone] != null) {
         merged.roundTrip = ZONE_ROUND_TRIP[zone];
         merged.oneWay = oneWayFromRoundTrip(ZONE_ROUND_TRIP[zone]);
+        merged.extraOneWay = EXTRA_PER_WAY_USD;
+        merged.extraRoundTrip = EXTRA_PER_WAY_USD * 2;
       }
       rates[key] = merged;
     }

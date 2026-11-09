@@ -209,7 +209,7 @@ export const vehicles: {
   capacity: string;
   basePrice: number;
 }[] = [
-  { id: "sedan", name: "Premium sedan", capacity: "1–3 passengers", basePrice: 45 },
+  { id: "sedan", name: "Premium sedan", capacity: "1–4 passengers", basePrice: 45 },
   { id: "suv", name: "Comfort SUV", capacity: "1–5 passengers", basePrice: 45 },
   { id: "van", name: "Private van", capacity: "6–10 passengers", basePrice: 45 },
 ];
