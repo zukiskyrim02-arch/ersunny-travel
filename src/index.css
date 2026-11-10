@@ -1145,6 +1145,21 @@ ul {
   box-shadow: var(--shadow);
 }
 
+.quote-form input[type="number"],
+.booking-form input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+.quote-form input[type="number"]::-webkit-inner-spin-button,
+.quote-form input[type="number"]::-webkit-outer-spin-button,
+.booking-form input[type="number"]::-webkit-inner-spin-button,
+.booking-form input[type="number"]::-webkit-outer-spin-button {
+  margin: 0;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
 /* Minimal quote card on the booking band */
 .quote-band__form .quote-form {
   padding: 1.45rem 1.5rem 1.35rem;
